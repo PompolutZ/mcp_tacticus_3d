@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from 'react'
+import { DEFAULT_LOOK } from '../table/tableStore.js'
 import { useFrameStats } from './FrameStats.jsx'
 import {
   readRenderCounts,
@@ -52,6 +53,22 @@ function Row({ label, title, children }) {
       </span>
       <span>{children}</span>
     </>
+  )
+}
+
+function LightSlider({ label, value, onChange }) {
+  return (
+    <Row label={label}>
+      <input
+        type="range"
+        min="0"
+        max="3"
+        step="0.05"
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />{' '}
+      {value.toFixed(2)}
+    </Row>
   )
 }
 
@@ -142,6 +159,12 @@ export function DebugPanel({
   onToneMappingChange,
   surface,
   onSurfaceChange,
+  ambient,
+  onAmbientChange,
+  corner,
+  onCornerChange,
+  showColliders,
+  onShowCollidersChange,
 }) {
   const stats = useFrameStats()
   return (
@@ -188,6 +211,31 @@ export function DebugPanel({
       <ModeButtons options={RENDER_MODES} value={renderMode} onChange={onRenderModeChange} />
       <ModeButtons options={TONE_MAPPINGS} value={toneMapping} onChange={onToneMappingChange} />
       <ModeButtons options={SURFACES} value={surface} onChange={onSurfaceChange} />
+      <div className="debug-modes">
+        <button
+          type="button"
+          className={`chip${showColliders ? ' chip--active' : ''}`}
+          title="Draw the physics colliders"
+          onClick={() => onShowCollidersChange(!showColliders)}
+        >
+          Colliders
+        </button>
+      </div>
+      <div className="debug-stats">
+        <LightSlider label="Ambient" value={ambient} onChange={onAmbientChange} />
+        <LightSlider label="Corner lights" value={corner} onChange={onCornerChange} />
+        <button
+          type="button"
+          className="chip"
+          title="Ambient and corner lights back to the defaults"
+          onClick={() => {
+            onAmbientChange(DEFAULT_LOOK.ambient)
+            onCornerChange(DEFAULT_LOOK.corner)
+          }}
+        >
+          Reset
+        </button>
+      </div>
       <RenderCounts />
     </div>
   )

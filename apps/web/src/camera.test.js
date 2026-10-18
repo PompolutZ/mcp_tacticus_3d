@@ -10,6 +10,7 @@ import {
   resetView,
   startView,
   stepVelocity,
+  zoomAround,
 } from './camera.js'
 
 test('the ease starts at 0, ends at 1 and is half at the middle', () => {
@@ -165,4 +166,16 @@ test('matrixChanged is true for the first call and for a change, false for the s
   assert.equal(matrixChanged(saved, [1, 2, 3]), false)
   assert.equal(matrixChanged(saved, [1, 2, 4]), true)
   assert.equal(matrixChanged(saved, [1, 2, 4]), false)
+})
+
+test('zoomAround scales camera and target offsets from the point and keeps the target height', () => {
+  const camera = { position: new Vector3(3, 20, 14) }
+  const target = new Vector3(2, 0, 1)
+  const point = new Vector3(6, 0, -4)
+  const cam0 = camera.position.clone().sub(point)
+  const tar0 = target.clone().sub(point)
+  zoomAround(camera, target, point, 0.5)
+  assert.ok(camera.position.clone().sub(point).distanceTo(cam0.multiplyScalar(0.5)) < 1e-9)
+  assert.ok(target.clone().sub(point).distanceTo(tar0.multiplyScalar(0.5)) < 1e-9)
+  assert.equal(target.y, 0)
 })

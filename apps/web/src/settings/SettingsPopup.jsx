@@ -2,8 +2,10 @@ import { Dialog } from '../ui/Dialog.jsx'
 import '../rooms/comicBase.js'
 import './settings.css'
 import {
+  MAX_BRIGHTNESS,
   MAX_SPECTATOR_SIZE,
   MAX_TURN_STEP,
+  MIN_BRIGHTNESS,
   MIN_SPECTATOR_SIZE,
   MIN_TURN_STEP,
   PLACES,
@@ -37,9 +39,9 @@ function ControlsTable({ title, rows }) {
 }
 
 // A row with a slider and its value in a small box. text is the visible label.
-function SliderRow({ text, ariaLabel, value, shown = value, onChange, ...range }) {
+function SliderRow({ text, title, ariaLabel, value, shown = value, onChange, ...range }) {
   return (
-    <label className="settings-row">
+    <label className="settings-row" title={title}>
       <span className="settings-text">{text}</span>
       <span className="settings-choice">
         <input
@@ -133,6 +135,24 @@ export function SettingsPopup({
             value={settings.sound.volume}
             onChange={(volume) => onSettingsChange({ sound: { volume } })}
           />
+        </section>
+        <section className="settings-section">
+          <h3>Light</h3>
+          <SliderRow
+            text="Scene brightness (%)"
+            title="Lights models, terrain, mat and dice. Cards and tokens are not changed."
+            ariaLabel="Scene brightness"
+            min={MIN_BRIGHTNESS}
+            max={MAX_BRIGHTNESS}
+            step="5"
+            value={settings.light.brightness}
+            shown={`${settings.light.brightness}%`}
+            onChange={(brightness) => onSettingsChange({ light: { brightness } })}
+          />
+          <p className="settings-hint">
+            Screens differ. Raise it if the table looks dark on yours. High values can make models
+            look washed out.
+          </p>
         </section>
         <section className="settings-section">
           <h3>Streamer</h3>

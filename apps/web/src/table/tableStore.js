@@ -16,7 +16,7 @@ import {
 // ('standard' | 'matte' | 'unlit'). See FaceMaterial.jsx. The default is Neutral and Unlit (the choice in
 // docs/plans/playtest/playtest-1-bugs.md). Debug mode can switch every option, to compare the look again,
 // see debug/useDebugLook.js and DebugPanel.jsx.
-export const DEFAULT_LOOK = { toneMapping: 'neutral', surface: 'unlit' }
+export const DEFAULT_LOOK = { toneMapping: 'neutral', surface: 'unlit', ambient: 1.5, corner: 0.5 }
 
 // The names of the actions (see createActions). Plain names are one function. The groups are objects of functions.
 const ACTION_NAMES = [

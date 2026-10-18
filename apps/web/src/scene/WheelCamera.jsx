@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { MathUtils, Vector3 } from 'three'
-import { CAMERA_FRAME_PRIORITY, framePart, panOnTable } from '../camera.js'
+import { MathUtils, Plane, Raycaster, Vector2, Vector3 } from 'three'
+import { CAMERA_FRAME_PRIORITY, framePart, panOnTable, zoomAround } from '../camera.js'
 import { getAction, resolve } from '../input/bindings.js'
 
 // One mouse wheel step zooms by this factor, the same step as OrbitControls (0.95 at zoomSpeed 1).
@@ -27,7 +27,12 @@ const TRACKPAD_SMOOTH_TIME = 0.03
 const ZOOM_DONE = 1e-4
 const PAN_DONE = 0.01
 
-const offset = new Vector3()
+const hit = new Vector3()
+const ray = new Raycaster()
+const ndc = new Vector2()
+const plane = new Plane(new Vector3(0, 1, 0))
+// A pointer hit farther than this times maxDistance (near the horizon) zooms to the screen center
+const MAX_HIT_FACTOR = 2
 
 // A browser reports a mouse wheel and a two-finger swipe on a trackpad as the same wheel event. It
 // has no flag for the device. These signs are true for a Mac trackpad and false for a mouse wheel:
@@ -58,7 +63,7 @@ export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn 
   // The same element that OrbitControls listens on
   const element = useThree((state) => state.events.connected || state.gl.domElement)
   // Zoom and pan that the camera has not done yet. zoomTime: smoothing time of the last zoom input.
-  const left = useRef({ zoom: 0, zoomTime: WHEEL_SMOOTH_TIME, panX: 0, panY: 0 })
+  const left = useRef({ zoom: 0, zoomTime: WHEEL_SMOOTH_TIME, panX: 0, panY: 0, px: 0, py: 0 })
 
   function stop() {
     left.current.zoom = 0
@@ -90,11 +95,13 @@ export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn 
       e.preventDefault()
       e.stopPropagation()
       if (e.ctrlKey) {
-        if (controls.enabled)
+        if (controls.enabled) {
+          setPointer(e)
           addZoom(
             MathUtils.clamp(e.deltaY, -MAX_ZOOM_DELTA, MAX_ZOOM_DELTA) * PINCH_RATE,
             TRACKPAD_SMOOTH_TIME,
           )
+        }
       } else if (trackpadGesture) {
         // OrbitControls is off during a piece drag. A swipe does nothing then.
         if (controls.enabled) addPan(e.deltaX, e.deltaY)
@@ -117,9 +124,17 @@ export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn 
       const id = resolve(input, now, bindings)
       const action = id && getAction(id)
       // The view stays still under a dragged piece: OrbitControls is off then, so no zoom
-      if (action?.action === 'zoom' && controls.enabled)
+      if (action?.action === 'zoom' && controls.enabled) {
+        setPointer(e)
         addZoom(-action.dir * WHEEL_ZOOM_STEP, WHEEL_SMOOTH_TIME)
-      else if (action?.action === 'rotate') latest.current.onTurn?.(action.dir)
+      } else if (action?.action === 'rotate') latest.current.onTurn?.(action.dir)
+    }
+
+    // The pointer in NDC, for the zoom toward the pointer
+    function setPointer(e) {
+      const r = element.getBoundingClientRect()
+      left.current.px = ((e.clientX - r.left) / r.width) * 2 - 1
+      left.current.py = -((e.clientY - r.top) / r.height) * 2 + 1
     }
 
     // The zoom that is left stays within the OrbitControls zoom limits. Otherwise zoom input past a
@@ -181,18 +196,23 @@ export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn 
     panOnTable(camera, controls.target, deltaX * inchesPerPixel, -deltaY * inchesPerPixel)
   }
 
-  // Moves the camera toward the orbit target or away from it, within the OrbitControls zoom limits.
+  // Zooms within the OrbitControls zoom limits, keeping the table point under the pointer in place.
+  // The point is found again each frame, because the camera moved. Without a hit (the pointer is above
+  // the horizon, or the ray is near parallel to the table) it zooms around the target.
   // amount: log of the distance factor.
   function zoom(amount) {
-    offset.copy(camera.position).sub(controls.target)
-    offset.setLength(
-      MathUtils.clamp(
-        offset.length() * Math.exp(amount),
-        controls.minDistance,
-        controls.maxDistance,
-      ),
-    )
-    camera.position.copy(controls.target).add(offset)
+    const length = camera.position.distanceTo(controls.target)
+    const f =
+      MathUtils.clamp(length * Math.exp(amount), controls.minDistance, controls.maxDistance) /
+      length
+    plane.constant = -controls.target.y
+    ndc.set(left.current.px, left.current.py)
+    ray.setFromCamera(ndc, camera)
+    const found =
+      Math.abs(ray.ray.direction.y) > 0.02 &&
+      ray.ray.intersectPlane(plane, hit) &&
+      hit.distanceTo(camera.position) < controls.maxDistance * MAX_HIT_FACTOR
+    zoomAround(camera, controls.target, found ? hit : controls.target, f)
   }
 
   return null

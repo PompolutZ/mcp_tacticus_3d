@@ -10,10 +10,13 @@ export function useDebugLook(debug) {
   // Look options of cards and tokens, see DebugPanel and DEFAULT_LOOK in table/tableStore.js
   const [toneMapping, setToneMapping] = useState(DEFAULT_LOOK.toneMapping)
   const [surface, setSurface] = useState(DEFAULT_LOOK.surface)
+  const [ambient, setAmbient] = useState(DEFAULT_LOOK.ambient)
+  const [corner, setCorner] = useState(DEFAULT_LOOK.corner)
   const look = useMemo(
-    () => (debug ? { toneMapping, surface } : DEFAULT_LOOK),
-    [debug, toneMapping, surface],
+    () => (debug ? { toneMapping, surface, ambient, corner } : DEFAULT_LOOK),
+    [debug, toneMapping, surface, ambient, corner],
   )
+  const [showColliders, setShowColliders] = useState(false)
   const mode = debug ? renderMode : 'full'
   const panel = {
     renderMode,
@@ -22,6 +25,12 @@ export function useDebugLook(debug) {
     onToneMappingChange: setToneMapping,
     surface,
     onSurfaceChange: setSurface,
+    ambient,
+    onAmbientChange: setAmbient,
+    corner,
+    onCornerChange: setCorner,
+    showColliders,
+    onShowCollidersChange: setShowColliders,
   }
-  return { mode, look, panel }
+  return { mode, look, showColliders: debug && showColliders, panel }
 }

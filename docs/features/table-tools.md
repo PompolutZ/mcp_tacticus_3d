@@ -106,7 +106,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 - A board strip with no rows is not drawn. A row with no buttons is not drawn.
 - When the rack is in the HUD, a tool does not go back to the rack. The rack is not on the table.
 - The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
-- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ version, tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, spectator: { size }, turn: { step }, labels, rethrowTilted, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100, the spectator size a whole number from 60 to 150 (percent, default 100), the turn step a whole number from 5 to 15 (degrees, default 15), `labels` a boolean (default `false`), `rethrowTilted` a boolean (default `false`, **Re-throw** in the Dice section, see `docs/features/dice-rolling.md`). `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
+- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ version, tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, spectator: { size }, turn: { step }, light: { brightness }, labels, rethrowTilted, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100, the spectator size a whole number from 60 to 150 (percent, default 100), the turn step a whole number from 5 to 15 (degrees, default 15), the brightness a whole number from 50 to 150 (percent, default 100), `labels` a boolean (default `false`), `rethrowTilted` a boolean (default `false`, **Re-throw** in the Dice section, see `docs/features/dice-rolling.md`). `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
 
 ### Debug
 
@@ -119,6 +119,10 @@ A label hides while terrain is between the camera and the label. This covers eve
 ### Sound
 
 A **Sound** section has a volume slider, 0 to 100, default 10. 0 is off. See `sounds.md`.
+
+### Light
+
+A **Light** section has a "Scene brightness" slider in percent, with the value shown. Screens differ, so one slider scales all scene lights together and keeps their balance. It lights models, terrain, the mat and dice. Cards and tokens are unlit, so they do not change. The range and default are in `src/settings/settings.js`. The base light values are in `src/table/tableStore.js` (`DEFAULT_LOOK`), applied in `src/scene/SceneShared.jsx`.
 
 ### Streamer
 

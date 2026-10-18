@@ -28,6 +28,11 @@ const DEFAULT_TURN_STEP = 15
 export const MIN_TURN_STEP = 5
 export const MAX_TURN_STEP = 15
 
+// Brightness of the scene lights in percent (docs/features/table-tools.md, "Settings menu")
+const DEFAULT_BRIGHTNESS = 100
+export const MIN_BRIGHTNESS = 50
+export const MAX_BRIGHTNESS = 150
+
 export function defaultSettings() {
   return {
     version: VERSION,
@@ -37,6 +42,7 @@ export function defaultSettings() {
     sound: { volume: DEFAULT_VOLUME },
     spectator: { size: DEFAULT_SPECTATOR_SIZE },
     turn: { step: DEFAULT_TURN_STEP },
+    light: { brightness: DEFAULT_BRIGHTNESS },
     // Terrain labels (piece name and game Size) above every piece. The piece under the pointer always has one.
     labels: false,
     // Dice: a die that rests tilted (or does not rest in 8 s) is thrown again. Off: it reads the face nearest to up
@@ -85,6 +91,11 @@ function normalize(raw) {
   const step = raw?.turn?.step
   if (Number.isFinite(step))
     settings.turn.step = Math.round(Math.min(MAX_TURN_STEP, Math.max(MIN_TURN_STEP, step)))
+  const brightness = raw?.light?.brightness
+  if (Number.isFinite(brightness))
+    settings.light.brightness = Math.round(
+      Math.min(MAX_BRIGHTNESS, Math.max(MIN_BRIGHTNESS, brightness)),
+    )
   settings.labels = raw?.labels === true
   settings.rethrowTilted = raw?.rethrowTilted === true
   settings.bindings = normalizeBindings(raw?.bindings)

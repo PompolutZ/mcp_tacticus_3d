@@ -28,10 +28,10 @@ The users of the app are active TTS players. They already know the TTS controls.
 | Right click on a piece | Context menu. While holding a piece: tap it | Nothing. The piece handlers take only the left button, so a right drag on a piece turns the camera | No |
 | Middle drag | Pan | Pan | Yes |
 | Middle click | Zoom to the pointer, click again to zoom back. On a piece: flip | Nothing | No |
-| Scroll wheel | Zoom. While holding a piece: rotate it | Zoom. While dragging a piece: turn it one turn step (15° by default, see Settings), as Q / E do (wheel up left, wheel down right, picked by look) | Yes |
+| Scroll wheel | Zoom. While holding a piece: rotate it | Zoom toward the pointer. While dragging a piece: turn it one turn step (15° by default, see Settings), as Q / E do (wheel up left, wheel down right, picked by look) | Yes |
 | Shift, Ctrl or Cmd + left or right drag | Not in the sources | Pan | — |
 | Two-finger swipe on a trackpad | Not in the sources | Pan | — |
-| Pinch on a trackpad, or Ctrl + scroll | Not in the sources | Zoom | — |
+| Pinch on a trackpad, or Ctrl + scroll | Not in the sources | Zoom toward the pointer | — |
 
 The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/camera.js`. Left drag still turns the camera, because the app has no box select and a trackpad has no easy right drag.
 
@@ -42,6 +42,8 @@ The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/camera.js`. Left drag s
 The mouse wheel and the trackpad gestures are in `src/scene/WheelCamera.jsx`. OrbitControls gets no wheel event. It still zooms on a touch screen. The browser reports a mouse wheel and a two-finger swipe as the same wheel event, with no flag for the device. Therefore the app guesses from the deltas. The rules are for a Mac. A Mac trackpad sends whole pixels and starts a swipe with small steps. A Mac mouse wheel sends steps of 4.000244 px or more. A mouse that scrolls smoothly (the Magic Mouse, some Logitech mice) can count as a trackpad, so it pans. Then Ctrl + scroll zooms. A pinch is a wheel event with `ctrlKey` set in Chrome, Firefox and Safari.
 
 A mouse wheel step is a bindable input, `WheelUp` or `WheelDown`, with the Shift, Alt and Cmd flags of the event. Shift + wheel reads `deltaX` when `deltaY` is 0. A trackpad swipe, a pinch and Ctrl + wheel are not bindable. The defaults: `anywhere` zooms; `dragging` turns the dragged piece, as Q / E do. During a drag the wheel turns the piece, so a zoom binding does nothing then.
+
+The wheel zoom and the pinch keep the table point under the pointer in place. When the pointer is not over the table plane (above the horizon), it zooms to the screen center.
 
 Wheel input is smoothed. A wheel event does not move the camera at once. Each frame, the camera does a part of the zoom or pan that is left: `1 − e^(−dt / time)`. So the speed is the same at every frame rate. The time is 0.08 s for a mouse wheel step and 0.03 s for a trackpad swipe or pinch. Both are picked by look. One mouse wheel step zooms 5%, the same step as OrbitControls. Before 2026-10-02 the wheel zoom was OrbitControls, which jumps the whole step in one frame, and a tester said that zoom felt choppier than in TTS. Space ends the zoom and pan that are left.
 

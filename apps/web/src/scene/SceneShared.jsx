@@ -6,6 +6,7 @@ import { useColorTexture } from './useColorTexture.js'
 import { matImageUrl } from '../terrain/urls.js'
 import { assetUrl } from '../assets/index.js'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
+import { DEFAULT_LOOK } from '../table/tableStore.js'
 import { FRICTION } from '../physics.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 
@@ -47,11 +48,41 @@ export function Backdrop() {
   return <primitive object={image} attach="background" />
 }
 
-// The lights of the table: ambient, the shadow light and the HDR.
-export function SceneLights() {
+// Corner lights: one from each table corner at 35° above the table, no shadow. They light the sides of
+// models and terrain from 4 sides. Directional, so the table center gets the same light as the corners.
+// The intensities (DEFAULT_LOOK) were picked live with the Debug sliders (DebugPanel). The sliders stay
+// for later tuning. At 0 the lights are not rendered.
+const CORNER_ELEVATION = (35 * Math.PI) / 180
+const CORNER_LIGHTS = [
+  [-1, -1],
+  [1, -1],
+  [-1, 1],
+  [1, 1],
+].map(([sx, sz]) => {
+  const x = (sx * TABLE_WIDTH) / 2
+  const z = (sz * TABLE_DEPTH) / 2
+  const y = Math.hypot(x, z) * Math.tan(CORNER_ELEVATION)
+  return [x, y, z]
+})
+
+// The lights of the table: ambient, optional corner lights, the shadow light and the HDR.
+// brightness: one factor for every light (the Brightness setting), ambient and corner are the base values.
+export function SceneLights({
+  ambient = DEFAULT_LOOK.ambient,
+  corner = DEFAULT_LOOK.corner,
+  brightness = 1,
+}) {
   return (
     <>
-      <ambientLight intensity={0.85} />
+      <ambientLight intensity={ambient * brightness} />
+      {corner > 0 &&
+        CORNER_LIGHTS.map((position) => (
+          <directionalLight
+            key={position.join()}
+            position={position}
+            intensity={corner * brightness}
+          />
+        ))}
       {/* The shadow camera looks from the light to the origin, so its x axis runs along the world
           diagonal (x − z), not along world x. The bounds are the mat and both dice trays measured in
           that camera's space: the mat needs x ±25.5, y −23 to 24.7, and the trays reach x = 37.1 and
@@ -59,7 +90,7 @@ export function SceneLights() {
           (64" / 3072 ≈ 40" / 2048). */}
       <directionalLight
         position={[10, 30, 10]}
-        intensity={0.8}
+        intensity={0.8 * brightness}
         castShadow
         shadow-mapSize={[3072, 3072]}
         shadow-camera-near={1}
@@ -78,10 +109,14 @@ export function SceneLights() {
           (about sRGB 110 instead of 134, calculated, see docs/plans/playtest/playtest-1-bugs.md). A total of 1.21 (HDR 0.5, directional 1.2, ambient 0.6)
           looked like a strong lamp. Most HDR light comes from above, so it makes tops much brighter than
           sides. Ambient is the same from every side, so part of the light moved from the HDR to ambient.
-          Now a face up gets 0.41 + 0.23 + 0.27 = 0.91, and a side face 0.38–0.55. */}
+          Testers said many things looked very dark, so ambient is 1.5 and the corner lights add light to
+          the sides. Now a face up gets 0.41 + 0.23 + 0.48 = 1.12, plus the corner lights. */}
       {/* The HDR only lights the scene. backgroundIntensity is not set: drei applies it to the scene,
           and 0 would darken the Backdrop image. */}
-      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} environmentIntensity={0.3} />
+      <Environment
+        files={assetUrl('hdri/potsdamer_platz_1k.hdr')}
+        environmentIntensity={0.3 * brightness}
+      />
     </>
   )
 }

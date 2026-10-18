@@ -1,6 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { VERSION, defaultSettings, readSettings, writeSettings } from './settings.js'
+import {
+  MAX_BRIGHTNESS,
+  MIN_BRIGHTNESS,
+  VERSION,
+  defaultSettings,
+  readSettings,
+  writeSettings,
+} from './settings.js'
 
 const KEY = 'mcp-assist-3d/settings'
 
@@ -266,4 +273,22 @@ test('turn step: default 15, clamped to 5-15, rounded, junk is the default', () 
   assert.equal(read({ step: 7.6 }), 8)
   assert.equal(read({ step: 'big' }), 15)
   assert.equal(read(undefined), 15)
+})
+
+test('scene brightness: default 100, clamped into range, rounded, junk is the default', () => {
+  const fallback = defaultSettings().light.brightness
+  const read = (light) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, light }))
+    let brightness
+    withStorage(storage, () => {
+      brightness = readSettings().light.brightness
+    })
+    return brightness
+  }
+  assert.equal(read({ brightness: 1 }), MIN_BRIGHTNESS)
+  assert.equal(read({ brightness: 1000 }), MAX_BRIGHTNESS)
+  assert.equal(read({ brightness: 80.4 }), 80)
+  assert.equal(read({ brightness: 'bright' }), fallback)
+  assert.equal(read(undefined), fallback)
 })

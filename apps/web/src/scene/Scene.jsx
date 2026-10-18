@@ -229,6 +229,9 @@ function Scene(props) {
   const playedSides = useTableStore((s) => s.playedSides)
   const spectator = useTableStore((s) => s.spectator)
   const showColliders = useTableStore((s) => s.showColliders)
+  const brightness = useTableStore((s) => s.settings.light.brightness) / 100
+  const ambient = useTableStore((s) => s.look.ambient)
+  const corner = useTableStore((s) => s.look.corner)
   const turnStep = useTableStore((s) => s.settings.turn.step)
   // The net objects and the doc slices that only Scene and its leaves read (table/tableStore.js)
   const table = useTableStore((s) => s.table)
@@ -688,7 +691,7 @@ function Scene(props) {
         <Backdrop />
       </Suspense>
 
-      <SceneLights />
+      <SceneLights ambient={ambient} corner={corner} brightness={brightness} />
 
       <LabelOcclusionProvider registry={labelRegistry}>
         <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>

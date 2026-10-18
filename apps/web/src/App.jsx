@@ -648,12 +648,12 @@ export default function App({
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
-  const { mode, look, panel: debugPanel } = useDebugLook(debug)
+  const { mode, look, showColliders, panel: debugPanel } = useDebugLook(debug)
   // The settings slice of the store, a layout effect for the same reason as the seat slice
   const showLabels = settings.labels
   useLayoutEffect(() => {
-    store.setState({ settings, bindings, debugOn, showLabels, showColliders: debug, look })
-  }, [store, settings, bindings, debugOn, showLabels, debug, look])
+    store.setState({ settings, bindings, debugOn, showLabels, showColliders, look })
+  }, [store, settings, bindings, debugOn, showLabels, showColliders, look])
 
   // Delete key: the handler for each kind of deleteTarget (hover.js)
   const deleteHandlers = {

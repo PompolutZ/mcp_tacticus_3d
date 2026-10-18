@@ -133,3 +133,11 @@ export function matrixChanged(saved, elements) {
   }
   return changed
 }
+
+// Zooms by factor around a table point: the camera and the target move toward the point (or away from
+// it) by factor. The view angle stays, the point stays under the same screen position, and the target
+// stays at its height when the point is at that height.
+export function zoomAround(camera, target, point, factor) {
+  camera.position.sub(point).multiplyScalar(factor).add(point)
+  target.sub(point).multiplyScalar(factor).add(point)
+}
