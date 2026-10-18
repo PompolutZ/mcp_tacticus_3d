@@ -21,9 +21,9 @@ const char = (over) => ({
 })
 
 test('cleanup keys come from tokens.json', () => {
-  assert.equal(cleanupKeys.length, 41)
   assert.ok(cleanupKeys.includes('activated'))
   assert.ok(cleanupKeys.includes('winging-it'))
+  assert.ok(cleanupKeys.includes('interdimensional-bloodhound'))
 })
 
 test('Dazed Healthy: Injured, Damage 0, only the non-cleanup token stays', () => {

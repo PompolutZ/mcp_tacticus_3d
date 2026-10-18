@@ -187,13 +187,17 @@ function tokenSize(row) {
   return row.tSize * 2
 }
 
+// Fixes for the mod's cleanup flag (key -> flag). The mod misses the flag on the Bloodhound; Jarvis text for Lockjaw
+// says "this round".
+const CLEANUP_FIXES = { 'interdimensional-bloodhound': true }
+
 // Entry of src/tokens/tokens.json. size, description, cleanup and collect are left out when the mod row has none (size:
 // when it is the default), the same way as the optional fields of src/crisis/cards.json.
 function tokenEntry(row, key) {
   const entry = { name: row.name, group: group(row) }
   if (tokenSize(row) !== DEFAULT_SIZE) entry.size = tokenSize(row)
   if (row.tDescr) entry.description = row.tDescr
-  if (row.cleanup) entry.cleanup = true
+  if (CLEANUP_FIXES[key] ?? row.cleanup) entry.cleanup = true
   if (COLLECT_KEYS.includes(key)) entry.collect = true
   return entry
 }

@@ -103,7 +103,7 @@ Found in the mod scripts (`autoCleanup` in "Red Tray Spawner", "UI Controller", 
 ### Facts in the app
 
 - A character's tokens are `ch.tokens` (key → count). Dazed is `dazed`, Activated is `activated`. The 10 special conditions are `SPECIAL_CONDITIONS` in `src/characters/immunity.js`.
-- `src/tokens/tokens.json` has `cleanup: true` from the mod. 41 tokens have it: Activated, 5 character tokens (Degeneration, Expert Tracker, StarHerb, Winging It, X-Gene) and 35 Team Tactic tokens (for example Mystic Ward, Rocket Boots, Target). No special condition and no affiliation token has it.
+- `src/tokens/tokens.json` has `cleanup: true` from the mod, plus fixes in `scripts/migrate-tokens.mjs` (`CLEANUP_FIXES`). The tokens are Activated, some character tokens (Degeneration, Expert Tracker, StarHerb, Winging It, X-Gene) and the Team Tactic tokens (for example Mystic Ward, Rocket Boots, Target). The fix adds InterDimensional Bloodhound (Lockjaw): the mod misses the flag, but the Jarvis text says "this round". No special condition and no affiliation token has it.
 - Loose tokens on the table are `looseTokens` (`{ id, key, x, z }`). Piles are separate and never run out.
 - Crisis tokens are `tokens` in `App.jsx`. A Source has `flipOnly` in `src/crisis/cards.json`, front `extract-unexhausted-source`, back `extract-exhausted-source`. A supply token has the `supply` key of its card as `frontKey` (`extract-source-asset` or `extract-source-civilian`). A character holds a token when `heldBy` is its id.
 - The round marker is `scoreMarkers.round`. `ROUND_POINTS` in `src/scoreboard/board.js` has the 6 round spots, and `snapPoint` finds the spot under a marker.
