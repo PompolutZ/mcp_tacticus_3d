@@ -1,6 +1,6 @@
 # Plan: Render performance
 
-Requested by the user on 2026-10-18. Status: step 3 built and tested by the user; step 7 built, not committed; the other steps wait for the user's decision. Branch `render-performance`, worktree `../mcp_assist_3d-render-performance`, from main.
+Requested by the user on 2026-10-18. Status: steps 3 and 7 done, merged after the user OK on 2026-10-19. Steps 1, 2, 4, 5, 6 not started; they wait for the user's decision and run in a new branch.
 
 Each step makes one commit and writes its **Result** below. Paths are under `apps/web/` unless they start with `docs/`.
 
