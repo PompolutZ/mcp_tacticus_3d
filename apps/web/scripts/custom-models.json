@@ -5,6 +5,9 @@
   "bastion": {
     "characters/bastion/model.glb": "pnpm --filter web photos-to-glb \"<Bastion 2nd photos>\" --base small --texture 1024 --tone medium"
   },
+  "gamora": {
+    "characters/gamora/model.glb": "pnpm --filter web photos-to-glb \"<Gamora photos>\" --base small --texture 1024 --tone medium --triangles 60000"
+  },
   "hawkeye": {
     "characters/hawkeye/model.glb": "pnpm --filter web photos-to-glb \"<Hawkeye photos>\" --base small --texture 1024 --tone medium --triangles 60000"
   },
@@ -19,6 +22,9 @@
   },
   "quasar": {
     "characters/quasar/model.glb": "pnpm --filter web photos-to-glb \"<Quasar photos>\" --base medium --texture 1024 --tone medium"
+  },
+  "rocket-raccoon": {
+    "characters/rocket-raccoon/model.glb": "pnpm --filter web photos-to-glb \"<Rocket Raccoon photos>\" --base small --texture 1024 --tone medium --triangles 60000"
   },
   "star-lord": {
     "characters/star-lord/model.glb": "pnpm --filter web photos-to-glb \"<Star-Lord photos>\" --base small --texture 1024"
