@@ -134,10 +134,11 @@ Object Capture does not know the front of the object, so a scan comes out turned
 What the app does with a model, traced in the code:
 
 - **Body turn at spawn.** A model that spawns on its tray card gets a body turn by team: host 0, guest 180°. `modelSpawnYaw` in `src/characters/models.js` sets it (`Scene.jsx` passes it as the start rotation). With it, both teams face the board: the host sits at +z and the guest at -z (`src/setup/setup.js`).
-- **Figure turn.** The figure (the GLB) is also turned on its body by 180° minus `rotation` of the character in `src/characters/characters.json` (`modelFigureYaw`). This is the TTS `cModelRot`, which the TTS models need because each bundle has its own front. It applies to a scan too.
-- **Front of the model file.** The local direction of the GLB that faces the board is the one that the figure turn takes to the board. For `rotation` 0 it is local +z. For another `rotation` r (degrees), it is the direction (sin r, 0, cos r) in the x-z plane, for both teams. So the front of a scan depends on the `rotation` of its character.
+- **Figure turn of a TTS model.** The figure (the GLB) is also turned on its body by 180° minus `rotation` of the character in `src/characters/characters.json` (`modelFigureYaw`). This is the TTS `cModelRot`, which the TTS models need because each bundle has its own front.
+- **Figure turn of a scan.** A scan skips `rotation`: `modelFigureYaw` gives it the fixed turn `SCAN_FIGURE_YAW`. `rotation` was set for the TTS mesh, and the turn of a scan is random, so one number per character would only repeat what `turn-model` does. A scan is a file listed in `scripts/custom-models.json` (`isScanFile`, the same list that the scripts read). The second model, transform and constructs of a character are TTS files and keep `rotation`.
+- **Front of the model file.** For a scan the front is local +z of the GLB, for host and guest. A TTS model has the front (sin r, 0, cos r) in the x-z plane, with `rotation` r (degrees).
 
-Turn the file so that this direction is the front of the figure. The turn does not change the game code.
+Turn the file so that local +z is the front of the figure. `turn-model` alone sets which way a scan faces. The `#models` page shows the front and the angle, see [Model viewer](model-viewer.md).
 
 ```bash
 pnpm --filter web turn-model gamora 90                       # a character of scripts/custom-models.json

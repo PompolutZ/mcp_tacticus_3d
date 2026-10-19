@@ -7,11 +7,12 @@ import {
   modelCharacterId,
   modelCardFile,
   modelFigureYaw,
+  SCAN_FIGURE_YAW,
   modelSpawnYaw,
   removalOf,
   yawQuaternion,
 } from './models.js'
-import { characterCard, characterConstruct, transformCard } from './files.js'
+import { characterCard, characterConstruct, characterModel, transformCard } from './files.js'
 
 const ch = { id: 'c1', key: 'hulk', figure: 'model', base: 'medium', rotation: 0 }
 const two = { ...ch, transform: { figure: 'model', card: true } }
@@ -121,4 +122,38 @@ test('removalOf: a grunt alone, or an unknown id, removes nothing', () => {
   const grunt = { ...ch, id: 'g1', host: 'h' }
   assert.deepEqual(removalOf([host, grunt], 'g1'), { characters: [], models: [] })
   assert.deepEqual(removalOf([host, grunt], 'zz'), { characters: [], models: [] })
+})
+
+// World direction (x, z) of the local +z of a model on the table: turn of the figure, then the body turn of its team
+const frontOf = (model, team) => {
+  const yaw = modelFigureYaw(model) + modelSpawnYaw(team)
+  return [Math.sin(yaw), Math.cos(yaw)]
+}
+
+test('a scan ignores rotation: its local +z faces the board for host and guest', () => {
+  const scan = {
+    figure: 'model',
+    rotation: 90,
+    character: { key: 'gamora' },
+    file: characterModel('gamora'),
+  }
+  assert.equal(modelFigureYaw(scan), SCAN_FIGURE_YAW)
+  // The host sits at +z and faces -z, the guest at -z and faces +z
+  const host = frontOf(scan, 'host')
+  const guest = frontOf(scan, 'guest')
+  assert.ok(Math.abs(host[0]) < 1e-9 && Math.abs(host[1] + 1) < 1e-9)
+  assert.ok(Math.abs(guest[0]) < 1e-9 && Math.abs(guest[1] - 1) < 1e-9)
+})
+
+test('a TTS model keeps its rotation, also when a scan of another character exists', () => {
+  const tts = {
+    figure: 'model',
+    rotation: 90,
+    character: { key: 'hulk' },
+    file: characterModel('hulk'),
+  }
+  assert.ok(Math.abs(modelFigureYaw(tts) - Math.PI / 2) < 1e-9)
+  // The transform file of a scanned character is a TTS file
+  const second = { ...tts, character: { key: 'gamora' }, file: 'characters/gamora/transform.glb' }
+  assert.ok(Math.abs(modelFigureYaw(second) - Math.PI / 2) < 1e-9)
 })

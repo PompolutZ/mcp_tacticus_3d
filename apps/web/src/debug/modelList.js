@@ -11,7 +11,7 @@ function kindLabel(kind, n) {
 }
 
 // candidates: { '/model-candidates/x.glb': url }. assets: [[path relative to src/assets, url]]. names: { key: name }
-// (characters.json). Returns [{ id, group: 'candidate' | 'game', name, url }] in name order: candidates by file
+// (characters.json). Returns [{ id, group: 'candidate' | 'game', name, url, key?, kind? }] in name order (key and kind: game rows, 'model' | 'transform' | 'construct'): candidates by file
 // name, then game models by name. A game row has the character name, and the kind when the file is not model.glb.
 export function buildModelList({ candidates, assets, names }) {
   const candidateRows = Object.entries(candidates)
@@ -32,7 +32,14 @@ export function buildModelList({ candidates, assets, names }) {
     const [, key, kind, n] = m
     const label = kindLabel(kind, n ? Number(n) : 0)
     const name = names[key]?.name ?? key
-    gameRows.push({ id: path, group: 'game', name: label ? `${name} (${label})` : name, url })
+    gameRows.push({
+      id: path,
+      group: 'game',
+      key,
+      kind,
+      name: label ? `${name} (${label})` : name,
+      url,
+    })
   }
   gameRows.sort((a, b) => a.name.localeCompare(b.name))
   return [...candidateRows, ...gameRows]

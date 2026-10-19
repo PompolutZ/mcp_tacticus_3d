@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
-import { OrbitControls, useGLTF } from '@react-three/drei'
+import { Html, OrbitControls, useGLTF } from '@react-three/drei'
 import { Box3, Vector3 } from 'three'
 import { Physics } from '@react-three/rapier'
 import { TONE_MAPPINGS } from '../scene/SelectionOutlines.jsx'
@@ -11,6 +11,9 @@ import { assetEntries } from '../assets/index.js'
 import { COLOR_HEX } from '../sideColors.js'
 import { CAMERA_MOUSE_BUTTONS } from '../camera.js'
 import characters from '../characters/characters.json'
+import { isScanFile, modelFigureYaw, modelSpawnYaw } from '../characters/models.js'
+import { DEG } from '../camera.js'
+import { normalizeAngle } from '../../scripts/lib/turn-model.mjs'
 import { buildModelList, filterModels, sortBySize } from './modelList.js'
 
 // Dev-only page (#models, see Root.jsx): the models of the game and the candidates in model-candidates/, one at
@@ -34,6 +37,31 @@ const GL = { antialias: false, toneMapping: TONE_MAPPINGS[DEFAULT_LOOK.toneMappi
 const BASE_COLOR = COLOR_HEX.blue
 const CAMERA = { position: [0, 4, 8], fov: 40 }
 const INCH_MM = 25.4
+const TURN_STEP = 45
+const ARROW_LENGTH = 3.5
+const ARROW_COLOR = '#ffd54a'
+
+// The model of a row as the game would spawn it, for modelFigureYaw: the same rule as the table. A candidate
+// has rotation 0, which is the same front as a scan.
+function gameModelOf(row) {
+  if (row.group === 'candidate')
+    return { figure: 'model', rotation: 0, character: { key: row.id }, file: row.id }
+  const rotation = row.kind === 'construct' ? 0 : (characters[row.key]?.rotation ?? 0)
+  return { figure: 'model', rotation, character: { key: row.key }, file: row.id }
+}
+
+// Turn of the figure on the table (radians) with the host body turn, so the model stands as a host figure
+// does: the front faces the board, the direction -z.
+function tableYaw(row) {
+  return modelFigureYaw(gameModelOf(row)) + modelSpawnYaw('host')
+}
+
+// What the turn-model command takes for a row, or null when it cannot turn the row: a candidate path (relative
+// to apps/web), or the character key of a scan. A TTS model is not turned (the migration would overwrite it).
+function turnTarget(row) {
+  if (row.group === 'candidate') return row.id.replace(/^\//, '')
+  return row.kind === 'model' && isScanFile(row.key, row.id) ? row.key : null
+}
 
 // Triangles, size in inches and texture sizes of a scene
 function measure(scene) {
@@ -59,7 +87,7 @@ function measure(scene) {
 
 // The model of `url`, with its own copy of the scene (the useGLTF cache stays as the game uses it). Reports the
 // stats and puts the camera so that the whole model shows.
-function Model({ url, onStats }) {
+function Model({ url, yaw, turn, onStats }) {
   const { scene: source } = useGLTF(url)
   const scene = useMemo(() => {
     const copy = source.clone()
@@ -74,15 +102,41 @@ function Model({ url, onStats }) {
     const size = box.getSize(new Vector3())
     onStats({ triangles, textures, sizeMm: size.toArray().map((v) => v * INCH_MM) })
     if (!controls) return
-    const center = box.getCenter(new Vector3())
+    const center = box.getCenter(new Vector3()).applyAxisAngle(new Vector3(0, 1, 0), yaw)
     const radius = Math.max(size.length() / 2, 0.1)
     const distance = (radius / Math.sin((camera.fov * Math.PI) / 360)) * 1.1
     camera.position.copy(center).addScaledVector(new Vector3(0.5, 0.4, 1).normalize(), distance)
     controls.target.copy(center)
     controls.update()
-  }, [scene, controls, camera, onStats])
+  }, [scene, yaw, controls, camera, onStats])
 
-  return <primitive object={scene} />
+  // The figure turn of the table outside, the turn of the file inside: turn-model turns the file, then the game turns the figure
+  return (
+    <group rotation={[0, yaw, 0]}>
+      <group rotation={[0, turn * DEG, 0]}>
+        <primitive object={scene} />
+      </group>
+    </group>
+  )
+}
+
+// Arrow flat on the table from the base center to the board (-z, where the host faces). The group turns the local +y to -z.
+function BoardArrow() {
+  return (
+    <group position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, (ARROW_LENGTH - 0.5) / 2, 0]}>
+        <boxGeometry args={[0.1, ARROW_LENGTH - 0.5, 0.02]} />
+        <meshBasicMaterial color={ARROW_COLOR} />
+      </mesh>
+      <mesh position={[0, ARROW_LENGTH - 0.25, 0]}>
+        <coneGeometry args={[0.25, 0.5, 16]} />
+        <meshBasicMaterial color={ARROW_COLOR} />
+      </mesh>
+      <Html position={[0, ARROW_LENGTH + 0.3, 0]} center>
+        <span className="models-arrow-label">board</span>
+      </Html>
+    </group>
+  )
 }
 
 // The file sizes in bytes of `urls`, { [url]: bytes }, from HEAD requests (Content-Length). A url that is not
@@ -108,7 +162,7 @@ function useFileSizes(urls) {
 const formatKb = (bytes) =>
   bytes === undefined ? '...' : `${Math.round(bytes / 1024).toLocaleString('en-US')} KB`
 
-function Stats({ stats, bytes }) {
+function Stats({ stats, bytes, turn, target }) {
   if (!stats) return null
   const [w, d, h] = stats.sizeMm.map((v) => v.toFixed(1))
   return (
@@ -121,6 +175,20 @@ function Stats({ stats, bytes }) {
       <dd>{formatKb(bytes)}</dd>
       <dt>Textures</dt>
       <dd>{stats.textures.length ? stats.textures.join(', ') : 'none'}</dd>
+      {turn !== 0 && (
+        <>
+          <dt>Turn</dt>
+          <dd>{`${turn}°`}</dd>
+          {target && (
+            <>
+              <dt>Apply</dt>
+              <dd>
+                <code>{`pnpm --filter web turn-model ${target} ${turn}`}</code>
+              </dd>
+            </>
+          )}
+        </>
+      )}
     </dl>
   )
 }
@@ -129,12 +197,14 @@ export default function ModelsPage() {
   const [filter, setFilter] = useState('')
   const [selected, setSelected] = useState(LIST[0] ?? null)
   const [stats, setStats] = useState(null)
+  const [turn, setTurn] = useState(0)
   const sizes = useFileSizes(URLS)
   const sorted = useMemo(() => sortBySize(LIST, sizes), [sizes])
   const rows = useMemo(() => filterModels(sorted, filter), [sorted, filter])
 
   function select(row) {
     setStats(null)
+    setTurn(0)
     setSelected(row)
   }
 
@@ -181,7 +251,16 @@ export default function ModelsPage() {
               </Physics>
             </Suspense>
             <Suspense fallback={null}>
-              {selected && <Model key={selected.id} url={selected.url} onStats={setStats} />}
+              {selected && (
+                <Model
+                  key={selected.id}
+                  url={selected.url}
+                  yaw={tableYaw(selected)}
+                  turn={turn}
+                  onStats={setStats}
+                />
+              )}
+              <BoardArrow />
             </Suspense>
             <OrbitControls
               makeDefault
@@ -192,7 +271,31 @@ export default function ModelsPage() {
             />
           </Canvas>
         </div>
-        <Stats stats={stats} bytes={sizes[selected?.url]} />
+        <div className="models-turn">
+          <button
+            type="button"
+            className="chip"
+            onClick={() => setTurn((t) => normalizeAngle(t + TURN_STEP))}
+          >
+            ⟲ {TURN_STEP}°
+          </button>
+          <button
+            type="button"
+            className="chip"
+            onClick={() => setTurn((t) => normalizeAngle(t - TURN_STEP))}
+          >
+            ⟳ {TURN_STEP}°
+          </button>
+          <button type="button" className="chip" onClick={() => setTurn(0)}>
+            Reset
+          </button>
+        </div>
+        <Stats
+          stats={stats}
+          bytes={sizes[selected?.url]}
+          turn={turn}
+          target={selected && turnTarget(selected)}
+        />
       </div>
     </div>
   )

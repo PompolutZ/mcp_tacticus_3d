@@ -1218,6 +1218,25 @@ body {
   margin: 0;
 }
 
+.models-turn {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.models-arrow-label {
+  color: #ffd54a;
+  font-size: 13px;
+  text-shadow: 0 0 3px #000;
+  pointer-events: none;
+}
+
+.models-stats code {
+  user-select: all;
+}
+
 .terrain-empty {
   margin: 8px 0;
   color: var(--muted);

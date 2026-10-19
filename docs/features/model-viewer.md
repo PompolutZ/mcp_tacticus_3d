@@ -11,6 +11,9 @@ A dev page that shows one 3D model at a time, with the stats of the model. It an
 - A click on a row shows the model. The camera moves so that the whole model shows. Mouse buttons are the same as at the table. No keys, no physics, no drag of the model.
 - The scene has the table, the backdrop and the lights of the game (`src/scene/SceneShared.jsx`), so the model looks as it does in a room. The page uses the tone mapping of the table, so a model looks as bright as in the game.
 - The base (the material `defaultMat`) has one fixed side color. The code that sets it is the one of the figures at the table (`styleFigure` in `src/characters/useFigureMaterials.jsx`). The model is a copy, so the models of the game are not changed.
+- A yellow arrow on the table goes from the base center to the board, with the label "board". The model stands as a host figure does at the table: the figure turn of the game (`modelFigureYaw`, `src/characters/models.js`) and the host body turn. A scan, and a candidate, has its local +z as the front, so the arrow shows which way a scan faces. A TTS model shows the front its `rotation` gives.
+- Buttons "⟲ 45°" and "⟳ 45°" turn the model, "Reset" sets the turn to 0. ⟲ is counterclockwise seen from above, the positive angle of `turn-model`. Each model starts at 0. The turn is on the copy on the page only, like the base color.
+- When the turn is not 0, the stats show it (in -180..180) and the command that applies it, for example `pnpm --filter web turn-model gamora 90`. A candidate shows its path, for example `model-candidates/hulk.glb`. A TTS model has no command: `turn-model` does not turn it. See [Custom models](custom-models.md#front).
 
 ## Game models
 

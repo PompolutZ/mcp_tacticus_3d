@@ -11,6 +11,8 @@ import {
   transformStandee,
 } from './files.js'
 import { DEG } from '../camera.js'
+import customModels from '../../scripts/custom-models.json' with { type: 'json' }
+import { isCustomModel } from '../../scripts/lib/custom-models.mjs'
 
 // The first model has the character's own id, so code that knows only the character (hold and
 // drop, the tray card) finds that model. The second model's id adds this suffix.
@@ -128,11 +130,24 @@ export function modelSpawnYaw(team) {
   return -(((TRAY_ROTATION[team] + 180) % 360) * DEG) + 0
 }
 
+// True when `file` (relative to src/assets) of character `key` is a scan: it is in scripts/custom-models.json,
+// the same list that migrate-characters.mjs and turn-model.mjs read.
+export function isScanFile(key, file) {
+  return isCustomModel(customModels, key, file)
+}
+
+// Figure turn of a scan (radians around Y): the 180 deg import turn only, so the local +z of the GLB is the
+// front and faces the board for both teams. See docs/features/custom-models.md, "Front".
+export const SCAN_FIGURE_YAW = Math.PI
+
 // Turn of the figure on its body (radians around Y), the model part of the TTS spawn turn: cModelRot
 // (model.rotation) as -r, and the 180 deg import turn of a mod GLB (Terrain.jsx, IMPORT_ROTATION; the
-// character GLBs come from the same AssetRipper bundles). A standee has none.
+// character GLBs come from the same AssetRipper bundles). A standee has none. A scan skips cModelRot:
+// it was set for the TTS mesh, and a scan's turn is set by turn-model instead.
 export function modelFigureYaw(model) {
-  return model.figure === 'standee' ? 0 : Math.PI - model.rotation * DEG
+  if (model.figure === 'standee') return 0
+  if (model.character && isScanFile(model.character.key, model.file)) return SCAN_FIGURE_YAW
+  return Math.PI - model.rotation * DEG
 }
 
 // Quaternion { x, y, z, w } of a turn around Y by `yaw` radians

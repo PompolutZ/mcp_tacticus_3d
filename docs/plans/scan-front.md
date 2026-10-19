@@ -1,6 +1,6 @@
 # Plan: turn a scanned model so its front faces the board
 
-Requested by the user on 2026-10-19. Status: Not started.
+Requested by the user on 2026-10-19. Status: built.
 
 Two coder steps, one commit each. Branch `scan-front`, worktree `../mcp_assist_3d-scan-front`.
 
@@ -24,10 +24,11 @@ Object Capture does not know the front of a figure, so a scan comes out turned b
 
 ## Decisions
 
-1. The turn goes into the GLB file. The game code does not change.
+1. The turn goes into the GLB file. The game code does not change, except decision 5.
 2. The turn is around the vertical line through the origin (the base center), so the base stays where the collider is.
 3. Angle in degrees. Positive is counterclockwise, seen from above. The script saves the sum of all turns of a file in `custom-models.json`, so the record says how the file was made.
 4. The `#models` page shows the front as the table shows it. It does not save files: a dev page that writes into `src/` is more risk than one command.
+5. Scanned models skip `rotation` of `characters.json`. The user chose this after step 1 found that the game turns every model by it, scans too. Every scan has one front, local +z, and `turn-model` alone sets which way it faces.
 
 ## Steps
 
@@ -58,4 +59,6 @@ The user checks every scanned model on `#models` and gives the angles. The main 
 
 ## Results
 
-(empty)
+- Step 1 (commit 42929f0): `turn-model` script and the Front section of `custom-models.md`.
+- Finding: the game turns every model by `rotation`, scans too, so each scan had a different front. Decision 5 fixed it.
+- Step 2: scans skip `rotation` (`modelFigureYaw`, `isScanFile` reads `scripts/custom-models.json`), front is local +z, with a test. `#models` has the board arrow, turn buttons, and the turn and command in the stats. Feature docs updated.
