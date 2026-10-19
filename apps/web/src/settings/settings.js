@@ -44,7 +44,8 @@ export function defaultSettings() {
     turn: { step: DEFAULT_TURN_STEP },
     light: { brightness: DEFAULT_BRIGHTNESS },
     // The composer draws the outlines and the antialiasing; off is faster (docs/features/rendering.md, "Setting")
-    performance: { composer: true },
+    // stats: the performance stats overlay (docs/features/rendering.md, "Performance stats")
+    performance: { composer: true, stats: false },
     // Terrain labels (piece name and game Size) above every piece. The piece under the pointer always has one.
     labels: false,
     // Left mouse drag on the empty table moves the camera. Off: only the right and middle buttons do (docs/features/key-shortcuts.md, "Mouse").
@@ -101,6 +102,7 @@ function normalize(raw) {
       Math.min(MAX_BRIGHTNESS, Math.max(MIN_BRIGHTNESS, brightness)),
     )
   settings.performance.composer = raw?.performance?.composer !== false
+  settings.performance.stats = raw?.performance?.stats === true
   settings.labels = raw?.labels === true
   settings.leftDragCamera = raw?.leftDragCamera !== false
   settings.rethrowTilted = raw?.rethrowTilted === true

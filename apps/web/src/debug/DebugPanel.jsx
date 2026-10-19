@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
 import { DEFAULT_LOOK } from '../table/tableStore.js'
-import { useFrameStats } from './FrameStats.jsx'
+import { useFrameStats } from '../perf/FrameStats.jsx'
 import {
   readRenderCounts,
   readRenderReasons,

@@ -197,6 +197,8 @@ export function createTableStore(net, initial = {}) {
       showLabels: false,
       showColliders: false,
       look: DEFAULT_LOOK,
+      // The WebGL renderer name from the Canvas onCreated (App.jsx), or null. Read by perf/PerfOverlay.jsx.
+      gpuName: null,
       // actions
       actions,
       registerActions,

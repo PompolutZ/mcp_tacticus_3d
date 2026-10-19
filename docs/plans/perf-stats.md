@@ -1,6 +1,6 @@
 # Plan: Performance stats for users
 
-Requested by the user on 2026-10-19. Status: not started. Branch `perf-stats`, worktree `../mcp_assist_3d-perf-stats`, from main.
+Requested by the user on 2026-10-19. Status: Step 1 done. Branch `perf-stats`, worktree `../mcp_assist_3d-perf-stats`, from main.
 
 Each step makes one commit and writes its **Result** below. Paths are under `apps/web/` unless they start with `docs/`.
 
@@ -44,6 +44,10 @@ Found on 2026-10-19. Paths under `src/`.
 - User check in the browser: the switch is off by default; turning it on shows the overlay with numbers that change; "Copy report" puts the text on the clipboard; close turns the setting off; the setting stays after a reload; debug mode still shows its panel.
 
 **Result:**
+Done. `debug/FrameStats.jsx` moved to `perf/FrameStats.jsx` (`git mv`); `App.jsx` and `debug/DebugPanel.jsx` use it. New in `src/perf/`: `PerfOverlay.jsx` and `perf.css` (bottom left corner, comic style, Copy report / Copied, Close turns the setting off), `report.js` (`buildReport`, `refreshHint`), `browser.js` (`browserName`, `osName`, Decision 6), `report.test.js`. `settings/settings.js`: `performance.stats` (only `true` turns it on) with a test in `settings.test.js`; `SettingsPopup.jsx`: the switch and hint (the composer switch now keeps `stats` when it changes `performance`). `table/tableStore.js`: `gpuName`, set in the Canvas `onCreated`. `App.jsx`: `FrameStats` and `PerfOverlay` are `lazy` with `Suspense`; `FrameStats` mounts when debug or the setting is on. Docs: `rendering.md` new "Performance stats", `table-tools.md` Settings menu.
+Chunks in `vite build`: `dist/assets/PerfOverlay-TuNTIa-s.js` 3.24 kB (+ `PerfOverlay-cf65yCWx.css` 0.42 kB) and `dist/assets/FrameStats-DGJW0hnE.js` 1.56 kB. The main `index` chunk has neither.
+Checks: format, lint (40 warnings, same as main), test (web 1109 pass), build, typecheck all pass.
+Not decided by the plan: pieces = characters + terrain + loose tokens; Copy report is disabled until the first numbers exist.
 
 ### Step 2. Measure on lagging users' machines
 

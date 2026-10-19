@@ -1,0 +1,30 @@
+/* The performance stats overlay (PerfOverlay.jsx). Bottom left: the toolbar is on top, the phase buttons and
+   warnings bottom right, the token panel in the middle. */
+.perf-overlay {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 14px;
+  font: 600 14px/1.35 var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.perf-rows {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 14px;
+}
+
+.perf-actions {
+  display: flex;
+  gap: 8px;
+}

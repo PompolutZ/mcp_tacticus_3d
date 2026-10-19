@@ -162,7 +162,10 @@ export function SettingsPopup({
             on={!settings.performance.composer}
             onClick={() =>
               onSettingsChange({
-                performance: { composer: !settings.performance.composer },
+                performance: {
+                  ...settings.performance,
+                  composer: !settings.performance.composer,
+                },
               })
             }
           />
@@ -171,6 +174,20 @@ export function SettingsPopup({
             selection, range marks, overlap and the tray swap target. A selected piece gets an
             orange shade instead. The hover name label stays. The 3D scene loads again when you
             change this.
+          </p>
+          <ToggleRow
+            text="Show performance stats"
+            word="Stats"
+            on={settings.performance.stats}
+            onClick={() =>
+              onSettingsChange({
+                performance: { ...settings.performance, stats: !settings.performance.stats },
+              })
+            }
+          />
+          <p className="settings-hint">
+            The numbers help find why the table is slow. &quot;Copy report&quot; copies them, to
+            send to the developer.
           </p>
         </section>
         <section className="settings-section">
