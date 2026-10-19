@@ -155,6 +155,25 @@ export function SettingsPopup({
           </p>
         </section>
         <section className="settings-section">
+          <h3>Performance</h3>
+          <ToggleRow
+            text="Faster drawing (no outlines)"
+            word="Faster"
+            on={!settings.performance.composer}
+            onClick={() =>
+              onSettingsChange({
+                performance: { composer: !settings.performance.composer },
+              })
+            }
+          />
+          <p className="settings-hint">
+            Turning it on removes the outlines for hover, selection, the other player&apos;s
+            selection, range marks, overlap and the tray swap target. A selected piece gets a ring
+            on the table instead. The hover name label stays. The 3D scene loads again when you
+            change this.
+          </p>
+        </section>
+        <section className="settings-section">
           <h3>Streamer</h3>
           <SliderRow
             text="Streamer columns size (%)"

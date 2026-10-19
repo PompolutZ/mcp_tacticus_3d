@@ -1,6 +1,6 @@
 # Plan: Render performance
 
-Requested by the user on 2026-10-18. Status: step 3 built, not committed; the other steps wait for the user's decision. Branch `render-performance`, worktree `../mcp_assist_3d-render-performance`, from main.
+Requested by the user on 2026-10-18. Status: step 3 built and tested by the user; step 7 built, not committed; the other steps wait for the user's decision. Branch `render-performance`, worktree `../mcp_assist_3d-render-performance`, from main.
 
 Each step makes one commit and writes its **Result** below. Paths are under `apps/web/` unless they start with `docs/`.
 
@@ -83,6 +83,7 @@ Approach: one check in one place, not a mark in each place that moves something.
 - Not watched: the shadow light and camera (static). Layers are not checked (a caster off the camera layers gives only an extra redraw).
 - Tests: 6 in `scene/shadowChange.test.js`.
 - Fallback (map 3072 → 2048) not needed so far; CPU cost not measured, the user checks in debug mode.
+- User test (2026-10-19): nothing broken. In debug mode the user saw about 80 fps with the composer and 120 fps without it, on their machine. That led to step 7.
 
 ### Step 4. Fewer `<Html>` labels per frame (CPU)
 
@@ -106,3 +107,44 @@ Approach: one check in one place, not a mark in each place that moves something.
 - Check: `fps` is near 0 when nothing moves; every animation and remote change still shows without delay.
 
 **Result:**
+
+### Step 7. Setting: turn off the composer
+
+Requested by the user on 2026-10-19, after the step 3 test. In debug mode, "No composer" gave about 120 fps instead of 80 on the user's machine. Models, tool footprints and the rest of the table still work. So some users may want to give up the outlines and the composer's antialiasing for a higher frame rate.
+
+User decisions (2026-10-19):
+- A new **Performance** section in the settings popup, with an on/off setting to turn off the composer. Default: composer on (as now).
+- The setting text says what the user loses: the outlines for hover, selection, the other player's selection, the range mark (green or red on the piece a range tool measures against), overlap, and the tray swap target. The hover name label stays.
+- A cheap selection mark replaces the selection outline when the composer is off. The other lost marks get no replacement.
+- With the composer off, the canvas uses the browser's own antialiasing. It can only be chosen when the canvas is created, so a change of the setting creates the canvas again (the scene loads again). The setting text says so.
+
+Facts (2026-10-19):
+- `scene/SelectionOutlines.jsx` already has a `composer` prop (`enabled` on the `EffectComposer`; the library does not free the GPU memory of an unmounted composer). The debug mode `no-composer` in `debug/useDebugLook.js` uses it.
+- `App.jsx` creates the `<Canvas>` with `gl={{ antialias: false }}`, because the composer has its own (multisampling).
+- `scene/ShadowUpdates.jsx` draws the scene itself when the composer is off (`renderScene` prop, see step 3).
+- Settings: `settings/settings.js` (defaults, cleaning of saved values, tests in `settings/settings.test.js`), UI in `settings/SettingsPopup.jsx`. The settings menu is described in `docs/features/table-tools.md`, "Settings menu".
+- `outlineMode` in `scene/SelectionOutlines.jsx` gives the mode of each piece. `useOutline` is called in about 15 places. Own selection is used by `CharacterModel.jsx`, `TokenFace.jsx`, `CrisisToken.jsx`, `Terrain.jsx`, `RulerTool.jsx`, `CharacterTray.jsx`.
+- Existing flat rings: `scene/RemoteCursor.jsx`, `scene/Ping.jsx` (`ringGeometry`).
+
+Changes:
+- `settings/settings.js`: a new setting (for example `performance: { composer: true }`), cleaned like the others, with tests (default on, only `false` turns it off).
+- `settings/SettingsPopup.jsx`: the Performance section with the switch and the text about what is lost and that the scene loads again.
+- `App.jsx`: composer on = the setting and the debug mode (debug mode can still turn it off for measuring). `antialias` of the canvas = composer off. The canvas gets a `key` from the composer state, so a change creates it again. Check that the scene, the physics bodies and the Yjs state come back correctly after the new canvas (piece poses come from the doc).
+- Selection mark when the composer is off: one shared place, not a copy per piece type. Proposal: `useOutline` (or `SelectionOutlines`) knows if the composer is off. Then, for mode `selected`, it shows a flat ring in the selected color (`OUTLINES.selected.visibleEdgeColor`) on the table under the piece, sized from the piece's bounding box. One ring geometry and one material for all pieces. The coder checks if the ring must follow a dragged piece and how, and proposes a different shared mark if a ring does not fit a piece type (tools, tray cards).
+- `docs/features/rendering.md`: a section about the setting: what is lost and why, the selection mark, the antialiasing and the canvas recreate. `docs/features/table-tools.md` "Settings menu": name the Performance section.
+
+Checks: as for every step. User check in the browser:
+- The setting is off by default, and the table looks as before.
+- Turning it on: the scene loads again, edges are smooth, no outlines, selected pieces show the selection mark, the hover name still shows, fps is higher in debug mode.
+- Turning it off again: outlines come back.
+- The setting stays after a page reload.
+- The other player sees no change from your setting.
+
+**Result:** Built, not committed.
+
+- `settings.js`: `performance.composer` (default true, only `false` turns it off), test in `settings.test.js`. `SettingsPopup.jsx`: Performance section, **Faster** on/off row (on = composer off) and the hint text.
+- `App.jsx`: `composer = setting && mode !== 'no-composer'`; `Canvas key`, `antialias: !composer`, `SelectionOutlines composer`, `ShadowUpdates renderScene={!composer}`.
+- Canvas again, checked by reading: the Physics world and all pieces are made again from the table document, the same path as `SceneBoundary` (it already mounts the Canvas again with a new key after a scene error). Selection, store, `sceneApi` (set in a layout effect of Scene), `controlsRef`, `wheelCameraRef` (refs of components inside the Canvas, set again on mount), `Preload` (the file caches are module level, so the load is quick) and `Ready` (`setReady(true)` again, no change) come back. Two things did not, and are fixed: the camera went back to the start view (new `scene/KeepView.jsx` keeps position and target in a ref of App), and the software renderer notice would show again after the user closed it (`onCreated` checks only once). Not kept: dice in the air; at rest they come from the document.
+- Selection ring: in `SelectionOutlines.jsx` (`SelectionRings`, only when the composer is off) and `scene/selectionRing.js` (size, tested in `selectionRing.test.js`). Rings for entries of mode `selected` only; the other modes draw nothing. Details in `rendering.md`.
+- Docs: `rendering.md` section; `table-tools.md` Performance section and settings record.
+- Not run: browser (CLAUDE.md).

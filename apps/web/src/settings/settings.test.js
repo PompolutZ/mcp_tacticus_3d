@@ -240,6 +240,26 @@ test('leftDragCamera: on by default, only false turns it off', () => {
   assert.equal(read(undefined), true)
 })
 
+test('performance.composer: on by default, only false turns it off', () => {
+  assert.equal(defaultSettings().performance.composer, true)
+  const read = (performance) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, performance }))
+    let value
+    withStorage(storage, () => {
+      value = readSettings().performance.composer
+    })
+    return value
+  }
+  assert.equal(read({ composer: false }), false)
+  assert.equal(read({ composer: true }), true)
+  assert.equal(read({ composer: 'no' }), true)
+  assert.equal(read({ composer: 0 }), true)
+  assert.equal(read({}), true)
+  assert.equal(read('off'), true)
+  assert.equal(read(undefined), true)
+})
+
 test('rethrowTilted: off by default, only true turns it on', () => {
   assert.equal(defaultSettings().rethrowTilted, false)
   const read = (rethrowTilted) => {

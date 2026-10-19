@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { SceneBoundary } from './crash/SceneBoundary.jsx'
 import { OrbitControls, useGLTF } from '@react-three/drei'
@@ -7,6 +7,7 @@ import { tacticCardBack } from './tactics/files.js'
 import Scene from './scene/Scene.jsx'
 import SelectionOutlines from './scene/SelectionOutlines.jsx'
 import ShadowUpdates from './scene/ShadowUpdates.jsx'
+import KeepView from './scene/KeepView.jsx'
 import { Toolbar } from './ui/Toolbar.jsx'
 import { Library } from './ui/Library.jsx'
 import { LogPanel } from './log/LogPanel.jsx'
@@ -651,6 +652,21 @@ export default function App({
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
   const { mode, look, showColliders, panel: debugPanel } = useDebugLook(debug)
+  // The composer draws the outlines and the antialiasing. The setting turns it off for speed (docs/features/rendering.md);
+  // debug mode can also turn it off. The Canvas has a key from it, because antialiasing is chosen when the canvas is made.
+  const composer = settings.performance.composer && mode !== 'no-composer'
+  // The camera across the new Canvas, see KeepView.jsx
+  const savedView = useRef(null)
+  const keepView = useCallback((view) => {
+    savedView.current = view
+  }, [])
+  const takeView = useCallback(() => {
+    const view = savedView.current
+    savedView.current = null
+    return view
+  }, [])
+  // The software renderer notice is for the first Canvas only; a new one would show it again after the user closed it
+  const rendererChecked = useRef(false)
   // The settings slice of the store, a layout effect for the same reason as the seat slice
   const showLabels = settings.labels
   useLayoutEffect(() => {
@@ -823,10 +839,11 @@ export default function App({
         <div className="scene-root">
           <SceneBoundary>
             <Canvas
+              key={composer ? 'composer' : 'plain'}
               shadows="percentage"
               camera={{ position: cameraPosition, fov: 50 }}
-              // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
-              gl={{ antialias: false }}
+              // With the composer, the EffectComposer in SelectionOutlines antialiases (multisampling). Without it, the browser does.
+              gl={{ antialias: !composer }}
               events={canvasEvents}
               // A click with no piece under the pointer (table, terrain, background) clears the selected
               // pieces. The selected tools stay selected.
@@ -837,13 +854,15 @@ export default function App({
                   setSelection(NO_PIECES)
               }}
               onCreated={({ gl }) => {
+                if (rendererChecked.current) return
+                rendererChecked.current = true
                 const name = rendererName(gl.getContext())
                 if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
               }}
             >
               {/* The scene mounts when these files are in, see Preload.jsx */}
               <Preload files={preloadFiles} />
-              <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
+              <SelectionOutlines composer={composer} outlines={mode === 'full'}>
                 <Scene
                   apiRef={sceneApi}
                   mapId={mapId}
@@ -872,7 +891,7 @@ export default function App({
                   poses={poses}
                 />
               </SelectionOutlines>
-              <ShadowUpdates renderScene={mode === 'no-composer'} />
+              <ShadowUpdates renderScene={!composer} />
               <OrbitControls
                 ref={controlsRef}
                 makeDefault
@@ -888,6 +907,7 @@ export default function App({
                 maxPolarAngle={MAX_POLAR_ANGLE}
                 mouseButtons={cameraMouseButtons(settings.leftDragCamera)}
               />
+              <KeepView keep={keepView} take={takeView} />
               <KeyboardCamera pan={heldPan} turn={heldTurn} />
               <CameraHover />
               <WheelCamera

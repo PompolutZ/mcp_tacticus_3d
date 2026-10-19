@@ -1,8 +1,18 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { useThree } from '@react-three/fiber'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { EffectComposer, Outline, ToneMapping } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
-import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping } from 'three'
+import {
+  ACESFilmicToneMapping,
+  AgXToneMapping,
+  DoubleSide,
+  MeshBasicMaterial,
+  NeutralToneMapping,
+  RingGeometry,
+  Vector3,
+} from 'three'
+import { MARKER_LIFT } from '../pieces/heights.js'
+import { ringFootprint, yawOf } from './selectionRing.js'
 import { DEFAULT_LOOK } from '../table/tableStore.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import { hasAll, withEffect } from './effectRegistry.js'
@@ -113,6 +123,68 @@ function clampEdges(effect) {
 }
 
 const RegisterContext = createContext(null)
+let lastEntryId = 0
+
+// The selection mark when the composer is off (docs/features/rendering.md, "Setting: composer off"): a flat ring
+// in the color of the selected outline on the table under the piece. One geometry and one material for all rings.
+// Drawn over everything (depthTest false), as the xRay of the outline is. Flat on the table plane, so it has the
+// unit radius and is scaled to the piece.
+const RING_INNER = 0.92
+const ringGeometry = new RingGeometry(RING_INNER, 1, 48).rotateX(-Math.PI / 2)
+const ringMaterial = new MeshBasicMaterial({
+  color: OUTLINES.selected.visibleEdgeColor,
+  side: DoubleSide,
+  transparent: true,
+  opacity: 0.9,
+  depthTest: false,
+  depthWrite: false,
+})
+const noRaycast = () => {}
+const worldPosition = new Vector3()
+
+function SelectionRings({ entries }) {
+  return entries
+    .filter((entry) => entry.mode === 'selected')
+    .map((entry) => <SelectionRing key={entry.id} entry={entry} />)
+}
+
+// The ring of one selected piece. The size and the height come from the piece when it is selected (a piece
+// selected is on the table, a drag lifts it later, the ring stays on the table). Each frame the ring takes the
+// place and the turn of the piece, so it follows a dragged or moving piece. Cost: one world matrix update and
+// a few numbers for each selected piece.
+function SelectionRing({ entry }) {
+  const ringRef = useRef()
+  const footprint = useMemo(() => ringFootprint(entry.object, entry.meshes), [entry])
+
+  useFrame(() => {
+    const ring = ringRef.current
+    if (!ring || !footprint) return
+    const { object } = entry
+    object.updateWorldMatrix(true, false)
+    object.getWorldPosition(worldPosition)
+    const yaw = yawOf(object)
+    const cos = Math.cos(yaw)
+    const sin = Math.sin(yaw)
+    ring.position.set(
+      worldPosition.x + footprint.x * cos + footprint.z * sin,
+      footprint.y + MARKER_LIFT,
+      worldPosition.z - footprint.x * sin + footprint.z * cos,
+    )
+    ring.rotation.y = yaw
+  })
+
+  if (!footprint) return null
+  return (
+    <mesh
+      ref={ringRef}
+      geometry={ringGeometry}
+      material={ringMaterial}
+      scale={[footprint.halfX, 1, footprint.halfZ]}
+      raycast={noRaycast}
+      renderOrder={10}
+    />
+  )
+}
 
 // Put around the scene. Renders the scene through an EffectComposer that draws the outlines.
 // For measuring their cost in debug mode:
@@ -120,7 +192,7 @@ const RegisterContext = createContext(null)
 // composer false: R3F draws the scene straight to the screen, so there are no outlines and no
 // antialiasing (the canvas is created without it).
 export default function SelectionOutlines({ children, composer = true, outlines = true }) {
-  // [{ meshes, mode }], one entry for each useOutline call that has a mode
+  // [{ id, meshes, mode, object }], one entry for each useOutline call that has a mode
   const [entries, setEntries] = useState([])
   // Outline effect of each mode, and the ToneMapping effect. In state: EffectComposer renders its
   // children only after its own effect has run, and a ref callback gets null on unmount, so the
@@ -132,8 +204,8 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   const tone = TONE_MAPPINGS[useTableStore((s) => s.look.toneMapping)]
   const outlinesReady = hasAll(effects, MODES)
 
-  const register = useCallback((meshes, mode) => {
-    const entry = { meshes, mode }
+  const register = useCallback((meshes, mode, object) => {
+    const entry = { id: ++lastEntryId, meshes, mode, object }
     setEntries((prev) => [...prev, entry])
     return () => setEntries((prev) => prev.filter((e) => e !== entry))
   }, [])
@@ -204,6 +276,8 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   return (
     <RegisterContext.Provider value={register}>
       {children}
+      {/* The composer is off: a ring marks the selected pieces, the outlines are not drawn */}
+      {!composer && <SelectionRings entries={entries} />}
       <EffectComposer autoClear={false} enabled={composer} multisampling={8}>
         {passes}
       </EffectComposer>
@@ -222,7 +296,7 @@ export function useOutline(ref, mode) {
     object.traverse((o) => {
       if (o.isMesh) meshes.push(o)
     })
-    return register(meshes, mode)
+    return register(meshes, mode, object)
   }, [ref, mode, register])
 }
 
