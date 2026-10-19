@@ -112,7 +112,7 @@ These rules come from Apple's Object Capture guide.
 | `<out>.glb` (default `apps/web/model-candidates/<name>.glb`) | Mesh with the material of the scan and its WebP color texture inside (`EXT_texture_webp`), Draco. With `--base`, also the base cylinder with the material `defaultMat`. |
 | `$TMPDIR/mcp-assist-3d-photogrammetry/<name>/` | OBJ, MTL, PNG and USDA from Object Capture, kept for inspection. `<name>` is the file name of the output without `.glb`. The script deletes this folder at the start of each run. |
 
-The model is Y up, with the bottom at y = 0. Object Capture cannot know the front of the object, so the model can be turned around the vertical axis. In the test, it was turned by about 90°.
+The model is Y up, with the bottom at y = 0. Object Capture cannot know the front of the object, so the model can be turned around the vertical axis. In the test, it was turned by about 90°. Fix it with `turn-model`, see [Front](#front).
 
 The materials are the same as in the migrated models: metallic 0, roughness 1. The scan material has a white base color with the texture. Normal, roughness and occlusion maps are not made, because the app uses only the color texture.
 
@@ -127,6 +127,30 @@ The script was tested with 96 photos rendered by Blender from `src/assets/angel.
 
 Rendered next to the original, the shape and colors were correct, and the model was turned by about 90°. The colors were a little darker, because the texture has the light of the rendered photos. In a render with a red `defaultMat`, the base was red from y = 0 to 3 mm, with a straight line to the scanned rim above it.
 
+## Front
+
+Object Capture does not know the front of the object, so a scan comes out turned by a random angle (about 90° in the test). `scripts/turn-model.mjs` turns the file after the scan.
+
+What the app does with a model, traced in the code:
+
+- **Body turn at spawn.** A model that spawns on its tray card gets a body turn by team: host 0, guest 180°. `modelSpawnYaw` in `src/characters/models.js` sets it (`Scene.jsx` passes it as the start rotation). With it, both teams face the board: the host sits at +z and the guest at -z (`src/setup/setup.js`).
+- **Figure turn.** The figure (the GLB) is also turned on its body by 180° minus `rotation` of the character in `src/characters/characters.json` (`modelFigureYaw`). This is the TTS `cModelRot`, which the TTS models need because each bundle has its own front. It applies to a scan too.
+- **Front of the model file.** The local direction of the GLB that faces the board is the one that the figure turn takes to the board. For `rotation` 0 it is local +z. For another `rotation` r (degrees), it is the direction (sin r, 0, cos r) in the x-z plane, for both teams. So the front of a scan depends on the `rotation` of its character.
+
+Turn the file so that this direction is the front of the figure. The turn does not change the game code.
+
+```bash
+pnpm --filter web turn-model gamora 90                       # a character of scripts/custom-models.json
+pnpm --filter web turn-model model-candidates/hulk.glb -45   # a candidate file
+```
+
+- The angle is in degrees. Positive is counterclockwise, seen from above.
+- The turn is around the vertical line through the origin. With `--base`, that is the base center, so the base stays where the collider is.
+- The script writes the file with Draco, as `photos-to-glb` does, and prints the angle and the new width × depth.
+- A character key must be in `scripts/custom-models.json`. A TTS model would be overwritten by the next migration, so the script stops with an error.
+- For a character, the script saves the sum of its turns in the command of the file in `scripts/custom-models.json`, as `&& pnpm --filter web turn-model <key> <sum>` at the end. A new turn changes the sum. The sum is in -180..180. A sum of 0 removes the part, because the file is then the same as the first command made it.
+- Each turn writes the Draco mesh again, so many turns add a little rounding. Add the angles up and turn once when you can.
+
 ## Terrain pieces
 
 The script also works for a terrain piece. Leave out `--base` and pass `--height <mm>` with the height of the real piece. The script scales the piece to that height and puts its bottom on the table. The output is the same format as the migrated pieces: one GLB with a WebP texture and Draco compression.
@@ -136,14 +160,13 @@ These parts are missing or different for terrain:
 1. **A scanned piece cannot be added to a map yet.** `src/terrain/pieces.js` knows two kinds of pieces (see [Maps](maps.md#pieces)):
    - An OBJ piece is a mesh and a texture file, with a collider from the mesh. The script writes a GLB, so it does not fit this kind.
    - A bundle piece (`bundle: true`) is a GLB, so it fits. But a bundle piece gets no collider from its visible mesh. It needs a `colliders` list: shapes written by hand (box, cylinder and so on) or a separate collider GLB. Without colliders, models and dice fall through the piece.
-2. **The front of the piece is random.** Object Capture does not know which side is the front, so the piece can be turned (about 90° in the test). For a figure this matters little. On a map, the placement must match the mat. `--turn` is not built.
+2. **The front of the piece is random.** Object Capture does not know which side is the front, so the piece can be turned (about 90° in the test). For a figure this matters little. On a map, the placement must match the mat. `turn-model` turns the file, see [Front](#front).
 3. **The center is the center of the bounding box.** This is correct for terrain, because the placements in `maps/<id>.json` are relative to the piece center.
 4. **The camera cannot see some parts.** Undersides, overhangs, the inside of buildings and very thin parts (railings, antennas) come out bad or closed. Many terrain pieces have these parts, for example the Mech Hangar or the Apartments.
 5. **Big pieces need more detail.** The defaults (30k triangles, 2048 texture) are set for a figure. A large building may need `--triangles 60000 --texture 4096`. The photo rules are the same, and the piece must still fill most of each photo.
 
 To support scanned terrain, the app needs:
 
-- a `--turn` option
 - colliders for the scan, for example one convex hull or mesh collider made from the scan
 - an entry in `pieces.js` and a placement in a map JSON file
 
@@ -154,13 +177,13 @@ To replace the model of a character:
 1. Make the GLB with `photos-to-glb`, with `--base` of the character and `--texture 1024`.
 2. Copy it to `src/assets/characters/<key>/model.glb`. The app already loads this file, so `characters.json` does not change.
 3. Add the file to `scripts/custom-models.json`: character key, file relative to `src/assets`, and how it was made (command, photo set).
+4. Turn the front to the board with `pnpm --filter web turn-model <key> <degrees>`, see [Front](#front). It adds the turn to the command in the list.
 
 The list exists because `migrate-characters.mjs` would convert the TTS model again and overwrite the scan, for example with `--force` or after a new source URL. The script never converts or overwrites a listed file, also with `--force`. It prints a line when it skips one. The rest of the character still migrates, and the manifest keeps the source URL.
 
 ## Out of scope
 
 - **Other pieces.** The script writes a GLB file only. It does not add a piece to `pieces.js`. A character gets its model by the copy above.
-- **Choosing the front.** A `--turn <degrees>` option could turn the model so its front faces the right way. It is not built yet.
 - **Base height.** The team color covers 3 mm for every base. A `--base-height` option could cover the whole rim of a thicker real base. It is not built yet.
 - **More detail in the scan.** `--triangles` is only an upper limit. Object Capture writes fewer triangles when the photos show less detail, so a higher `--triangles` alone often changes nothing. Ideas to test on one model, to compare with the current scan:
   1. Better photos, no code change: full-size iPhone HEIC instead of 1600 × 1200, and more photos. The whole figure stays in every photo, as in [How to take the photos](#how-to-take-the-photos), because close-ups added a blob in the test.

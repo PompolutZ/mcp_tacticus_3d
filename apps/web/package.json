@@ -20,6 +20,7 @@
     "migrate-dice": "node scripts/migrate-dice.mjs",
     "migrate-scoreboard": "node scripts/migrate-scoreboard.mjs",
     "photos-to-glb": "node scripts/photos-to-glb.mjs",
+    "turn-model": "node scripts/turn-model.mjs",
     "dice-sim": "node scripts/dice-sim.mjs",
     "dice-night-run": "node scripts/dice-night-run.mjs",
     "dice-night-report": "node scripts/dice-night-report.mjs",
