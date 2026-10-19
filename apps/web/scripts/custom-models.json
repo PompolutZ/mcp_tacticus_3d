@@ -5,6 +5,9 @@
   "bastion": {
     "characters/bastion/model.glb": "pnpm --filter web photos-to-glb \"<Bastion 2nd photos>\" --base small --texture 1024 --tone medium"
   },
+  "blue-marvel": {
+    "characters/blue-marvel/model.glb": "pnpm --filter web photos-to-glb \"<Blue Marvel photos>\" --base small --texture 1024 --tone medium --triangles 60000"
+  },
   "gamora": {
     "characters/gamora/model.glb": "pnpm --filter web photos-to-glb \"<Gamora photos>\" --base small --texture 1024 --tone medium --triangles 60000"
   },
@@ -19,6 +22,9 @@
   },
   "moondragon": {
     "characters/moondragon/model.glb": "pnpm --filter web photos-to-glb \"<Moondragon photos>\" --base medium --texture 1024 --tone medium"
+  },
+  "nebula": {
+    "characters/nebula/model.glb": "pnpm --filter web photos-to-glb \"<Nebula photos>\" --base small --texture 1024 --tone medium --triangles 60000"
   },
   "quasar": {
     "characters/quasar/model.glb": "pnpm --filter web photos-to-glb \"<Quasar photos>\" --base medium --texture 1024 --tone medium"
