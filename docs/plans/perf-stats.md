@@ -65,3 +65,23 @@ How to read the two reports:
 Write the reports (without personal data) and the conclusion in the Result. Then update the Status of `render-performance.md` step 1.
 
 **Result:**
+
+Baseline from a fast machine (the user's), to compare with the reports of lagging users:
+
+```
+FPS: 120
+Slowest frame: 9.4 ms
+CPU per frame: 1.8 ms
+GPU per frame: 6.7 ms
+GPU: ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)
+Software renderer: no
+Browser: Google Chrome 155
+OS: macOS
+Pixel ratio: 2
+Canvas: 2976x2074
+Screen refresh: near 120
+Faster drawing: on
+Pieces on table: 22
+```
+
+The app keeps up with the screen. The CPU time is small. The GPU uses about 80% of the 8.3 ms frame time at 120 Hz, mostly to draw about 6.2 million pixels (pixel ratio 2).
