@@ -110,7 +110,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 
 ### Performance
 
-**Faster drawing (no outlines)** (**Faster on** / **Faster off**) turns off the composer: higher frame rate, no outlines, a ring under a selected piece. The 3D scene loads again when it changes. See `docs/features/rendering.md`, "Setting: composer off".
+**Faster drawing (no outlines)** (**Faster on** / **Faster off**) turns off the composer: higher frame rate, no outlines, a selected piece is shaded orange. The 3D scene loads again when it changes. See `docs/features/rendering.md`, "Setting: composer off".
 
 ### Debug
 

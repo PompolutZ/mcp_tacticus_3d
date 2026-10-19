@@ -449,7 +449,7 @@ function CharacterFigure({
     }
   }, [remote, remoteBump, lift, livePlace, liveRb])
 
-  useFigureMaterials(scene, team, showOverlap)
+  useFigureMaterials(scene, team)
 
   useOutline(figureRef, outlineMode(selected, hovered, rangeMark, showOverlap, otherSelected))
   // A click toggles the selection. A drag moves the model at once and selects it.

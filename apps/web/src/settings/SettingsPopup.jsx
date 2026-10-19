@@ -168,8 +168,8 @@ export function SettingsPopup({
           />
           <p className="settings-hint">
             Turning it on removes the outlines for hover, selection, the other player&apos;s
-            selection, range marks, overlap and the tray swap target. A selected piece gets a ring
-            on the table instead. The hover name label stays. The 3D scene loads again when you
+            selection, range marks, overlap and the tray swap target. A selected piece gets an
+            orange shade instead. The hover name label stays. The 3D scene loads again when you
             change this.
           </p>
         </section>
