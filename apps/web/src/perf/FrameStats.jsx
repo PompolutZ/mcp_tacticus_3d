@@ -1,10 +1,10 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { addAfterEffect, addEffect, useThree } from '@react-three/fiber'
 
-// The numbers are averaged over this time and sent to the panel once per period
+// The numbers are averaged over this time and sent to the readers once per period
 const PERIOD_MS = 500
 
-// Latest numbers for DebugPanel, or null before the first period ends
+// Latest numbers for DebugPanel and PerfOverlay, or null before the first period ends
 let latest = null
 const listeners = new Set()
 
@@ -64,7 +64,7 @@ function createGpuTimer(context) {
   }
 }
 
-// Measures every frame and publishes the numbers for DebugPanel. Put inside the Canvas.
+// Measures every frame and publishes the numbers for DebugPanel and PerfOverlay. Put inside the Canvas.
 // A frame is one pass of the R3F loop: the useFrame callbacks (physics too) and all renders.
 export default function FrameStats() {
   const gl = useThree((state) => state.gl)

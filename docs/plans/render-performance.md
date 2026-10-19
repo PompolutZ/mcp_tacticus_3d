@@ -44,6 +44,8 @@ No code. The user asks one lagging user to:
 
 If the debug panel cannot run there, step 1b adds a small stats overlay to the built app, turned on by a URL parameter (for example `?stats`). It reuses `debug/FrameStats.jsx`.
 
+Replaced on 2026-10-19 by `perf-stats.md`: a setting with a stats overlay and a copy report, then the measurement.
+
 **Result:**
 
 ### Step 2. Limit the pixel ratio and multisampling (GPU)

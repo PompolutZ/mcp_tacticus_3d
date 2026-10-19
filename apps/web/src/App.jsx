@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Canvas } from '@react-three/fiber'
 import { SceneBoundary } from './crash/SceneBoundary.jsx'
 import { OrbitControls, useGLTF } from '@react-three/drei'
@@ -49,7 +58,6 @@ import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
 import { useHudTop } from './useHudTop.js'
-import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { withPlacements } from './rooms/table.js'
 import { tableFiles } from './rooms/preload.js'
@@ -76,6 +84,10 @@ import { NO_PIECES } from './selection.js'
 import { createTableStore } from './table/tableStore.js'
 import { TableStoreProvider } from './table/TableStoreContext.jsx'
 import { useRenderCount } from './debug/renderCount.js'
+
+// The performance stats load only when the setting (or debug mode) needs them (docs/features/rendering.md, "Performance stats")
+const FrameStats = lazy(() => import('./perf/FrameStats.jsx'))
+const PerfOverlay = lazy(() => import('./perf/PerfOverlay.jsx'))
 
 // Draco decoder is served from public/draco, not from the default Google CDN. Module scope of the table
 // chunk, so it runs before any model loads.
@@ -651,6 +663,8 @@ export default function App({
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
+  // FrameStats measures for the debug panel and for the performance stats overlay
+  const statsOn = debug || settings.performance.stats
   const { mode, look, showColliders, panel: debugPanel } = useDebugLook(debug)
   // The composer draws the outlines and the antialiasing. The setting turns it off for speed (docs/features/rendering.md);
   // debug mode can also turn it off. The Canvas has a key from it, because antialiasing is chosen when the canvas is made.
@@ -857,6 +871,7 @@ export default function App({
                 if (rendererChecked.current) return
                 rendererChecked.current = true
                 const name = rendererName(gl.getContext())
+                store.setState({ gpuName: name })
                 if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
               }}
             >
@@ -915,7 +930,11 @@ export default function App({
                 wheelState={wheelState}
                 onTurn={(dir) => sceneApi.current?.turnPiece(dir)}
               />
-              {debug && <FrameStats />}
+              {statsOn && (
+                <Suspense fallback={null}>
+                  <FrameStats />
+                </Suspense>
+              )}
               <Ready onReady={() => setReady(true)} />
             </Canvas>
           </SceneBoundary>
@@ -1052,6 +1071,16 @@ export default function App({
           onSoftwareRendererClose={() => setSoftwareRenderer(null)}
         />
         {debug && <DebugPanel {...debugPanel} />}
+        {settings.performance.stats && (
+          <Suspense fallback={null}>
+            <PerfOverlay
+              pieces={characters.length + terrain.length + looseTokens.length}
+              onClose={() =>
+                updateSettings({ performance: { ...settings.performance, stats: false } })
+              }
+            />
+          </Suspense>
+        )}
         <LoadingOverlay ready={ready} />
       </div>
     </TableStoreProvider>
