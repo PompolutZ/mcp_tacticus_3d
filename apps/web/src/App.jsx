@@ -6,6 +6,7 @@ import { assetUrl } from './assets/index.js'
 import { tacticCardBack } from './tactics/files.js'
 import Scene from './scene/Scene.jsx'
 import SelectionOutlines from './scene/SelectionOutlines.jsx'
+import ShadowUpdates from './scene/ShadowUpdates.jsx'
 import { Toolbar } from './ui/Toolbar.jsx'
 import { Library } from './ui/Library.jsx'
 import { LogPanel } from './log/LogPanel.jsx'
@@ -871,6 +872,7 @@ export default function App({
                   poses={poses}
                 />
               </SelectionOutlines>
+              <ShadowUpdates renderScene={mode === 'no-composer'} />
               <OrbitControls
                 ref={controlsRef}
                 makeDefault
