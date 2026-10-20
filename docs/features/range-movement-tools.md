@@ -38,7 +38,7 @@ The tool has two states: **snapped** and **free**.
 
 ### Snapped
 
-A tool snaps to a model, to a crisis token or to a token that lies on the table (Black Bifrost, Mystic Portal and the like) the same way. "Model" below also means a token. A token on the table has its own size (`tokens/tokens.js`), so the base edge, the range and the in/out outline use its real radius, not the 0.5" of a crisis token. It shows the selection outline too. Place, Place 1 and Throw do not move or lock it, as for a crisis token.
+A tool snaps to a model, to a crisis token or to a token that lies on the table (Black Bifrost, Mystic Portal and the like) the same way. "Model" below also means a token. A token on the table has its own size (`tokens/tokens.js`), so the base edge, the range and the in/out outline use its real radius, not the 0.5" of a crisis token. It shows the selection outline too. Place and Place 1 lock it the same way as a character. Throw / Push is disabled for it.
 
 The tool is snapped to a model when it spawns while that model is selected. With a character and a token selected, it snaps to the one selected last. A tool key with the pointer over a model selects that model and spawns the tool snapped to it, so the model does not have to be selected first. The tool spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat. A movement tool snaps with its indented end, the end of the right half (the half with the hinge mesh). A range tool snaps with its flat end.
 
@@ -190,7 +190,7 @@ While the R1 tool is snapped and another model is selected, the outline is green
 The R1 tool is the Range 2 tool, so it has two Place buttons while it is snapped:
 
 - **Place 1** is at the snapped corner, on the half of the tool next to the other long side. It moves nothing. It is a toggle, like Place 2, and shows its on state. Place 1 and Place 2 turn each other off.
-  - While it is on, the first character or token whose base comes within range 1 of the snapped piece, edge to edge and seen from above, is locked. The snapped piece itself is not locked. Before the lock, a drag is free. The lock stays until Place 1 turns off.
+  - While it is on, the first character or token whose base comes within range 1 of the snapped piece, edge to edge and seen from above, is locked. A drag of the snapped piece locks it too, if nothing is locked yet. Its base keeps touching the short side (1") of the tool at the snapped end, and can overlap that side, as with Place. It cannot move away from that side or along the long sides, and the tool does not turn. Before the lock, a drag is free. The lock stays until Place 1 turns off.
   - A locked character can be dragged anywhere within range 1: as close as the center of the snapped piece (its base can cover a token or portal), and as far as the base edge 1" from the snapped base edge. When the pointer goes farther, the base stops at the range 1 limit, on the line from the snapped center to the pointer.
   - The tool turns around the snapped base with the character, so the tool width points at it and the tool keeps touching the snapped base (same follow as [Place](#place), same reason). The range 1 limit above does not change. The tool keeps its last pose after the drop. A drag selects the character, so the movement tool footprint shows if the place is within its reach.
 - **Place 2** is at the far end. It works the same as [Place](#place) on other tools.

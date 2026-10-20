@@ -82,3 +82,19 @@ export function lineClamp(start, dir, length, p) {
   const d = clamp((p.x - start.x) * dir.x + (p.z - start.z) * dir.z, 0, Math.max(0, length))
   return { x: start.x + dir.x * d, z: start.z + dir.z * d }
 }
+
+// The drag point p of a base, cut to where the base touches the short end edge of one half, like
+// placeClamp but for that segment only: the edge is across the half at `length`, `halfWidth` to each
+// side. p itself when the base already touches it (it may overlap the tool). Else the nearest point
+// where it touches, which is radius from the nearest point of the edge.
+export function endEdgeClamp(shape, side, length, halfWidth, p, radius) {
+  const pose = { x: shape.x, z: shape.z, yaw: shape[side] }
+  const l = toLocal(pose, p)
+  const q = { x: length, z: clamp(l.z, -halfWidth, halfWidth) }
+  const out = Math.hypot(l.x - q.x, l.z - q.z)
+  if (out <= radius) return p
+  return fromLocal(pose, {
+    x: q.x + ((l.x - q.x) * radius) / out,
+    z: q.z + ((l.z - q.z) * radius) / out,
+  })
+}

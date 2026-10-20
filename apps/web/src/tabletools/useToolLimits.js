@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useLatest } from '../scene/useLatest.js'
 import { groundedPath, slidePath, throwMove } from '../characters/throwPath.js'
-import { lineClamp, placeClamp, touches } from './placeLock.js'
+import { endEdgeClamp, lineClamp, placeClamp, touches } from './placeLock.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
 import { rangeLength } from './toolTips.js'
 import {
@@ -43,7 +43,7 @@ export function useToolLimits({
   const [placeSide, setPlaceSide] = useState(null)
   const placing = selected && placeSide !== null
   // R1 tool: Place 1 is on. The first character that a drag brings within range 1 of the snapped piece is
-  // locked there, until Place 1 turns off. The snapped piece itself is not locked.
+  // locked there, until Place 1 turns off. A drag of the snapped piece locks it too, if nothing is locked yet.
   const [placeOne, setPlaceOne] = useState(false)
   const lockOne = selected && placeOne && !!snap
   // The model locked to this tool (`kind:id`), or null before a drag locks one. See ownsDrag below.
@@ -101,13 +101,16 @@ export function useToolLimits({
   // Place 1 (rangeOne.js): the base edge stays within range 1 of the snapped piece edge, seen from above
   useEffect(() => {
     if (!lockOne) return undefined
-    const { onPlaceLimit } = now.current
+    const { onPlaceLimit, rigidRef } = now.current
     const { target } = snap
     const reachOf = (model) => rangeReach(target.radius, rangeLength(1), model.radius)
     onPlaceLimit?.({
       owns(model, p) {
-        if (sameModel(model, target)) return false
         if (lockedRef.current !== null) return lockedRef.current === lockKey(model)
+        if (sameModel(model, target)) {
+          lockedRef.current = lockKey(model)
+          return true
+        }
         const c = target.getCenter()
         const at = model.getCenter()
         if (
@@ -119,6 +122,17 @@ export function useToolLimits({
         return true
       },
       clamp(p, model) {
+        // The snapped piece: its base keeps touching the short end edge of the tool at the snapped end,
+        // and may overlap the tool there, as with Place (endEdgeClamp).
+        // The tool stays where it is.
+        if (sameModel(model, target)) {
+          if (!rigidRef.current) return
+          const shape = toolShape(toolPose(rigidRef.current), turn)
+          const spot = endEdgeClamp(shape, snap.side, tip, halfWidth, p, model.radius)
+          p.x = spot.x
+          p.z = spot.z
+          return
+        }
         const c = target.getCenter()
         if (!c) return
         now.current.follow?.(model, p)
@@ -128,7 +142,7 @@ export function useToolLimits({
       },
     })
     return () => onPlaceLimit?.(null)
-  }, [lockOne, snap, halfWidth, now])
+  }, [lockOne, snap, turn, tip, halfWidth, now])
 
   // The clamp reads the tool pose at each call, so the tool can move while Throw is on
   useEffect(() => {
@@ -187,7 +201,8 @@ export function useToolLimits({
   }
 
   // Range 1 tool, snapped: Place 1 turns on and off. It moves nothing: the first character that a drag
-  // brings within range 1 of the snapped piece is locked there. It turns Place 2 off.
+  // brings within range 1 of the snapped piece is locked there. A drag of the snapped piece locks it, if
+  // nothing is locked yet. It turns Place 2 off.
   function handlePlaceOne(e) {
     e.stopPropagation()
     if (placeOne) {
