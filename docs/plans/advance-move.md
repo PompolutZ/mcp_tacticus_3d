@@ -44,3 +44,9 @@ A player asked for this: a right click on the far end of the movement tool moves
 
 - Done. The slide is in its own hook, `scene/useModelSlide.js`. `useModelLift.js` now returns functions (`clearLift`, `isLifted`, `isUp`, `restPosition`) and not its ref, so `CharacterModel.jsx` does not change a value a hook returns (lint: react immutability).
 - `slidePath(points)` in `characters/throwPath.js` takes a line of points, so it can follow a bent tool.
+
+### 2. Advance
+
+- Done. `advancePath` in `tabletools/toolGeometry.js` gives the Throw-off path. `groundedPath` in `characters/throwPath.js` adds the ground height (`landingY` from `3cd05c7`).
+- The Throw stop is one function, `throwStop` in `tabletools/useToolLimits.js`, used by the Throw drag and by Advance.
+- Throw on: the slide starts where the character is, kept on the line, so a character dragged part way does not jump back. The side and the character come from the Throw lock, as for the Throw drag.

@@ -9,6 +9,7 @@ import { useHoverCursor, useHoverReport, useDragEndOnUnmount } from '../scene/us
 import { freeSpawnYaw } from './storedTool.js'
 import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
 import { onRack } from './layout.js'
+import { CLICK_MOVE } from '../characters/trayControls.js'
 import { useDragTool } from './useDragTool.js'
 import { useToolLimits } from './useToolLimits.js'
 import { useToolStore } from './useToolStore.js'
@@ -523,6 +524,7 @@ function Tool({
     togglePlace,
     handlePlaceOne,
     handleThrow,
+    handleAdvance,
   } = useToolLimits({
     selected,
     snap,
@@ -530,6 +532,7 @@ function Tool({
     setTurn,
     tip,
     halfWidth,
+    angle,
     rigidRef,
     liveRb,
     world,
@@ -616,6 +619,16 @@ function Tool({
                 onPointerDown={(e) =>
                   onPointerDown(e, onSelect, onDragSelect, () => dragPlan(part.side))
                 }
+                // Advance (docs/features/range-movement-tools.md): a right click on the far half. Decided on
+                // the release, because macOS sends the context menu on the press. The press is not stopped, so a
+                // right drag still turns the camera.
+                onPointerUp={(e) => {
+                  if (e.nativeEvent.button !== 2 || e.delta > CLICK_MOVE) return
+                  const from = throwLock?.side ?? snap?.side
+                  if (!from || part.side !== OTHER[from]) return
+                  e.stopPropagation()
+                  handleAdvance()
+                }}
               />
             </group>
           ))}

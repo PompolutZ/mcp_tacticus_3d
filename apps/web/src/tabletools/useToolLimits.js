@@ -1,15 +1,23 @@
 import { useRef, useState, useEffect } from 'react'
 import { useLatest } from '../scene/useLatest.js'
-import { throwMove } from '../characters/throwPath.js'
+import { groundedPath, slidePath, throwMove } from '../characters/throwPath.js'
 import { lineClamp, placeClamp, touches } from './placeLock.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
 import { rangeLength } from './toolTips.js'
-import { OTHER, toolPose, toolShape, throwLine, sameModel, lockKey } from './toolGeometry.js'
+import {
+  OTHER,
+  toolPose,
+  toolShape,
+  throwLine,
+  advancePath,
+  sameModel,
+  lockKey,
+} from './toolGeometry.js'
 
 // Place, Place 1 and Throw of a tool: what they limit during a drag of a model (onPlaceLimit), and their
 // buttons' handlers (docs/features/range-movement-tools.md). Takes the state of the tool and gives the state
 // of the three modes: { placeSide, placeOne, throwLock, placing, lockOne, throwing, placeButtonSide,
-// lockMode, limiting, togglePlace, handlePlaceOne, handleThrow }. Call it after the effects it must follow
+// lockMode, limiting, togglePlace, handlePlaceOne, handleThrow, handleAdvance }. Call it after the effects it must follow
 // (see Tool), the order of its effects is part of the behavior.
 export function useToolLimits({
   selected,
@@ -18,6 +26,7 @@ export function useToolLimits({
   setTurn,
   tip,
   halfWidth,
+  angle = false,
   rigidRef,
   liveRb,
   world,
@@ -130,21 +139,13 @@ export function useToolLimits({
       owns: (model) => sameModel(model, target),
       clamp(p) {
         if (!rigidRef.current) return
-        const { start, dir, distance } = throwLine(
+        const { start, dir, moved } = throwStop(
+          { world, rapier, models },
           toolShape(toolPose(rigidRef.current), turn),
           side,
           tip,
-          target.radius,
+          target,
         )
-        // The stop point follows the live line: found again at each call (two casts and a few
-        // circle tests), so a moved or turned tool, or a moved other character, counts
-        const { moved } = throwMove(world, rapier, {
-          start,
-          dir,
-          distance,
-          radius: target.radius,
-          others: throwOthers(models, target),
-        })
         const spot = lineClamp(start, dir, moved, p)
         p.x = spot.x
         p.z = spot.z
@@ -221,6 +222,36 @@ export function useToolLimits({
     setThrowLock({ side: snap.side, target: model })
   }
 
+  // Advance (docs/features/range-movement-tools.md, "Advance"): a right click on the far half moves the
+  // snapped character to the far end, by a slide. Throw off: along the tool, bent as it is, no collision.
+  // Throw on: along the Throw line, up to the stop point. No Advance for a token, a lifted character,
+  // an angle tool or a character that the other player moves.
+  function handleAdvance() {
+    const target = throwLock ? throwLock.target : snap?.target
+    const rb = liveRb()
+    if (!target?.getBody?.() || !rb || target.isLifted() || angle) return
+    if (target.claim && !target.claim()) return
+    const shape = toolShape(toolPose(rb), turn)
+    let points
+    if (throwLock) {
+      const { start, dir, moved } = throwStop(
+        { world, rapier, models },
+        shape,
+        throwLock.side,
+        tip,
+        target,
+      )
+      // From where the character is now, kept on the line
+      const from = lineClamp(start, dir, moved, target.getCenter())
+      points = [from, { x: start.x + dir.x * moved, z: start.z + dir.z * moved }]
+    } else {
+      points = advancePath(shape, snap.side, tip, target.radius, target.getCenter())
+    }
+    target.moved?.()
+    const { path, duration } = slidePath(groundedPath(world, rapier, points, target.radius))
+    target.slide(path, duration)
+  }
+
   return {
     placeSide,
     placeOne,
@@ -234,7 +265,20 @@ export function useToolLimits({
     togglePlace,
     handlePlaceOne,
     handleThrow,
+    handleAdvance,
   }
+}
+
+// The Throw line of target from half `side` and where it stops (throwMove): { start, dir, distance, moved }.
+// Found again at each call, from the live tool shape and the other characters.
+function throwStop({ world, rapier, models }, shape, side, tip, target) {
+  const line = throwLine(shape, side, tip, target.radius)
+  const { moved } = throwMove(world, rapier, {
+    ...line,
+    radius: target.radius,
+    others: throwOthers(models, target),
+  })
+  return { ...line, moved }
 }
 
 // The bases that stop a Throw of target: the other characters on the table, not lifted

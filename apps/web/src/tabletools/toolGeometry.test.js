@@ -2,8 +2,10 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   ANGLE_LIMIT,
+  advancePath,
   CONTACT_EPS,
   aimPose,
+  alongHalf,
   anglePose,
   limitTurn,
   nearerCorner,
@@ -233,4 +235,33 @@ test('snapPlacement: angle tool keeps its yaw, side left, no across', () => {
   assert.equal(r.side, 'left')
   assert.equal(r.flipped, null)
   assert.equal('across' in r, false)
+})
+
+test('advancePath passes the hinge and ends on the far half center line, base touching its end', () => {
+  const shape = toolShape({ x: 2, z: -1, yaw: 0.3 }, { right: 0, left: 0 })
+  const from = alongHalf(shape, 'left', 2.5)
+  const path = advancePath(shape, 'left', 4, 0.6, from)
+  assert.equal(path.length, 3)
+  assert.deepEqual(path[1], { x: shape.x, z: shape.z })
+  near(dist(path[2], path[1]), 4.6)
+  // On the far half center line: the direction from the hinge is the far half yaw
+  near(path[2].x - shape.x, 4.6 * Math.cos(shape.right))
+  near(path[2].z - shape.z, -4.6 * Math.sin(shape.right))
+})
+
+test('advancePath of a straight tool is a straight line', () => {
+  const shape = toolShape({ x: 0, z: 0, yaw: 1 }, { right: 0, left: 0 })
+  const [a, b, c] = advancePath(shape, 'right', 3, 0.5, alongHalf(shape, 'right', 3.5))
+  const cross = (b.x - a.x) * (c.z - b.z) - (b.z - a.z) * (c.x - b.x)
+  near(cross, 0)
+  near(dist(a, c), 7)
+})
+
+test('advancePath of a bent tool follows the yaw of the far half', () => {
+  const shape = toolShape({ x: 0, z: 0, yaw: 0 }, { right: 0, left: 0.5 })
+  const path = advancePath(shape, 'right', 3, 0.5, alongHalf(shape, 'right', 3.5))
+  const dx = path[2].x - path[1].x
+  const dz = path[2].z - path[1].z
+  near(dx / Math.hypot(dx, dz), Math.cos(shape.left))
+  near(-dz / Math.hypot(dx, dz), Math.sin(shape.left))
 })

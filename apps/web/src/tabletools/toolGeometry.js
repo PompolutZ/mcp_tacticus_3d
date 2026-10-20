@@ -163,6 +163,18 @@ export function throwLine(shape, side, tip, radius) {
   }
 }
 
+// Advance on a tool with Throw off (docs/features/range-movement-tools.md, "Advance"): the path of a base
+// snapped to half `side`, from `from` (its center) through the hinge to the far half, where the base
+// touches the far end from outside (tip + radius from the hinge, on the center line of that half).
+// The tool is not straightened, so a bent tool gives a bent path. Returns three points (table XZ).
+export function advancePath(shape, side, tip, radius, from) {
+  return [
+    { x: from.x, z: from.z },
+    { x: shape.x, z: shape.z },
+    alongHalf(shape, OTHER[side], tip + radius),
+  ]
+}
+
 // The same character or token. The tool model objects are made again when the pieces change.
 export function sameModel(a, b) {
   return a.kind === b.kind && a.id === b.id

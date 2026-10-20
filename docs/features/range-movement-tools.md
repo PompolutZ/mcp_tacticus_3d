@@ -146,6 +146,21 @@ While bending is off, a drag moves or turns the whole tool, as described above. 
 
 The outline of a bent tool is one rectangle for each half, plus the round hinge between them.
 
+### Advance
+
+**Advance** moves the snapped character to the far end of the movement tool, with one right click. It is for a player who does not want to drag the character along the tool.
+
+The click goes on the far half, anywhere on it, so it is easy to hit. The far half is the half that does not touch the snapped base. A right press and release without movement counts as a click. A right drag still turns the camera. The decision is made on the release, because on macOS the context menu starts on the press.
+
+The character slides to the far end, so the move can be seen. It ends with the base touching the far end from outside, the same spot as the full Throw distance. The other player sees the slide, as for any move of a character.
+
+- **Throw off** (also with Place on). The character follows the tool: from its place to the hinge, then along the far half. A bent tool gives a bent path, and the tool is not straightened. Nothing stops the move, so the players settle overlaps themselves, as for any move of a character.
+- **Throw on.** The move is a Throw. The character goes along the Throw line and stops at the same first hit as a Throw drag. Throw stays on after the move, as the character is still on the line.
+
+The height follows the ground along the path, so a character that leaves a roof drops.
+
+Advance does nothing for a token (it has no body), for a lifted character, for the angle tool, or when the other player moves the character. Then the click is ignored.
+
 ### Input rules
 
 What a drag does depends on the state of the tool and on the half you grab. `src/tabletools/toolInput.js` holds the rules.
@@ -158,7 +173,7 @@ What a drag does depends on the state of the tool and on the half you grab. `src
 | Snapped, Bend on, far half | bends the far half | bend the far half one step |
 | Snapped, Bend on, half on the base | turns the tool around the base | turn the tool around the base one step |
 
-Q / E act on the half under the pointer. During a drag they act as the drag does: a turn or bend drag goes on from the new angle, and a move drag turns the tool around its center. The wheel turns only during a drag. Without a drag it zooms. A turn around the base keeps the tool snapped, and a tool next to an angle tool keeps its ±45° limit. A bend stops at 90° from straight. When a range, R1 or angle tool aims at a piece under the pointer during a drag, the aim sets the pose, so a step shows nothing. A range tool has no halves and no Bend, so the rows with Bend off apply. Place, Place 1 and Throw / Push only limit a drag of a model, so they are not in the table.
+Q / E act on the half under the pointer. During a drag they act as the drag does: a turn or bend drag goes on from the new angle, and a move drag turns the tool around its center. The wheel turns only during a drag. Without a drag it zooms. A turn around the base keeps the tool snapped, and a tool next to an angle tool keeps its ±45° limit. A bend stops at 90° from straight. When a range, R1 or angle tool aims at a piece under the pointer during a drag, the aim sets the pose, so a step shows nothing. A range tool has no halves and no Bend, so the rows with Bend off apply. Place, Place 1 and Throw / Push only limit a drag of a model, so they are not in the table. A right click without movement on the far half of a snapped movement tool is Advance (see "Advance"). Other right clicks and right drags do not change; a right drag turns the camera.
 
 ### Range 1
 

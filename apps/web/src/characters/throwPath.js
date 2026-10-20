@@ -4,7 +4,7 @@
 // causes collision damage, and the players resolve that themselves.
 
 import { BASE_HALF_H, NO_ROTATION, baseGroundY } from './base.js'
-import { castAlong } from '../physics.js'
+import { castAlong, castDown } from '../physics.js'
 import { TOUCH_MARGIN, matEdgeDistance, standingColliders } from './terrainUnder.js'
 
 // The base moves this far (inches) above the ground where it starts, so the terrain cast does not hit
@@ -31,6 +31,38 @@ export function throwMove(world, rapier, { start, dir, distance, radius, others 
   const stop = Math.min(distance, matEdgeDistance(start, dir, radius))
   const moved = hit < stop ? Math.max(0, hit - STOP_GAP) : stop
   return { moved }
+}
+
+// Advance on a bent tool (docs/features/range-movement-tools.md, "Advance"): the body position (base
+// bottom center) for each XZ point of the path, as the slide needs it (slidePath). The height follows
+// the ground: it is found as the old slide did, from the height where the base starts.
+// Returns [{ x, y, z }], y null when nothing is under the point.
+export function groundedPath(world, rapier, points, radius) {
+  const [first] = points
+  const ground = baseGroundY(world, rapier, first.x, first.z, radius - TOUCH_MARGIN)
+  const slideBottom = ground === null ? null : ground + CAST_LIFT
+  return points.map((p) => ({ x: p.x, y: landingY(world, rapier, p, radius, slideBottom), z: p.z }))
+}
+
+// Height of the base bottom at the end. The base moved at slideBottom, so it lands on what is below
+// that height: a base on the table stays on the table when it stops under an overhang, and a base
+// that left a roof drops onto what is under it. When the end is inside terrain that the base started
+// on (stairs, a slope), or the start had no ground, the base stands on top of what is there.
+function landingY(world, rapier, end, radius, slideBottom) {
+  if (slideBottom !== null) {
+    const y = castDown(
+      world,
+      rapier,
+      new rapier.Cylinder(BASE_HALF_H, radius),
+      NO_ROTATION,
+      end.x,
+      end.z,
+      BASE_HALF_H,
+      slideBottom,
+    )
+    if (y !== null && y < slideBottom) return y
+  }
+  return baseGroundY(world, rapier, end.x, end.z, radius)
 }
 
 // Distance along dir until the moving base (radius) touches the other base, edge to edge seen from
