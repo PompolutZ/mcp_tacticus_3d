@@ -351,3 +351,24 @@ test('scene brightness: default 100, clamped into range, rounded, junk is the de
   assert.equal(read({ brightness: 'bright' }), fallback)
   assert.equal(read(undefined), fallback)
 })
+
+test('trackpadSwipePans off and cameraInputsTogether on by default, wrong types replaced', () => {
+  assert.equal(defaultSettings().trackpadSwipePans, false)
+  assert.equal(defaultSettings().cameraInputsTogether, true)
+  const read = (extra) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, ...extra }))
+    let value
+    withStorage(storage, () => {
+      value = readSettings()
+    })
+    return value
+  }
+  const missing = read({})
+  assert.equal(missing.trackpadSwipePans, false)
+  assert.equal(missing.cameraInputsTogether, true)
+  assert.equal(read({ trackpadSwipePans: true }).trackpadSwipePans, true)
+  assert.equal(read({ trackpadSwipePans: 'yes' }).trackpadSwipePans, false)
+  assert.equal(read({ cameraInputsTogether: false }).cameraInputsTogether, false)
+  assert.equal(read({ cameraInputsTogether: 0 }).cameraInputsTogether, true)
+})

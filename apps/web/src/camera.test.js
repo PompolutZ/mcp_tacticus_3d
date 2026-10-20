@@ -11,6 +11,7 @@ import {
   resetView,
   startView,
   stepVelocity,
+  wheelRoute,
   zoomAround,
 } from './camera.js'
 
@@ -189,4 +190,15 @@ test('zoomAround scales camera and target offsets from the point and keeps the t
   assert.ok(camera.position.clone().sub(point).distanceTo(cam0.multiplyScalar(0.5)) < 1e-9)
   assert.ok(target.clone().sub(point).distanceTo(tar0.multiplyScalar(0.5)) < 1e-9)
   assert.equal(target.y, 0)
+})
+
+test('wheel routing: swipe zooms when swipePans is off, pans when on; ctrl always zooms; a wheel step is a step', () => {
+  const r = (ctrlKey, trackpadGesture, swipePans) =>
+    wheelRoute({ ctrlKey, trackpadGesture, swipePans })
+  assert.equal(r(false, true, false), 'zoom')
+  assert.equal(r(false, true, true), 'pan')
+  assert.equal(r(true, true, true), 'zoom')
+  assert.equal(r(true, false, false), 'zoom')
+  assert.equal(r(false, false, false), 'step')
+  assert.equal(r(false, false, true), 'step')
 })

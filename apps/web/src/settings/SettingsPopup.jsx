@@ -237,6 +237,22 @@ export function SettingsPopup({
             on={settings.leftDragCamera !== false}
             onClick={() => onSettingsChange({ leftDragCamera: settings.leftDragCamera === false })}
           />
+          <ToggleRow
+            text="Two-finger swipe on a trackpad moves the camera. Off: it zooms, as in TTS"
+            word="Trackpad swipe pans"
+            on={settings.trackpadSwipePans === true}
+            onClick={() =>
+              onSettingsChange({ trackpadSwipePans: settings.trackpadSwipePans !== true })
+            }
+          />
+          <ToggleRow
+            text="Mouse camera drag and camera keys work at the same time. Off: the first input wins"
+            word="Mouse and keys move camera together"
+            on={settings.cameraInputsTogether !== false}
+            onClick={() =>
+              onSettingsChange({ cameraInputsTogether: settings.cameraInputsTogether === false })
+            }
+          />
         </section>
         <section className="settings-section">
           <h3>Turn</h3>

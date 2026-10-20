@@ -9,7 +9,10 @@ export const MOUSE_ROWS = [
   { keys: 'Left or right drag on the table', action: 'Turn the camera' },
   { keys: 'Middle drag', action: 'Move the camera' },
   { keys: 'Shift, Ctrl or Cmd + drag', action: 'Move the camera' },
-  { keys: 'Two-finger swipe', action: 'Move the camera' },
+  {
+    keys: 'Two-finger swipe',
+    action: 'Zoom. Setting "Trackpad swipe pans": move the camera',
+  },
   {
     keys: 'Wheel, pinch, Ctrl + wheel',
     action: 'Zoom. While dragging a piece, the wheel turns it',

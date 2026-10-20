@@ -923,11 +923,16 @@ export default function App({
                 mouseButtons={cameraMouseButtons(settings.leftDragCamera)}
               />
               <KeepView keep={keepView} take={takeView} />
-              <KeyboardCamera pan={heldPan} turn={heldTurn} />
+              <KeyboardCamera
+                pan={heldPan}
+                turn={heldTurn}
+                together={settings.cameraInputsTogether}
+              />
               <CameraHover />
               <WheelCamera
                 ref={wheelCameraRef}
                 wheelState={wheelState}
+                trackpadSwipePans={settings.trackpadSwipePans}
                 onTurn={(dir) => sceneApi.current?.turnPiece(dir)}
               />
               {statsOn && (

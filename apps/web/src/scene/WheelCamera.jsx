@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Plane, Raycaster, Vector2, Vector3 } from 'three'
-import { CAMERA_FRAME_PRIORITY, framePart, panOnTable, zoomAround } from '../camera.js'
+import { CAMERA_FRAME_PRIORITY, framePart, panOnTable, wheelRoute, zoomAround } from '../camera.js'
 import { getAction, resolve } from '../input/bindings.js'
 
 // One mouse wheel step zooms by this factor, the same step as OrbitControls (0.95 at zoomSpeed 1).
@@ -50,14 +50,17 @@ function looksLikeTrackpad(e) {
 }
 
 // All wheel input of the camera, smoothed. A mouse wheel zooms, as in TTS. On a trackpad, a
-// two-finger swipe pans and a pinch zooms. The browser reports a pinch as a wheel event with ctrlKey
+// two-finger swipe zooms as in TTS (setting "Trackpad swipe pans": it pans) and a pinch zooms. The browser reports a pinch as a wheel event with ctrlKey
 // set (Chrome, Firefox, Safari), so Ctrl + a mouse wheel also zooms. OrbitControls gets no wheel
 // event. It still zooms on a touch screen (two-finger pinch).
 // ref: { stop() } ends the zoom and pan that are left. App calls it when it moves the camera itself.
 // A mouse wheel step is an input (WheelUp / WheelDown, input/bindings.js). wheelState(): the state for
 // the resolver, { popup, dragging, overDiceTray, overPiece, bindings }. onTurn(dir): one piece turn
 // step. Both are read at the wheel event.
-export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn }, ref) {
+export const WheelCamera = forwardRef(function WheelCamera(
+  { wheelState, onTurn, trackpadSwipePans = false },
+  ref,
+) {
   const camera = useThree((state) => state.camera)
   const controls = useThree((state) => state.controls)
   // The same element that OrbitControls listens on
@@ -74,9 +77,9 @@ export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn 
   useImperativeHandle(ref, () => ({ stop }), [])
 
   // The latest props, so the wheel listener is added once
-  const latest = useRef({ wheelState, onTurn })
+  const latest = useRef({ wheelState, onTurn, trackpadSwipePans })
   useEffect(() => {
-    latest.current = { wheelState, onTurn }
+    latest.current = { wheelState, onTurn, trackpadSwipePans }
   })
 
   useEffect(() => {
@@ -94,7 +97,14 @@ export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn 
       // go back a page on a sideways swipe.
       e.preventDefault()
       e.stopPropagation()
-      if (e.ctrlKey) {
+      const route = wheelRoute({
+        ctrlKey: e.ctrlKey,
+        trackpadGesture,
+        swipePans: latest.current.trackpadSwipePans,
+      })
+      if (route === 'zoom') {
+        // A pinch, Ctrl + wheel, or a trackpad swipe with "Trackpad swipe pans" off (swipe up zooms in).
+        // OrbitControls is off during a piece drag: no zoom then.
         if (controls.enabled) {
           setPointer(e)
           addZoom(
@@ -102,7 +112,7 @@ export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn 
             TRACKPAD_SMOOTH_TIME,
           )
         }
-      } else if (trackpadGesture) {
+      } else if (route === 'pan') {
         // OrbitControls is off during a piece drag. A swipe does nothing then.
         if (controls.enabled) addPan(e.deltaX, e.deltaY)
       } else wheelStep(e)

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Spherical, Vector3 } from 'three'
 import { isDragActive, refreshActiveDrag } from '../drag/pointerDrag.js'
-import { createCameraOwner, setMouseCamera } from '../cameraOwner.js'
+import { createCameraOwner, keysBlockMouse, setMouseCamera } from '../cameraOwner.js'
 import { CAMERA_FRAME_PRIORITY, panOnTable, stepVelocity } from '../camera.js'
 
 // Pan speed as a part of the camera distance per second, so it feels the same at every zoom
@@ -43,9 +43,10 @@ function easeVelocity([vx, vy], [tx, ty], dt) {
 // input/bindings.js). pan, turn: refs to a Map of the held actions, action id →
 // screen direction [right, up]. While a pointer drag is in progress, it is moved again after each camera move
 // (drag/pointerDrag.js, refreshActiveDrag), so the piece stays under the pointer.
-// The first input wins: a mouse camera drag blocks the keys, and held keys turn the OrbitControls drag
+// By default both inputs work together. With the setting off, the first input wins: a mouse camera drag blocks the keys, and held keys turn the OrbitControls drag
 // off (cameraOwner.js, docs/features/key-shortcuts.md, "One camera input at a time").
-export function KeyboardCamera({ pan, turn }) {
+// together: the setting "Mouse and keys move camera together" (default). Then nothing blocks anything.
+export function KeyboardCamera({ pan, turn, together = true }) {
   const camera = useThree((state) => state.camera)
   const controls = useThree((state) => state.controls)
 
@@ -93,11 +94,12 @@ export function KeyboardCamera({ pan, turn }) {
     const held = pan.current.size > 0 || turn.current.size > 0
     heldRef.current = held
     const o = owner.current
+    o.setTogether(together)
     // A held key owns the camera; a glide after the release does not block the mouse
     const gliding = panV.current.some(Boolean) || turnV.current.some(Boolean)
     const move = o.keysMove(held || gliding, isDragActive())
     // Held keys turn the mouse camera drag off. The wheel stays on (it needs controls.enabled).
-    setMouseCamera(controls, !(o.owner === 'keys' && held))
+    setMouseCamera(controls, !keysBlockMouse(o.owner, held, together))
     if (!move) {
       panV.current = [0, 0]
       turnV.current = [0, 0]

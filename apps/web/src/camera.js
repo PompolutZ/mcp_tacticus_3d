@@ -150,3 +150,12 @@ export function zoomAround(camera, target, point, factor) {
   camera.position.sub(point).multiplyScalar(factor).add(point)
   target.sub(point).multiplyScalar(factor).add(point)
 }
+
+// Where a wheel event goes (WheelCamera.jsx, docs/features/key-shortcuts.md, "Mouse wheel and trackpad").
+// ctrlKey (a pinch, or Ctrl + wheel): 'zoom'. A trackpad gesture: 'pan' when swipePans, else 'zoom' by
+// the size of the delta, as in TTS. Anything else is one mouse wheel step: 'step'.
+export function wheelRoute({ ctrlKey, trackpadGesture, swipePans }) {
+  if (ctrlKey) return 'zoom'
+  if (trackpadGesture) return swipePans ? 'pan' : 'zoom'
+  return 'step'
+}

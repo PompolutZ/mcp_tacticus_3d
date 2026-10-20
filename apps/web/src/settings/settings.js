@@ -50,6 +50,10 @@ export function defaultSettings() {
     labels: false,
     // Left mouse drag on the empty table moves the camera. Off: only the right and middle buttons do (docs/features/key-shortcuts.md, "Mouse").
     leftDragCamera: true,
+    // Two-finger swipe on a trackpad pans the camera. Off: it zooms, as in TTS (docs/features/key-shortcuts.md, "Mouse wheel and trackpad").
+    trackpadSwipePans: false,
+    // Mouse camera drag and camera keys work at the same time. Off: the first input wins (docs/features/key-shortcuts.md, "One camera input at a time").
+    cameraInputsTogether: true,
     // Dice: a die that rests tilted (or does not rest in 8 s) is thrown again. Off: it reads the face nearest to up
     // (docs/features/dice-rolling.md, "Tilted dice").
     rethrowTilted: false,
@@ -105,6 +109,8 @@ function normalize(raw) {
   settings.performance.stats = raw?.performance?.stats === true
   settings.labels = raw?.labels === true
   settings.leftDragCamera = raw?.leftDragCamera !== false
+  settings.trackpadSwipePans = raw?.trackpadSwipePans === true
+  settings.cameraInputsTogether = raw?.cameraInputsTogether !== false
   settings.rethrowTilted = raw?.rethrowTilted === true
   settings.bindings = normalizeBindings(raw?.bindings)
   return settings
