@@ -1,5 +1,6 @@
 import { removalOf } from './models.js'
 import { swapTrays } from './trays.js'
+import { activationTargets } from './activation.js'
 
 // The document writes of the characters on the table: spawn, Damage, Power, flip, off board, remove, and the
 // tokens on a character (docs/features/character-trays.md, "State"). Plain module, no React: it writes only the
@@ -125,6 +126,23 @@ export function createCharacterActions(table, lookups) {
     return { given: true, target }
   }
 
+  // A click on the Activated source of a host tray: Activated goes to the grunts that lack it, all in one
+  // transaction, else to the host (activation.js). giveToken per target keeps the log entries and lastActivated.
+  function giveActivated(hostId) {
+    const all = table.characters.read()
+    const ids = activationTargets(all, hostId, (c) =>
+      lookups.characterImmune(c.key, c.side).includes('activated'),
+    )
+    let result = { given: false, target: characterOf(hostId) }
+    table.transact(() => {
+      for (const id of ids) {
+        const r = giveToken(id, 'activated')
+        if (ids.length === 1 || r.given) result = r
+      }
+    })
+    return result
+  }
+
   // A click on a token in the tray's "On" row removes one.
   function removeToken(id, tokenKey) {
     const target = characterOf(id)
@@ -148,5 +166,16 @@ export function createCharacterActions(table, lookups) {
     table.characters.set((prev) => swapTrays(prev, idA, idB))
   }
 
-  return { spawn, damage, power, flip, offBoard, remove, giveToken, removeToken, swap }
+  return {
+    spawn,
+    damage,
+    power,
+    flip,
+    offBoard,
+    remove,
+    giveToken,
+    giveActivated,
+    removeToken,
+    swap,
+  }
 }

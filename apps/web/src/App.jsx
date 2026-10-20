@@ -370,6 +370,7 @@ export default function App({
     handleTrayCardDelete,
     handleCharacterRemove,
     handleCharacterTokenGive,
+    handleCharacterSourceClick,
     handleCharacterTokenRemove,
     handleCharacterSwap,
   } = useCharacterActions({
@@ -630,6 +631,7 @@ export default function App({
     setLooseTokens,
     setTokenPiles,
     handleCharacterTokenGive,
+    handleCharacterSourceClick,
     handleSupplyTake,
     handleLooseRemove,
   })

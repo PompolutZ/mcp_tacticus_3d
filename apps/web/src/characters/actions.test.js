@@ -155,3 +155,19 @@ test('swap: the order in the document changes, so the Streamer column order and 
   const place = layoutTrays(table.characters.read())
   assert.ok(place.get('c')[0] < place.get('b')[0] && place.get('b')[0] < place.get('a')[0])
 })
+
+test('giveActivated: grunts first in one go, then the host; one log entry per character', () => {
+  const { table, actions, logs } = charTable([
+    char('h'),
+    char('g1', { host: 'h' }),
+    char('g2', { host: 'h', tokens: { activated: 1 } }),
+    char('g3', { host: 'h' }),
+  ])
+  actions.giveActivated('h')
+  const tk = () =>
+    Object.fromEntries(table.characters.read().map((c) => [c.id, c.tokens.activated ?? 0]))
+  assert.deepEqual(tk(), { h: 0, g1: 1, g2: 1, g3: 1 })
+  assert.equal(logs.filter((l) => l[0] === 'token').length, 2)
+  actions.giveActivated('h')
+  assert.deepEqual(tk(), { h: 1, g1: 1, g2: 1, g3: 1 })
+})

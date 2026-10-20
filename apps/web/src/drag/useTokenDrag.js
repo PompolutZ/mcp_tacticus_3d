@@ -22,6 +22,7 @@ export function useTokenDrag({
   setLooseTokens,
   setTokenPiles,
   handleCharacterTokenGive,
+  handleCharacterSourceClick,
   handleSupplyTake,
   handleLooseRemove,
 }) {
@@ -135,7 +136,7 @@ export function useTokenDrag({
       // A click on a Give source gives 1 token to the character of the tray, the same as a drop. The press
       // claimed nothing and set no spawn (onStart), so endTokenDrag only clears the state.
       onClick: () => {
-        if (full.giveId) handleCharacterTokenGive(full.giveId, full.tokenKey)
+        if (full.giveId) handleCharacterSourceClick(full.giveId, full.tokenKey)
         if (full.clickPile) handlePileClick(full.clickPile)
         endTokenDrag()
       },

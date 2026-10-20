@@ -101,6 +101,18 @@ export function useCharacterActions({
     return given
   }
 
+  // A click on a Give source of a tray. Activated on a host with grunts goes to the grunts first
+  // (actions.giveActivated); every other token is as a drop.
+  function handleCharacterSourceClick(id, tokenKey) {
+    if (tokenKey !== 'activated') return handleCharacterTokenGive(id, tokenKey)
+    const { given, target } = actions.giveActivated(id)
+    if (!given)
+      showHudMessage(
+        `${characterName(target.key)} is immune to ${getToken(tokenKey)?.name ?? tokenKey}.`,
+      )
+    return given
+  }
+
   return {
     handleSpawn,
     handleCharacterDamage: actions.damage,
@@ -110,6 +122,7 @@ export function useCharacterActions({
     handleTrayCardDelete,
     handleCharacterRemove,
     handleCharacterTokenGive,
+    handleCharacterSourceClick,
     handleCharacterTokenRemove: actions.removeToken,
     handleCharacterSwap: actions.swap,
   }

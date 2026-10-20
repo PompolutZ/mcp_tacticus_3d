@@ -224,7 +224,7 @@ A player gives a token to a character by dragging it onto the model or onto the 
 
 The **Library** HUD panel shows every migrated token, in groups, with a search field (see `docs/features/library.md`). It replaced the old Tokens panel. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card. In Pile mode, a drag from the Library puts a pile on the table that never runs out.
 
-A click on a **Give** source (a press with no drag) gives 1 of that token to the character of that tray, with the same limits as a drop on it. A token that cannot be given (an immunity) shows the same HUD message.
+A click on a **Give** source (a press with no drag) gives 1 of that token to the character of that tray, with the same limits as a drop on it. A token that cannot be given (an immunity) shows the same HUD message. On a host with grunts, the Activated source works on the grunts first (see [Grunts](#grunts)).
 
 A character token can also lie on the table, as in TTS. A player drags it there from a Give source, a pile or the Library, and later drags it on to a character or to another place. The Delete key (or Backspace) removes the token under the pointer.
 
@@ -356,7 +356,7 @@ A grunt is a minion that comes with a host: Hand Ninjas (Elektra, Shadowland Dar
 - **Popups:** the tray popup sizes a grunt card by its own aspect and by the viewport height, so the card and the controls stay on the screen. The roster popup shows a grunt variant at the height of a character card, centered in its slide. The card popup of an Alt peek shows the image at its own shape, within the viewport.
 - **Model:** the grunt model spawns on its card, and moves with the tray like any model on the tray area.
 - **Controls:** Damage (limit: the grunt Stamina) and Remove. No Power, no Flip and no "Show other side" in the popup. The card has only the Healthy side. F over a grunt does nothing.
-- **Tokens:** a grunt has its own tokens and can get a token by a drag onto its card or model. The Give sources of the host tray are shared: they hold the tokens of the host and of its grunts. A click on a source gives a token to the host, a drag onto the grunt card gives it to the grunt.
+- **Tokens:** a grunt has its own tokens and can get a token by a drag onto its card or model. The Give sources of the host tray are shared: they hold the tokens of the host and of its grunts. A click on a source gives a token to the host, a drag onto the grunt card gives it to the grunt. Exception: a click on the Activated source gives Activated to the grunts that do not have it yet, all at once; when all grunts have it, the click gives it to the host. Reason: a host with grunts activates the grunts first, then the host (`activation.js`).
 - **Held tokens** lie on the grunt card, kept inside its edges (`trayGruntHeldClamp`). The tray popup shows them on the grunt card image.
 - **Delete:** the Delete key on the host card removes the host with its grunts and its constructs, after the same confirm (it says so). Tokens that they hold drop first. The Delete key on a grunt card removes nothing and says so. A restart of the setup removes the host and its grunts together.
 - **Rules:** a grunt cannot have Power (p21). The Power Phase skips it. In the Cleanup Phase a Dazed grunt has no Injured side to flip to, so it keeps its Damage and side and only loses Dazed and the special conditions (`cleanupCharacter`). The spectator view shows Damage only for a grunt.
