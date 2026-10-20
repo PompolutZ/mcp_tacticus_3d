@@ -114,6 +114,8 @@ z = 12.55   Choose         [drawn 1]
   - It opens by itself once for each `<setup id>:<step>`, on the screen of the chooser (`chooserOf`; the Sandbox and a single player room: always). Same helper as the compare overlay (`src/setup/useAutoOpen.js`). Browsing Prev / Next does not open it.
   - A click on a drawn card opens it again. The other player sees the cards without buttons and a yellow note under them: "Waiting for Nelly to choose a card."
   - A pick, Esc and **×** close it. It also closes when the step changes (the other player picked from another screen).
+- **Maximum Threat overlay** (`ThreatChoose.jsx`), in the threat step: the same comic frame as the Choose 1 overlay (shared `src/crisis/ChooseFrame.jsx`). Title "Choose the Maximum Threat". One red button for each crisis card, like the table chips ("Secure · 17", "Extract · 18"): same action (`setupActions.threat`), same lock and title (`threatChips` in `src/setup/deckButton.js`). A click commits and closes the overlay. Under the buttons is the Breakdown of the chooser's own roster (`docs/features/squad-breakdown.md`), so the player sees what each threat gives. Its threat chips only preview; the overlay buttons commit. The Breakdown state is shared with the roster popup, so filters set here show there. The stage scrolls on a narrow screen.
+  - It opens by itself once for each `<setup id>:threat`, on the screen of the chooser, with the same mechanism as the Choose 1 overlay (`App.jsx` `chooseKey`, `useAutoOpen`). The other player sees a yellow note, "Waiting for Nelly to choose the Maximum Threat.", and no buttons or Breakdown. It closes when the step changes. The table chips stay.
 - **Choose this edge** removes the rows. The two chosen cards then lie on the board ends, the same as a card from the toolbar (Secure at +z, Extract at −z).
 - A chosen card without files in the app has no image and no tokens. The HUD message says so.
 
@@ -222,9 +224,11 @@ setup: {
 | `src/setup/GameSetup.jsx` | The crisis rows and all setup buttons. It gets the parsed rosters from App (`parsedRosters` of `useGameSetup`) and does not parse. It reads the actions from the table store (`actions.setup`) |
 | `src/crisis/CrisisCompare.jsx` | The crisis compare overlay |
 | `src/crisis/CrisisChoose.jsx` | The Choose 1 overlay |
+| `src/crisis/ChooseFrame.jsx` | The frame (dialog, header, stage) of the Choose 1 and Maximum Threat overlays |
+| `src/setup/ThreatChoose.jsx` | The Maximum Threat overlay |
 | `src/setup/useAutoOpen.js` | Opens an overlay by itself once for each key |
 | `src/setup/setupText.js` | `STEP_NAME`, `stepChoice`, `chooses`, `decides`, `rollOffText`: the step names, the choice of a done step, the hints and the roll off text. `stepChoice` gets the card lookup as an argument, so a Node test can run it |
-| `src/setup/deckButton.js` | `lockedTitle`, `deckProblem`, `deckButton`, `pickButton`: the lock and title of the deck and card buttons, for the table and the overlay |
+| `src/setup/deckButton.js` | `lockedTitle`, `deckProblem`, `deckButton`, `pickButton`, `threatChips`: the lock and title of the deck, card and threat buttons, for the table and the overlays |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys`, `squadAffiliationChoices` |
 | `src/scoreboard/affiliations.js` | `affiliationKey`, `squadAffiliations`, `affiliationChoices`, `autoAffiliation` |

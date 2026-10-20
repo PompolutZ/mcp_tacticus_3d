@@ -26,7 +26,7 @@ import {
 } from './setup.js'
 import { isYou, playerName, possessive, says } from './names.js'
 import { STEP_NAME, chooses, decides, rollOffText, stepChoice } from './setupText.js'
-import { TYPE, deckButton, lockedTitle, pickButton } from './deckButton.js'
+import { TYPE, deckButton, lockedTitle, pickButton, threatChips } from './deckButton.js'
 import { useSideColors } from '../table/useSideColors.jsx'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import { RosterCard } from '../rosters/RosterCards.jsx'
@@ -356,26 +356,23 @@ function SquadPlace({ team, compact = false, children }) {
 
 // The Maximum Threat chips (Secure · 17, Extract · 18) under the roster rows of the player who chooses, facing them.
 function ThreatPanel({ team, setup, ctx, actions }) {
-  const locked = lockedTitle(setup, 'the Maximum Threat', ctx)
+  const { locked, chips } = threatChips(setup, ctx, rosterCard)
   return (
     <SquadPlace team={team}>
       <div className="setup-note">{chooses(team, 'the Maximum Threat', ctx, true)}</div>
       <div className="setup-row">
-        {CRISIS_TYPES.map((type) => {
-          const info = rosterCard(setup.picks[type])
-          return (
-            <button
-              key={type}
-              type="button"
-              className="chip"
-              aria-disabled={locked !== null}
-              title={locked ?? info.name}
-              onClick={locked === null ? () => actions.threat(info.threat) : undefined}
-            >
-              {TYPE[type]} · {info.threat}
-            </button>
-          )
-        })}
+        {chips.map((chip) => (
+          <button
+            key={chip.type}
+            type="button"
+            className="chip"
+            aria-disabled={locked !== null}
+            title={chip.title}
+            onClick={locked === null ? () => actions.threat(chip.value) : undefined}
+          >
+            {chip.label}
+          </button>
+        ))}
       </div>
     </SquadPlace>
   )

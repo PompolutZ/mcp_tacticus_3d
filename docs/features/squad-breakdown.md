@@ -70,6 +70,7 @@ The tab shows only the values that this game can still have. The values come fro
 
 The roster popup (`docs/features/roster.md`, "Roster popup") gets a fourth tab: **Breakdown**.
 
+- The Breakdown also shows in the Maximum Threat overlay of the setup (`docs/features/setup-game.md`), under its buttons, for the roster of the player who chooses. Same content and same shared state as the tab. Its threat chips preview; the overlay buttons commit the Maximum Threat. It shows only where `breakdownFor` gives a result, so the other player sees none.
 - The tab shows on the table while the squad of that roster is not on the table. After the squad is placed, the tab is gone. The roster popup of the lobby has no Breakdown tab, because a room has no setup there.
 - In a multiplayer room, the tab shows only on the own roster. On the other roster the tab is absent, because the breakdown shows the opponent's options, which the game does not show. A popup left on the tab for the other roster shows the first tab with cards. In the Sandbox and a solo room one person plays both sides, so both rosters have the tab.
 - The tab is disabled when the roster has no characters, the same as a tab without cards.

@@ -1,7 +1,7 @@
 // The deck buttons ("Choose Secures", "Choose Extracts") of the deck step: the lock, the problem and the title.
 // Shared by the buttons on the table (GameSetup.jsx) and the crisis compare overlay (CrisisCompare.jsx), so both
 // lock and explain in the same way. No React.
-import { chooserOf, otherTeam, otherType, viewOf } from './setup.js'
+import { CRISIS_TYPES, chooserOf, otherTeam, otherType, viewOf } from './setup.js'
 import { capital, possessive, says, their } from './names.js'
 
 export const TYPE = { secure: 'Secure', extract: 'Extract' }
@@ -44,4 +44,21 @@ export function deckButton(setup, team, type, parsed, ctx) {
 export function pickButton(setup, name, ctx) {
   const locked = lockedTitle(setup, 'a card', ctx)
   return { locked, title: locked ?? `Choose ${name}` }
+}
+
+// The Maximum Threat buttons (threat step): { locked, chips: [{ type, label, value, title }] }, one chip per crisis
+// card on the table ("Secure · 17"). Shared by the chips on the table (GameSetup.jsx) and the threat overlay
+// (ThreatChoose.jsx). rosterCard is the card lookup (rosters/cards.js), an argument so a Node script can import this file.
+export function threatChips(setup, ctx, rosterCard) {
+  const locked = lockedTitle(setup, 'the Maximum Threat', ctx)
+  const chips = CRISIS_TYPES.map((type) => {
+    const info = rosterCard(setup.picks[type])
+    return {
+      type,
+      label: `${TYPE[type]} · ${info.threat}`,
+      value: info.threat,
+      title: locked ?? info.name,
+    }
+  })
+  return { locked, chips }
 }

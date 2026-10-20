@@ -83,3 +83,7 @@ In the setup, the player without Priority picks the Maximum Threat from the two 
 ### 3. Shared Breakdown state
 
 - Done. `rosters/useBreakdownChoice.js` keeps the Breakdown state. `App.jsx` calls it once and passes `breakdownFor(team)` to `RosterPopupHost`. `breakdownFor` is a plain function: its inputs from `useGameSetup` are new each render, so a memo would not help.
+
+### 4. Threat overlay
+
+- Done. `setup/ThreatChoose.jsx` uses the "Choose 1" auto-open in `App.jsx`, extended to the threat step. `crisis/ChooseFrame.jsx` is the frame both overlays share. `threatChips` in `setup/deckButton.js` gives the table chips and the overlay buttons the same label, value and lock.

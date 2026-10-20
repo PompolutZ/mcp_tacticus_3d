@@ -3,7 +3,7 @@ import { rosterCard } from '../rosters/cards.js'
 import { chooserOf, crisisRows } from '../setup/setup.js'
 import { TYPE, pickButton } from '../setup/deckButton.js'
 import { isYou, playerName, possessive } from '../setup/names.js'
-import { Dialog } from '../ui/Dialog.jsx'
+import { ChooseFrame } from './ChooseFrame.jsx'
 import { CrisisFace } from './CrisisCompare.jsx'
 
 // The Choose 1 overlay of the game setup, in the first and second step (docs/features/setup-game.md, "Crisis
@@ -24,25 +24,12 @@ export function CrisisChoose({ setup, parsed, ctx, onPick, onClose }) {
   const active = !ctx.mySide || ctx.mySide === chooser
   const [w, h] = CARD_SIZES[row.type]
   return (
-    <Dialog
-      backdropClassName="card-popup roster-popup-backdrop"
-      className="comic roster-comic crisis-choose"
-      closeClassName="roster-comic-close"
-      label={title}
+    <ChooseFrame
+      tone={row.type === 'secure' ? 'blue' : 'red'}
+      tag={`${playerName(row.team, ctx)} · ${noun} · pick one`}
+      title={title}
       onClose={onClose}
     >
-      <header
-        className={`roster-comic-head roster-comic-head--${row.type === 'secure' ? 'blue' : 'red'}`}
-      >
-        <div className="roster-comic-head-row">
-          <div className="roster-comic-heading">
-            <div className="roster-comic-tag">
-              {playerName(row.team, ctx)} · {noun} · pick one
-            </div>
-            <h2 className="roster-comic-title">{title}</h2>
-          </div>
-        </div>
-      </header>
       <div className="roster-comic-stage crisis-choose-stage">
         <div
           className="crisis-choose-cards"
@@ -85,6 +72,6 @@ export function CrisisChoose({ setup, parsed, ctx, onPick, onClose }) {
           </p>
         )}
       </div>
-    </Dialog>
+    </ChooseFrame>
   )
 }

@@ -40,6 +40,7 @@ import { useBreakdownChoice } from './rosters/useBreakdownChoice.js'
 import { RosterPopupHost } from './rosters/RosterPopupHost.jsx'
 import { CrisisCompare } from './crisis/CrisisCompare.jsx'
 import { CrisisChoose } from './crisis/CrisisChoose.jsx'
+import { ThreatChoose } from './setup/ThreatChoose.jsx'
 import { useAutoOpen } from './setup/useAutoOpen.js'
 import { useTokenDrag } from './drag/useTokenDrag.js'
 import { cancelActiveDrag, isDragActive } from './drag/pointerDrag.js'
@@ -284,8 +285,8 @@ export default function App({
   // code: the card that gives the first tab and the first slide (code null: the first card). Also one of the
   // popups: each covers the table.
   const [openCrisis, setOpenCrisis] = useState(null)
-  // The Choose 1 overlay: the key "<setup id>:<step>" of the step it is open for, or null. It shows only
-  // while the setup is at that step, so a step change closes it. See CrisisChoose.jsx.
+  // The Choose 1 / Maximum Threat overlay: the key "<setup id>:<step>" of the step it is open for, or null. It
+  // shows only while the setup is at that step, so a step change closes it. See CrisisChoose.jsx, ThreatChoose.jsx.
   const [openChoose, setOpenChoose] = useState(null)
   // The function that the open compare overlay puts here: shows the card `step` places away in the top carousel
   const crisisStepRef = useRef(null)
@@ -533,8 +534,9 @@ export default function App({
       ? openCrisis
       : null
 
-  // The Choose 1 overlay shows in the first and second step, for the step it was opened in
-  const chooseKey = ['first', 'second'].includes(setupStep(setup))
+  // The Choose 1 overlay shows in the first and second step, the Maximum Threat overlay in the threat step, for
+  // the step it was opened in
+  const chooseKey = ['first', 'second', 'threat'].includes(setupStep(setup))
     ? `${setup.id}:${setupStep(setup)}`
     : null
   const chooseShown = !!chooseKey && openChoose === chooseKey && !viewOf(setup)
@@ -572,7 +574,7 @@ export default function App({
   useAutoOpen(setupStep(setup) === 'deck' && free ? `${setup.id}:deck` : null, () =>
     handleCrisisOpen({ team: priorityOf(setup), type: 'secure', code: null }),
   )
-  // Choose 1: the first and second step, the chooser
+  // Choose 1 and Maximum Threat: the first, second and threat step, the chooser
   useAutoOpen(free ? chooseKey : null, openChooseOverlay)
 
   // A click on a gem: a chip of a tray (TrayControls.jsx), the Library, or a gem line of a roster card: the card
@@ -1027,7 +1029,17 @@ export default function App({
             onClose={() => setOpenCrisis(null)}
           />
         )}
-        {chooseShown && (
+        {chooseShown && setupStep(setup) === 'threat' && (
+          <ThreatChoose
+            setup={setup}
+            parsed={parsedRosters}
+            ctx={nameCtx}
+            breakdownFor={breakdownFor}
+            onPick={setupActions.threat}
+            onClose={() => setOpenChoose(null)}
+          />
+        )}
+        {chooseShown && setupStep(setup) !== 'threat' && (
           <CrisisChoose
             setup={setup}
             parsed={parsedRosters}

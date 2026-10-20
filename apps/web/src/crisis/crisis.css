@@ -282,3 +282,29 @@
     font-size: 16px;
   }
 }
+
+/* The Maximum Threat overlay (setup/ThreatChoose.jsx): the buttons in a row, the Breakdown under them. It is
+   fixed-height panel that scrolls inside; the stage scrolls when the screen is short. */
+.threat-choose-stage {
+  justify-content: flex-start;
+  min-height: 0;
+}
+
+.threat-choose-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.threat-choose-stage .roster-comic-breakdown {
+  flex: none;
+  width: 100%;
+  height: clamp(300px, calc(100vh - 380px), 620px);
+}
+
+@media (max-width: 640px) {
+  .threat-choose-buttons {
+    gap: 12px;
+  }
+}
