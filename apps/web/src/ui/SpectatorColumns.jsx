@@ -71,7 +71,15 @@ function Row({ character, held, off, ko }) {
   const stamina = characterStamina(character.key, character.side)
   const tokens = Object.entries(character.tokens ?? {})
   return (
-    <li className={off ? 'streamer-row streamer-row--off' : 'streamer-row'}>
+    <li
+      className={[
+        'streamer-row',
+        off && 'streamer-row--off',
+        character.side === 'injured' && 'streamer-row--injured',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="streamer-main">
         <div className="streamer-top">
           <img

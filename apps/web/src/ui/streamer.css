@@ -118,6 +118,11 @@
   filter: grayscale(1);
 }
 
+/* Injured side: pale red instead of the paper (docs/features/spectator-view.md). */
+.streamer-row--injured {
+  background: #ffd9d6;
+}
+
 .streamer-portrait {
   flex: none;
   width: calc(44px * var(--s));
