@@ -11,6 +11,7 @@ One shared list that tells what happened at the table, for both players: the dic
 The Log is a speech bubble under the **Log** button of the toolbar (`src/log/LogPanel.jsx`, styles in `src/log/log.css`). Its tail points at the button. It replaces the Rolls panel.
 
 - Closed: no bubble. When a new entry is added (a dice entry or a log entry), the bubble shows it for a few seconds, then hides. A next new entry replaces the text and starts the time again. Entries that come with the table load, or with a sync from the other player at connect, do not show it. A click on the bubble opens the Log.
+- **Undo**: a terrain delete entry has an **Undo** button, in the open list and in the bubble. It shows while the piece is not on the table and the map is the same (`canUndo` in `src/log/log.js`), so after an undo or a map change it is gone. Both players see it. A click on it does not open or close the Log. One undo is one transaction (`handleTerrainUndo` in `src/pieces/useTablePieces.js`, rules in `src/pieces/terrainUndo.js`): the piece comes back with its id, place and lock; a piece that fell gets its old height back only if it is still at the fallen height; a model that fell goes back up only if its pose is still the one after the fall and this browser can claim it. What moved onto the spot since is not moved. There is no undo for other actions.
 - Open (the **Log** button, or a click on the bubble): the last entries, the newest first. The list scrolls. **Collapse** or Escape closes it.
 - The show time and the number of entries are constants in `src/log/bubble.js`. `freshItem` there decides what is new.
 - Each entry has its time (hours and minutes) and a mark in the color of its side. Entries are split by dashed lines.
@@ -46,6 +47,8 @@ The panel merges two lists by time: `rolls` (the dice, `docs/features/dice-rolli
 | Objective token placed | "Nelly placed Hulk's Asset." (a release or **Done**) |
 | Remove | "Hulk is removed from the board." |
 | Character deleted | "Hulk is deleted from the table." |
+| Terrain deleted | "Nelly deleted Crate." The piece name is from `TERRAIN_PIECES`. It has an **Undo** button, see "Panel" |
+| Terrain put back | "Nelly put back Crate." (the Undo) |
 
 A token that changes nothing (a second Dazed, a token the character is immune to) has no entry.
 
@@ -59,6 +62,7 @@ An entry stores data, not text: `{ id, at, by, kind, ... }` (`src/log/log.js`).
 - `side`: the side that did the thing (the chooser of a step, the side of a Power Phase).
 - Character entries: `side` is the side of the character, so the border has the color of its owner, and `by` is the player who clicked. Fields: `characterId`, `name`.
 - Token entries are told apart by `kind`. `token`: a token of the tray, with `key` (`activated` or another token key), `tokenName`, `on` (put on or taken off) and `count` (after the change). `held`: an objective token, with `tokenId`, `tokenName` and `on`. `dropped` and `placed`: an objective token of a drop, with `tokenId`, `tokenName` and `placeBy` (the side that places it). `placed` has `side` = `placeBy`. Token sounds play from the `token` and `held` entries (`sounds.md`).
+- `terrainDeleted`: `piece` (the stored piece, with its id), `pieceKey` (the name in `TERRAIN_PIECES`), `mapId`, `terrain` (the height before and after the fall of each piece that fell) and `models` (the delta and the pose after the fall of each model that fell). `terrainRestored`: `piece` and `pieceKey`.
 - Other fields by kind: `type`, `card`, `threat`, `ready`, `affiliation`, `step`, `gains`, `round`, `flipped`, `before`, `after`, `stat`, `from`, `to`.
 
 The text is made when the entry shows, with the names of the viewer (`src/setup/names.js`, `src/setup/useNames.js`). So the same entry reads "You choose ..." in one browser and "Nelly chooses ..." in the other, and "Blue" or "Red" in the Sandbox and a single player room.

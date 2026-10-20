@@ -87,3 +87,37 @@ In the setup, the player without Priority picks the Maximum Threat from the two 
 ### 4. Threat overlay
 
 - Done. `setup/ThreatChoose.jsx` uses the "Choose 1" auto-open in `App.jsx`, extended to the threat step. `crisis/ChooseFrame.jsx` is the frame both overlays share. `threatChips` in `setup/deckButton.js` gives the table chips and the overlay buttons the same label, value and lock.
+
+### 5. Terrain delete entry and Undo
+
+- Done. `planFall` returns `{ terrain, models: { id: { delta, pose } } }`; `useTerrainFall` also returns `raiseModels` (new `sceneApi.raiseModels`), which queues the poses for the same after-render effect as a fall. The pure rules are in `pieces/terrainUndo.js` (`deleteEntryData`, `undoPlan`, tests in `terrainUndo.test.js`). `canUndo` and the texts are in `log/log.js`.
+- Entry also stores `pieceKey` (name for the text), since the stored piece has only `id, index, locked, y`. Terrain falls store `from` and `to` heights.
+- Deviation: the app has no spectator seat (the `spectator` flag is the Streamer view), so the button is not hidden for anyone. `LogPanel` shows it only when `onUndo` is passed.
+
+## Request 3: Undo a terrain delete
+
+A terrain piece can be deleted by accident (Delete key). Add an **Undo** button to the log entry of the delete, so the player can put the piece back.
+
+### Decisions
+
+- Today a terrain delete has no log entry. Add one: kind `terrainDeleted`, text "Nelly deleted Crate." (the name from `TERRAIN_PIECES`). It is written in the same transaction as the delete (`handleTerrainRemove` in `pieces/useTablePieces.js`).
+- The entry stores what undo needs: the removed piece (the whole object, with its id), the map id, the old `y` of each terrain piece that fell, and the fall of each model (`id`, delta, the pose after the fall).
+- **Undo** shows on the entry in the open log and in the bubble. It shows while the piece is not on the table and the map is the same. So after an undo, or after a map change, the button is gone. Both players see it. A spectator does not.
+- An undo is one transaction:
+  - the piece is back with the same id, place and lock state;
+  - a terrain piece that fell gets its old `y` back, but only if its `y` is still the one from the fall;
+  - a model that fell goes back up by its delta, but only if it has not moved since the fall (pose still the same) and this browser can claim it;
+  - a new entry "Nelly put back Crate."
+- Anything that moved onto the spot after the delete is not moved. The players fix it (as for other overlaps).
+- One undo for each delete. No undo for other actions.
+
+### Steps
+
+#### 5. Terrain delete entry and Undo
+
+- `terrain/useTerrainFall.js`: `planFall` also returns the model falls (delta and the pose after the fall), so the entry can store them.
+- `pieces/useTablePieces.js`: write the `terrainDeleted` entry in `handleTerrainRemove`. Add `handleTerrainUndo(entry)`, as in the rules above.
+- `log/log.js`: text of `terrainDeleted` and `terrainRestored`. A pure function `canUndo(entry, terrain, mapId)`.
+- `log/LogPanel.jsx`, `log/log.css`: the **Undo** button on the entry, in the list and in the bubble. A click on it does not open or close the Log.
+- Tests (`log/log.test.js`, and a test for the undo writes): the button shows only while the piece is not on the table and the map is the same; undo puts the piece back with its id; a piece moved after the fall keeps its place.
+- `docs/features/game-log.md`: the two entries in "What is logged", the Undo rule in "Panel". `docs/features/maps.md`, "Delete": the delete can be undone from the log.

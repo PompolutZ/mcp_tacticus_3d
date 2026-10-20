@@ -3,6 +3,8 @@ import { droppedY, mapTerrain } from '../rooms/table.js'
 import { deselectPiece } from '../selection.js'
 import { cardPiles, firstFreeSlot, nearestFreeSlot, tacticTrayAt } from '../tactics/layout.js'
 import { getTactic } from '../tactics/cards.js'
+import { canUndo } from '../log/log.js'
+import { deleteEntryData, undoPlan } from './terrainUndo.js'
 
 // The handlers of the pieces on the table: mat turn, map, terrain lock and remove, loose tokens, token
 // piles and Team Tactic cards (docs/features/team-tactic-cards.md). Call it after the selection and the HUD
@@ -10,6 +12,8 @@ import { getTactic } from '../tactics/cards.js'
 export function useTablePieces({
   table,
   terrain,
+  mapId,
+  writeLog,
   sceneApi,
   setMatTurns,
   setMapId,
@@ -53,18 +57,34 @@ export function useTablePieces({
   // fall get a new `y` in the document, and Scene moves the models after the piece left the world.
   // Only this browser plans it. The other one gets the document and the poses.
   function handleTerrainRemove(id) {
+    const piece = table.terrain.read().find((p) => p.id === id)
     table.transact(() => {
-      const fall = sceneApi.current?.planFall(id)?.terrain ?? {}
+      const fall = sceneApi.current?.planFall(id) ?? { terrain: {}, models: {} }
+      if (piece) writeLog('terrainDeleted', deleteEntryData(piece, mapId, terrain, fall))
       setTerrain((prev) =>
         prev
           .filter((p) => p.id !== id)
           .map((p) => {
-            const placed = fall[p.id] && terrain.find((t) => t.id === p.id)
-            return placed ? { ...p, y: droppedY(placed.position, fall[p.id]) } : p
+            const placed = fall.terrain[p.id] && terrain.find((t) => t.id === p.id)
+            return placed ? { ...p, y: droppedY(placed.position, fall.terrain[p.id]) } : p
           }),
       )
     })
     setSelection((prev) => deselectPiece(prev, { kind: 'terrain', id }))
+  }
+
+  // The Undo button of a `terrainDeleted` log entry (log/log.js, canUndo): one transaction. The piece is
+  // back with its id, place and lock. A piece that fell gets its old `y` if it is still at the fallen
+  // height, a model goes back up if its pose is still the one after the fall and this browser can claim it
+  // (Scene, raiseModels). What moved onto the spot since is not moved.
+  function handleTerrainUndo(entry) {
+    if (!canUndo(entry, terrain, mapId)) return
+    table.transact(() => {
+      const plan = undoPlan(entry, table.terrain.read(), terrain, table.poses.read())
+      sceneApi.current?.raiseModels(plan.rises)
+      writeLog('terrainRestored', { piece: entry.piece, pieceKey: entry.pieceKey })
+      setTerrain(plan.terrain)
+    })
   }
 
   // Delete key over a token on the table, as in TTS
@@ -134,6 +154,7 @@ export function useTablePieces({
     handleMapChange,
     handleLockKey,
     handleTerrainRemove,
+    handleTerrainUndo,
     handleLooseRemove,
     handlePileRemove,
     handleTacticSpawn,

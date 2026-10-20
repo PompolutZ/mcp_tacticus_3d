@@ -4,7 +4,7 @@ import { entryText } from '../dice/history.js'
 import { diceIconUrl } from '../tactics/faceIcons.js'
 import { useSideColor } from '../table/useSideColors.jsx'
 import { BUBBLE_ENTRIES, BUBBLE_SHOW_MS, freshItem, itemKey } from './bubble.js'
-import { entrySide, logText, mergeLog } from './log.js'
+import { canUndo, entrySide, logText, mergeLog } from './log.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import '../rooms/comicBase.js'
 import './log.css'
@@ -78,22 +78,38 @@ function DiceEntry({ entry }) {
 }
 
 // An entry of the `log` list: the text is made here, for the viewer (log/log.js)
-function LogEntry({ entry, ctx }) {
+// undo: { terrain, mapId, onUndo }, or null. A terrain delete shows the Undo button (canUndo). The click does
+// not reach the bubble, so it does not open the log.
+function LogEntry({ entry, ctx, undo }) {
   const color = useSideColor(entrySide(entry))
   const text = logText(entry, ctx)
   return (
     <div className={`log-entry${color ? ` log-entry--${color}` : ''}`} title={text}>
       <span className="log-time">{time(entry.at)}</span>
       <span>{text}</span>
+      {undo && canUndo(entry, undo.terrain, undo.mapId) && (
+        <button
+          type="button"
+          className="comic-button comic-button--small log-undo"
+          title="Put the piece back"
+          onClick={(e) => {
+            e.stopPropagation()
+            undo.onUndo(entry)
+          }}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          Undo
+        </button>
+      )}
     </div>
   )
 }
 
-function Entry({ item, ctx }) {
+function Entry({ item, ctx, undo }) {
   return item.type === 'dice' ? (
     <DiceEntry entry={item.entry} />
   ) : (
-    <LogEntry entry={item.entry} ctx={ctx} />
+    <LogEntry entry={item.entry} ctx={ctx} undo={undo} />
   )
 }
 
@@ -124,8 +140,10 @@ function useTail(ref, visible) {
 // and the game `log`, both oldest first as stored, merged by time with the newest first.
 // Closed: no bubble, until an entry is added. Then the bubble shows that entry for BUBBLE_SHOW_MS (log/bubble.js);
 // a click opens the log. Open: the last BUBBLE_ENTRIES entries, newest first, scrolling. The names of the
-// entries come from the store of the table (nameCtx).
-export function LogPanel({ open, onOpen, onClose, rolls, log }) {
+// entries come from the store of the table (nameCtx). terrain, mapId, onUndo: the Undo button of a terrain
+// delete (log.js, canUndo); without onUndo no entry has it.
+export function LogPanel({ open, onOpen, onClose, rolls, log, terrain, mapId, onUndo }) {
+  const undo = onUndo ? { terrain, mapId, onUndo } : null
   const ctx = useTableStore((s) => s.nameCtx)
   const items = mergeLog(rolls, log)
   // The keys of the entries the bubble has seen (null before the first look), and the entry it flashes
@@ -159,7 +177,7 @@ export function LogPanel({ open, onOpen, onClose, rolls, log }) {
         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpen()}
       >
         <span className="log-caption">Log</span>
-        <Entry key={itemKey(flash)} item={flash} ctx={ctx} />
+        <Entry key={itemKey(flash)} item={flash} ctx={ctx} undo={undo} />
       </div>
     )
   }
@@ -179,7 +197,7 @@ export function LogPanel({ open, onOpen, onClose, rolls, log }) {
       {items.length === 0 && <div className="log-message">No entries yet</div>}
       <div className="log-list">
         {items.slice(0, BUBBLE_ENTRIES).map((item) => (
-          <Entry key={itemKey(item)} item={item} ctx={ctx} />
+          <Entry key={itemKey(item)} item={item} ctx={ctx} undo={undo} />
         ))}
       </div>
     </div>

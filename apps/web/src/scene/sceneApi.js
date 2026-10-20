@@ -11,14 +11,15 @@
 //   liftPiece(): R lifts the character under the pointer or puts it back down.
 //   floorPiece() -> HUD message or null. R during a model drag switches the floor.
 //   terrainAt() -> terrain id or null. The terrain piece under the pointer, locked or not.
-//   planFall(terrainId) -> { terrain }. What falls when that terrain piece is deleted.
+//   planFall(terrainId) -> { terrain, models }. What falls when that terrain piece is deleted.
+//   raiseModels([{ id, pose }]): the models go back to those poses after the next terrain change (undo).
 //   modelDragId() -> model id or null. The own model that is dragged now.
 //   addDice(side, count): clears the own dice tray of that side, then adds that many dice.
 //   pointAtPointer(), pointAtCenter() -> { x, y, z } or null (undefined with no tool point yet).
 //     Table points for a free tool spawn and the ping (ToolPoint.jsx).
 //
 // parts: the functions characterAt, modelPosition, returnModels, turnPiece, liftPiece, floorPiece,
-// terrainAt, planFall, and the refs modelDrag (current: model id or null), addDice (current: side ->
+// terrainAt, planFall, raiseModels, and the refs modelDrag (current: model id or null), addDice (current: side ->
 // add function) and toolPoint (current: { atPointer(), atCenter() } or null). The wrappers read the
 // refs at the call. A missing part throws here, so a typo does not fail silently later.
 
@@ -31,6 +32,7 @@ const FUNCTION_PARTS = [
   'floorPiece',
   'terrainAt',
   'planFall',
+  'raiseModels',
 ]
 const REF_PARTS = ['modelDrag', 'addDice', 'toolPoint']
 
@@ -43,6 +45,7 @@ export const SCENE_API_KEYS = [
   'floorPiece',
   'terrainAt',
   'planFall',
+  'raiseModels',
   'modelDragId',
   'addDice',
   'pointAtPointer',
@@ -67,6 +70,7 @@ export function createSceneApi(parts) {
     floorPiece: () => parts.floorPiece(),
     terrainAt: () => parts.terrainAt(),
     planFall: (terrainId) => parts.planFall(terrainId),
+    raiseModels: (models) => parts.raiseModels(models),
     modelDragId: () => parts.modelDrag.current,
     addDice: (side, count) => parts.addDice.current[side]?.(count),
     pointAtPointer: () => parts.toolPoint.current?.atPointer(),

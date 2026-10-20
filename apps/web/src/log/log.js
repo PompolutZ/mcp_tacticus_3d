@@ -4,6 +4,7 @@
 
 import { isYou, playerName, says, their } from '../setup/names.js'
 import { priorityNote } from '../game/priority.js'
+import { TERRAIN_PIECES } from '../terrain/pieces.js'
 
 // The log keeps the newest entries only. A write that goes over removes the oldest ones.
 export const LOG_LIMIT = 300
@@ -103,6 +104,20 @@ const owner = (side, ctx) => (isYou(side, ctx) ? 'Your' : `${playerName(side, ct
 // "Hulk 4 → 7, Angela 2 → 4"
 const gainsText = (gains) => gains.map((g) => `${g.name} ${g.from} → ${g.to}`).join(', ')
 
+// True when the Undo button shows on a log entry: a terrain delete whose piece is not on the table, on the
+// same map. After an undo, or a map change, it is gone. terrain: the terrain of the table (ids), mapId: now.
+export function canUndo(entry, terrain, mapId) {
+  return (
+    entry.kind === 'terrainDeleted' &&
+    entry.mapId === mapId &&
+    !terrain.some((p) => p.id === entry.piece.id)
+  )
+}
+
+// "Deleted Crate." with the name of the writer in front, "You" for the own side
+const pieceAction = (entry, ctx, verb) =>
+  `${entry.by ? `${playerName(entry.by, ctx)} ${verb}` : `${verb[0].toUpperCase()}${verb.slice(1)}`} ${TERRAIN_PIECES[entry.pieceKey]?.name ?? 'a terrain piece'}.`
+
 // The text of a log entry for the viewer. ctx: the names context (setup/names.js).
 export function logText(entry, ctx) {
   const { kind, side } = entry
@@ -167,6 +182,10 @@ export function logText(entry, ctx) {
       return `${entry.name} is removed from the board.`
     case 'deleted':
       return `${entry.name} is deleted from the table.`
+    case 'terrainDeleted':
+      return pieceAction(entry, ctx, 'deleted')
+    case 'terrainRestored':
+      return pieceAction(entry, ctx, 'put back')
     default:
       return ''
   }

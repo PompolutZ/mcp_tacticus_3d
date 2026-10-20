@@ -394,6 +394,7 @@ export default function App({
     handleMapChange,
     handleLockKey,
     handleTerrainRemove,
+    handleTerrainUndo,
     handleLooseRemove,
     handlePileRemove,
     handleTacticSpawn,
@@ -404,6 +405,8 @@ export default function App({
   } = useTablePieces({
     table,
     terrain,
+    mapId,
+    writeLog,
     sceneApi,
     setMatTurns,
     setMapId,
@@ -990,6 +993,9 @@ export default function App({
           onClose={() => setLogOpen(false)}
           rolls={rolls}
           log={log}
+          terrain={terrain}
+          mapId={mapId}
+          onUndo={handleTerrainUndo}
         />
         {spectator && (
           <SpectatorColumns

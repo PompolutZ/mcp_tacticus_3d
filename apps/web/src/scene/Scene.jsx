@@ -372,7 +372,7 @@ function Scene(props) {
     }
   }
 
-  const planFall = useTerrainFall({
+  const { planFall, raiseModels } = useTerrainFall({
     models,
     liveCharBody,
     charLifts,
@@ -419,6 +419,7 @@ function Scene(props) {
         floorPiece,
         terrainAt,
         planFall,
+        raiseModels,
         modelDrag,
         addDice,
         toolPoint,

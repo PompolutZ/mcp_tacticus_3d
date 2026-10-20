@@ -143,3 +143,8 @@
 .log-blank {
   font-weight: 700;
 }
+
+/* The Undo button of a terrain delete: at the end of the entry */
+.log-undo {
+  margin-left: auto;
+}

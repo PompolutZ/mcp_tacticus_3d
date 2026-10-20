@@ -22,15 +22,16 @@ export function useTerrainFall({
   onModelRest,
 }) {
   // A terrain piece is about to be deleted (App, handleTerrainRemove): plans what stood on it. Returns
-  // { terrain: { id: delta } } for App to store, and keeps the model falls for the effect below, which
-  // runs after the piece left the world. A model that the other player moves, a lifted one and one that
-  // is dragged here is not planned. Delta: inches straight down.
-  const pendingDrops = useRef({})
+  // { terrain: { id: delta }, models: { id: { delta, pose } } } for App to store (the delete entry, for
+  // the undo), and keeps the poses after the fall for the effect below, which runs after the piece left the
+  // world. A model that the other player moves, a lifted one and one that is dragged here is not planned.
+  // Delta: inches straight down. pose: the stored pose after the fall.
+  const pendingPoses = useRef({})
   function planFall(removedId) {
     const world = worldRef.current
     const rapier = rapierRef.current
-    pendingDrops.current = {}
-    if (!world || !rapier) return { terrain: {} }
+    pendingPoses.current = {}
+    if (!world || !rapier) return { terrain: {}, models: {} }
     const list = []
     for (const model of models) {
       const body = liveCharBody(model.id)
@@ -46,27 +47,40 @@ export function useTerrainFall({
       terrainObjects: terrainObjects.current,
       models: list,
     })
-    pendingDrops.current = plan.models
-    return plan
+    const falls = {}
+    for (const [id, delta] of Object.entries(plan.models)) {
+      const body = liveCharBody(id)
+      if (!body) continue
+      const t = body.translation()
+      falls[id] = {
+        delta,
+        pose: poseOf({ x: t.x, y: t.y - delta, z: t.z }, upright(body.rotation())),
+      }
+    }
+    pendingPoses.current = Object.fromEntries(Object.entries(falls).map(([id, m]) => [id, m.pose]))
+    return { terrain: plan.terrain, models: falls }
   }
 
-  // The models of the plan go straight down to the next surface, upright, with no speed, so nothing is
-  // pushed. The pose is stored as at a rest (returnModels), so the other browser gets it. Runs after the
-  // render that removed the piece, when its colliders are gone.
+  // The undo of a delete (App, handleTerrainUndo): models: [{ id, pose }], the poses to go back to. They
+  // are applied by the effect below, after the piece is back in the world, like a fall.
+  function raiseModels(models) {
+    pendingPoses.current = Object.fromEntries(models.map((m) => [m.id, m.pose]))
+  }
+
+  // The models of the plan go straight down to the next surface (or back up, for an undo), upright, with no
+  // speed, so nothing is pushed. The pose is stored as at a rest (returnModels), so the other browser gets
+  // it. Runs after the render that changed the piece, when its colliders are gone or back.
   const dropNow = useLatest({ liveCharBody, claimModel, applyPose, onModelRest })
   useEffect(() => {
     const { liveCharBody, claimModel, applyPose, onModelRest } = dropNow.current
-    const drops = pendingDrops.current
-    pendingDrops.current = {}
-    for (const [id, delta] of Object.entries(drops)) {
-      const body = liveCharBody(id)
-      if (!body || !claimModel(id)) continue
-      const t = body.translation()
-      const pose = poseOf({ x: t.x, y: t.y - delta, z: t.z }, upright(body.rotation()))
+    const poses = pendingPoses.current
+    pendingPoses.current = {}
+    for (const [id, pose] of Object.entries(poses)) {
+      if (!liveCharBody(id) || !claimModel(id)) continue
       applyPose(id, pose)
       onModelRest?.(id, pose)
     }
   }, [terrain, dropNow])
 
-  return planFall
+  return { planFall, raiseModels }
 }

@@ -5,6 +5,7 @@ import {
   MERGE_MS,
   addEntry,
   addStatEntry,
+  canUndo,
   entrySide,
   logEntry,
   logText,
@@ -238,4 +239,26 @@ test('sounds: a token put on, Activated, a held token; nothing else', () => {
   assert.equal(soundOf(logEntry('held', 'host', { on: true })), 'token')
   assert.equal(soundOf(logEntry('held', 'host', { on: false })), null)
   assert.equal(soundOf(logEntry('stat', 'host', { from: 1, to: 2 })), null)
+})
+
+test('Undo shows only while the piece is off the table, on the same map', () => {
+  const entry = logEntry('terrainDeleted', 'host', {
+    piece: { id: 'm:3', index: 3, locked: false },
+    pieceKey: 'crystals',
+    mapId: 'm',
+    terrain: [],
+    models: [],
+  })
+  assert.equal(canUndo(entry, [{ id: 'm:1' }], 'm'), true)
+  assert.equal(canUndo(entry, [{ id: 'm:1' }, { id: 'm:3' }], 'm'), false)
+  assert.equal(canUndo(entry, [], 'other'), false)
+  assert.equal(canUndo(logEntry('deleted', 'host'), [], 'm'), false)
+})
+
+test('terrain delete and undo text', () => {
+  const data = { piece: { id: 'm:3' }, pieceKey: 'crystals' }
+  const deleted = logEntry('terrainDeleted', 'guest', data)
+  assert.equal(logText(deleted, ROOM), 'Nelly deleted Crystals.')
+  assert.equal(logText(logEntry('terrainRestored', 'host', data), ROOM), 'You put back Crystals.')
+  assert.equal(logText(logEntry('terrainDeleted', null, data), SOLO), 'Deleted Crystals.')
 })
