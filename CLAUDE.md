@@ -14,6 +14,7 @@
 - Each plan runs in its own worktree `../mcp_assist_3d-<plan>`, on branch `<plan>` from main. The coder works only there.
 - The main dir is only for user tests.
 - Work done: in the worktree, merge main into the branch. In the main dir, `git switch --detach <plan>`. The user tests. Fixes go in the worktree, then the main dir moves to the new head the same way.
+- Create the worktree only when the user says to start the work. Making or showing a plan is not the start. Until then, the plan doc is in the main dir, not committed. At the start, move it into the worktree.
 - Create a worktree with `scripts/new-worktree.sh <plan>`. It copies the `.env` files, so the user can also run the app from the worktree folder.
 - After the OK: fast-forward main, then `scripts/remove-worktree.sh <plan>` (removes the worktree, deletes the branch).
 - At most 2 plan branches are open at a time. A change across many files (a rename) runs when no other branch is open.
