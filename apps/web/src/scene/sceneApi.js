@@ -12,7 +12,8 @@
 //   floorPiece() -> HUD message or null. R during a model drag switches the floor.
 //   terrainAt() -> terrain id or null. The terrain piece under the pointer, locked or not.
 //   planFall(terrainId) -> { terrain, models }. What falls when that terrain piece is deleted.
-//   raiseModels([{ id, pose }]): the models go back to those poses after the next terrain change (undo).
+//   raiseModels(models, poses): undo of a delete. models: the entry models, poses: the stored poses now. Those that are
+//     still where they fell go back up (a lifted one: its lift place), after the next terrain change.
 //   modelDragId() -> model id or null. The own model that is dragged now.
 //   addDice(side, count): clears the own dice tray of that side, then adds that many dice.
 //   pointAtPointer(), pointAtCenter() -> { x, y, z } or null (undefined with no tool point yet).
@@ -70,7 +71,7 @@ export function createSceneApi(parts) {
     floorPiece: () => parts.floorPiece(),
     terrainAt: () => parts.terrainAt(),
     planFall: (terrainId) => parts.planFall(terrainId),
-    raiseModels: (models) => parts.raiseModels(models),
+    raiseModels: (models, poses) => parts.raiseModels(models, poses),
     modelDragId: () => parts.modelDrag.current,
     addDice: (side, count) => parts.addDice.current[side]?.(count),
     pointAtPointer: () => parts.toolPoint.current?.atPointer(),

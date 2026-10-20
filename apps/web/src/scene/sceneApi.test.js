@@ -44,7 +44,7 @@ test('each wrapper calls its part with the same arguments', () => {
   assert.equal(api.floorPiece(), 'top')
   assert.equal(api.terrainAt(), 't1')
   assert.deepEqual(api.planFall('t'), { terrain: {}, models: {} })
-  api.raiseModels([])
+  api.raiseModels([], {})
   assert.deepEqual(calls, [
     ['characterAt', [1, 2, options]],
     ['modelPosition', ['a']],
@@ -54,7 +54,7 @@ test('each wrapper calls its part with the same arguments', () => {
     ['floorPiece', []],
     ['terrainAt', []],
     ['planFall', ['t']],
-    ['raiseModels', [[]]],
+    ['raiseModels', [[], {}]],
   ])
 })
 

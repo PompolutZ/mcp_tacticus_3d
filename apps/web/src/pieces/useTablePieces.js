@@ -75,13 +75,13 @@ export function useTablePieces({
 
   // The Undo button of a `terrainDeleted` log entry (log/log.js, canUndo): one transaction. The piece is
   // back with its id, place and lock. A piece that fell gets its old `y` if it is still at the fallen
-  // height, a model goes back up if its pose is still the one after the fall and this browser can claim it
-  // (Scene, raiseModels). What moved onto the spot since is not moved.
+  // height, a model goes back up if it is still where it fell and this browser can claim it
+  // (Scene, raiseModels; a lifted one raises its lift place). What moved onto the spot since is not moved.
   function handleTerrainUndo(entry) {
     if (!canUndo(entry, terrain, mapId)) return
     table.transact(() => {
-      const plan = undoPlan(entry, table.terrain.read(), terrain, table.poses.read())
-      sceneApi.current?.raiseModels(plan.rises)
+      const plan = undoPlan(entry, table.terrain.read(), terrain)
+      sceneApi.current?.raiseModels(entry.models, table.poses.read())
       writeLog('terrainRestored', { piece: entry.piece, pieceKey: entry.pieceKey })
       setTerrain(plan.terrain)
     })

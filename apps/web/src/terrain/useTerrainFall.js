@@ -4,6 +4,7 @@ import { modelKey } from '../characters/claims.js'
 import { upright } from '../characters/base.js'
 import { planTerrainDrop } from './dropQuery.js'
 import { poseOf } from '../rooms/table.js'
+import { planRises } from '../pieces/terrainUndo.js'
 import { useLatest } from '../scene/useLatest.js'
 
 // The model falls when a terrain piece is deleted: the plan (planFall, called through sceneApi) and
@@ -26,7 +27,8 @@ export function useTerrainFall({
   // the undo), and keeps the poses after the fall for the effect below, which runs after the piece left the
   // world. A model that the other player moves, or that is dragged or slid here, is not planned. A lifted
   // one is planned from its place before the lift, but it does not move: its lift gets the new place
-  // (dropRest) and it lowers onto the new surface. It is not in the result, so the undo does not raise it.
+  // (dropRest) and it lowers onto the new surface. It is in the result with lifted: true, pose = that new
+  // place, so the undo raises its lift place.
   // Delta: inches straight down. pose: the stored pose after the fall.
   const pendingPoses = useRef({})
   function planFall(removedId) {
@@ -35,7 +37,7 @@ export function useTerrainFall({
     pendingPoses.current = {}
     if (!world || !rapier) return { terrain: {}, models: {} }
     const list = []
-    const lifted = new Set()
+    const lifted = new Map()
     for (const model of models) {
       const body = liveCharBody(model.id)
       if (!body || ownership?.owner(modelKey(model.id)) === 'other') continue
@@ -43,7 +45,7 @@ export function useTerrainFall({
       // A lift ends a drag and a slide when it starts, so a lifted model is not dragged or sliding
       const rest = lift?.restPosition()
       if (lift?.isBusy() && !rest) continue
-      if (rest) lifted.add(model.id)
+      if (rest) lifted.set(model.id, rest)
       const t = rest ?? body.translation()
       list.push({ id: model.id, x: t.x, y: t.y, z: t.z, radius: BASE_DIAMETER[model.base] / 2 })
     }
@@ -58,8 +60,14 @@ export function useTerrainFall({
     for (const [id, delta] of Object.entries(plan.models)) {
       const body = liveCharBody(id)
       if (!body) continue
-      if (lifted.has(id)) {
+      const rest = lifted.get(id)
+      if (rest) {
         charLifts.current.get(id)?.dropRest(delta)
+        falls[id] = {
+          delta,
+          lifted: true,
+          pose: poseOf({ x: rest.x, y: rest.y - delta, z: rest.z }, upright(body.rotation())),
+        }
         continue
       }
       const t = body.translation()
@@ -68,14 +76,29 @@ export function useTerrainFall({
         pose: poseOf({ x: t.x, y: t.y - delta, z: t.z }, upright(body.rotation())),
       }
     }
-    pendingPoses.current = Object.fromEntries(Object.entries(falls).map(([id, m]) => [id, m.pose]))
+    pendingPoses.current = Object.fromEntries(
+      Object.entries(falls)
+        .filter(([, m]) => !m.lifted)
+        .map(([id, m]) => [id, m.pose]),
+    )
     return { terrain: plan.terrain, models: falls }
   }
 
-  // The undo of a delete (App, handleTerrainUndo): models: [{ id, pose }], the poses to go back to. They
-  // are applied by the effect below, after the piece is back in the world, like a fall.
-  function raiseModels(models) {
-    pendingPoses.current = Object.fromEntries(models.map((m) => [m.id, m.pose]))
+  // The undo of a delete (App, handleTerrainUndo): models: the entry models, poses: the stored poses now. A model
+  // that is still where it fell goes back (planRises). A lifted one gets its lift place raised at once (dropRest
+  // with a negative delta), so it lowers onto the piece. The others are applied by the effect below, after the
+  // piece is back in the world, like a fall.
+  function raiseModels(models, poses) {
+    const rests = {}
+    for (const m of models) {
+      const rest = charLifts.current.get(m.id)?.restPosition()
+      if (rest) rests[m.id] = rest
+    }
+    const rises = planRises(models, poses, rests)
+    for (const r of rises) if (!r.pose) charLifts.current.get(r.id)?.dropRest(-r.delta)
+    pendingPoses.current = Object.fromEntries(
+      rises.filter((r) => r.pose).map((r) => [r.id, r.pose]),
+    )
   }
 
   // The models of the plan go straight down to the next surface (or back up, for an undo), upright, with no
