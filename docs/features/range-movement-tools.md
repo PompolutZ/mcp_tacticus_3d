@@ -89,7 +89,7 @@ The rules need a straight tool. If the tool is bent, the button first straighten
 The line ends at the full distance, where the base touches the far end from outside, the same as Place. It ends earlier at the first of these:
 
 - **Another character's base.** The app measures bases from above, so the height of the other base does not matter. A base that the move goes away from does not stop it, also when the two touch at the start.
-- **A terrain piece.** The line is checked at the height where the base starts. So a base on the table passes under an overhang (rules p9), and a base on a roof does not hit lower terrain. Terrain that the base overlaps at the start, for example the roof or the stairs it stands on, does not stop it (rules p14).
+- **A terrain piece.** The line is checked at the height where the base starts. So a base on the table passes under an overhang (rules p9), and a base on a roof does not hit lower terrain. A terrain piece that the base overlaps at the start, for example the roof or the stairs it stands on, does not stop it (rules p14). This is the whole piece, also its other parts, for example a duct on the roof it stands on.
 - **The mat edge.** A base never leaves the mat (rules p13).
 
 The stop point follows the tool: it is found again at each drag move, so moving or turning the tool while Throw is on moves it too. The drag can go anywhere on the line before it, and the character drops where it is released.

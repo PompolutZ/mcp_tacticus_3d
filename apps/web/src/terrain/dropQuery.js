@@ -1,14 +1,11 @@
 import { Box3 } from 'three'
 import { castAlongHit } from '../physics.js'
 import { BASE_HALF_H, NO_ROTATION } from '../characters/base.js'
+import { ownerId } from '../characters/terrainUnder.js'
 import { STAND_GAP, STAND_LIFT, dropPlan, fallDelta, sampleGrid, standsOnIds } from './dropDown.js'
 
 const DOWN = { x: 0, y: -1, z: 0 }
 const RAY_ROOM = 50
-
-// Id of the terrain piece that a collider belongs to (the userData of its RigidBody, see Terrain.jsx), or
-// null: the table and anything else without an id
-const ownerId = (collider) => collider.parent()?.userData?.id ?? null
 
 // The first fixed collider under (x, y, z) that keep(collider) accepts: { y, id } or null
 function rayDown(world, rapier, x, y, z, keep) {

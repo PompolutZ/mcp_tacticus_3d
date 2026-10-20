@@ -10,6 +10,10 @@ const STAND_DEPTH = 0.05
 // the Line of Sight tool). So a wall that the base only touches is not under it.
 export const TOUCH_MARGIN = 0.02
 
+// Id of the terrain piece that a collider belongs to (the userData of its RigidBody, see Terrain.jsx), or
+// null: the table and anything else without an id
+export const ownerId = (collider) => collider.parent()?.userData?.id ?? null
+
 // Handles of the fixed colliders that a base standing at start (table XZ) overlaps: the terrain it
 // stands on, or touches inside its radius. ground: height of the base bottom there (baseGroundY).
 // Callers that must not count a wall that the base only touches pass a radius a little smaller.

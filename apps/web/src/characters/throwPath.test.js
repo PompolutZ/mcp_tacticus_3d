@@ -86,3 +86,26 @@ test('a point without ground gives a null height', () => {
   const { path } = slidePath([pt(0, 0), pt(4, 0, null)])
   assert.equal(path(1).y, null)
 })
+
+test('the whole terrain piece under the base is ignored, another piece still stops it', () => {
+  const w = new rapier.World({ x: 0, y: -30, z: 0 })
+  const fixed = (id) => w.createRigidBody(rapier.RigidBodyDesc.fixed().setUserData({ id }))
+  // Piece A: a roof slab (top at y 1) and a duct on it at x 2..3
+  const a = fixed('a')
+  w.createCollider(rapier.ColliderDesc.cuboid(1.5, 0.5, 2).setTranslation(0, 0.5, 0), a)
+  w.createCollider(rapier.ColliderDesc.cuboid(0.5, 0.5, 0.5).setTranslation(2.5, 1.5, 0), a)
+  // Piece B: a box at x 6..7 in the path
+  w.createCollider(rapier.ColliderDesc.cuboid(0.5, 1.5, 2).setTranslation(6.5, 1.5, 0), fixed('b'))
+  w.step()
+  const go = (distance) =>
+    throwMove(w, rapier, {
+      start: { x: 0, z: 0 },
+      dir: { x: 1, z: 0 },
+      distance,
+      radius: 0.5,
+      others: [],
+    }).moved
+  assert.equal(go(5), 5)
+  const stopped = go(20)
+  assert.ok(stopped > 5.4 && stopped < 6.1, `moved ${stopped}`)
+})
