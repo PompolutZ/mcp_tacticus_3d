@@ -139,7 +139,8 @@ In the squad step, a click on a combination chooses its characters for the squad
 ## State
 
 - The breakdown is computed from the roster and the setup. Nothing of it is in the shared document.
-- `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. The host also syncs Must have with the visible squad in an effect, and remembers per team the last squad it synced. Not saved, the same as `squadSelect`.
+- The hook `useBreakdownChoice` (`src/rosters/useBreakdownChoice.js`) keeps it. `App` calls it once, so every place that shows the Breakdown tab shares one state, and the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. An effect syncs Must have with the visible squad, and remembers per team the last squad it synced. Not saved, the same as `squadSelect`.
+- `breakdownFor(team)` of the hook gives the props of the Breakdown tab, or null while the tab is not shown for that team. `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) gets it as a prop.
 - Filters store roster places, not codes, the same as a squad (`docs/features/setup-game.md`, "State").
 
 ## Code
@@ -151,6 +152,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 | `src/characters/characters.js` | `alterEgo`, `peerless`, `rogue` and `leads` of each character, from Jarvis |
 | `src/setup/setup.js` | `possibleThreats(setup, parsed, threatOf)`: the threat values of the current step. `setSquadCharacters(setup, team, places)`: the squad characters of a click |
 | `src/setup/useGameSetup.js` | `handleBreakdownChoose`: the checks, the write and the close of the popup, shared with `handleRosterClick` (`writeSquad`) |
+| `src/rosters/useBreakdownChoice.js` | The Breakdown state of both rosters and `breakdownFor(team)`, the props of the tab |
 | `src/rosters/BreakdownTab.jsx` | The Breakdown tab: threat buttons, filters, the list |
 | `src/characters/CharacterPortrait.jsx` | The portrait of a character, shared with the Library |
 

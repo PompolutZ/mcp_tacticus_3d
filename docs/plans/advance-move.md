@@ -38,6 +38,35 @@ A player asked for this: a right click on the far end of the movement tool moves
 - `tabletools/RulerTool.jsx`: a right click (press and release without movement) on the far half mesh calls `handleAdvance`. Stop the event so the camera does not turn on a click.
 - `docs/features/range-movement-tools.md`: a new "Advance" section and a line in "Input rules".
 
+## Request 2: Maximum Threat overlay
+
+In the setup, the player without Priority picks the Maximum Threat from the two crisis cards. Today the only control is the two chips on the table (`ThreatPanel` in `setup/GameSetup.jsx`). Add an overlay like the "Choose 1" crisis overlay (`crisis/CrisisChoose.jsx`):
+
+- It opens by itself on the screen of the player who chooses.
+- It has one button per threat. A click sets the Maximum Threat.
+- It shows that player's own roster Breakdown tab, so the player can see which characters each threat allows before they choose.
+
+### Decisions
+
+- Reuse the "Choose 1" overlay mechanism in `App.jsx` (`openChoose`, `chooseKey`, `useAutoOpen`, `popupOpen`), extended to the `threat` step. No second copy of it. The same rules apply: it opens once per step, only for the chooser, only when both rosters are in and no earlier step is browsed. Closing it does not open it again.
+- New `setup/ThreatChoose.jsx`, in the same `Dialog` frame and comic styles as `CrisisChoose`. Shared layout goes into a shared piece, not copied.
+- Buttons: one per crisis card, for example "Secure · 17". A click calls `actions.threat(value)` and closes the overlay. The other player sees "Waiting for X to choose the Maximum Threat." if they open it.
+- Breakdown: the existing `rosters/BreakdownTab.jsx`, for the chooser's own roster. Its threat chips stay as a preview: they change which characters it shows, not the Maximum Threat. Its state (threat, filters) is the same as in the roster popup, so a filter set in one place shows in the other. To share it, the state moves out of `rosters/RosterPopupHost.jsx` into a hook that both use.
+- The table chips stay.
+
+### Steps
+
+#### 3. Shared Breakdown state
+
+- Move the per-team Breakdown state and its builders (`breakdownChoice`, `breakdownThreats`, `popupBreakdown`) out of `rosters/RosterPopupHost.jsx` into one hook. `RosterPopupHost` and the new overlay both use it. No behavior change.
+- `docs/features/squad-breakdown.md`, "State": say where the state lives now.
+
+#### 4. Threat overlay
+
+- `setup/ThreatChoose.jsx` and its styles, based on the `CrisisChoose` frame.
+- `App.jsx`: the choose key and auto-open cover the `threat` step. Mount `ThreatChoose` for that step.
+- `docs/features/setup-game.md`: the overlay in the Maximum Threat part and in the Code table. `docs/features/squad-breakdown.md`: the Breakdown also shows in this overlay.
+
 ## Results
 
 ### 1. Slide on the character
@@ -50,3 +79,7 @@ A player asked for this: a right click on the far end of the movement tool moves
 - Done. `advancePath` in `tabletools/toolGeometry.js` gives the Throw-off path. `groundedPath` in `characters/throwPath.js` adds the ground height (`landingY` from `3cd05c7`).
 - The Throw stop is one function, `throwStop` in `tabletools/useToolLimits.js`, used by the Throw drag and by Advance.
 - Throw on: the slide starts where the character is, kept on the line, so a character dragged part way does not jump back. The side and the character come from the Throw lock, as for the Throw drag.
+
+### 3. Shared Breakdown state
+
+- Done. `rosters/useBreakdownChoice.js` keeps the Breakdown state. `App.jsx` calls it once and passes `breakdownFor(team)` to `RosterPopupHost`. `breakdownFor` is a plain function: its inputs from `useGameSetup` are new each render, so a memo would not help.

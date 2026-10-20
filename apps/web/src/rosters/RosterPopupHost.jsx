@@ -1,117 +1,34 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { RosterPopup } from './RosterPopup.jsx'
-import { DEFAULT_FILTERS, filtersWithSquad } from './breakdown.js'
-import { CRISIS_THREATS, ROSTER_TABS, rosterCard, rosterTabs } from './cards.js'
+import { ROSTER_TABS, rosterTabs } from './cards.js'
 import { COLOR_NAME } from '../sideColors.js'
 import { useSideColors } from '../table/useSideColors.jsx'
-import { placedSides, possibleThreats } from '../setup/setup.js'
 
-// The roster popup of the table (RosterPopup.jsx) with the state that must outlive it. It is always
-// mounted: the selected Breakdown threat and filters stay after the popup closes and opens again
-// (docs/features/squad-breakdown.md, "State"). It renders the popup only while openRoster is set.
-// openRoster, setOpenRoster: the open card { team, tab, index } | null, see App.jsx. The other props are the
-// state and handlers of App that the Breakdown tab and the Add to squad button use.
+// The roster popup of the table (RosterPopup.jsx). It renders the popup only while openRoster is set.
+// openRoster, setOpenRoster: the open card { team, tab, index } | null, see App.jsx. breakdownFor: from
+// useBreakdownChoice, which keeps the Breakdown state (docs/features/squad-breakdown.md, "State"). The other
+// props are the state and handlers of App that the Add to squad button uses.
 export function RosterPopupHost({
   openRoster,
   setOpenRoster,
   rosters,
   setup,
   parsedRosters,
+  breakdownFor,
   squadBlock,
   hiddenSquads,
-  mySide,
   ownSquad,
-  handleBreakdownChoose,
   handleSquadToggle,
 }) {
   const sideColors = useSideColors()
-  // The selected threat value of the Breakdown tab of each roster: { host, guest } → { code, threat, filters } |
-  // null. code: the roster code it belongs to; null means the first value. Not saved. See
-  // docs/features/squad-breakdown.md, "State".
-  const [breakdownChoice, setBreakdownChoice] = useState({ host: null, guest: null })
-  // Must have follows the squad on the table (docs/features/squad-breakdown.md, "Filters"). The squad
-  // characters this browser may see; the hidden squad of the other roster gives none.
-  const visibleSquad = (team) =>
-    hiddenSquads && team !== mySide ? [] : (hiddenSquads ? ownSquad : setup.squads[team]).characters
-  const squadKeys = {
-    host: visibleSquad('host').join(','),
-    guest: visibleSquad('guest').join(','),
-  }
-  const codes = { host: rosters.host?.code ?? null, guest: rosters.guest?.code ?? null }
-  // The last { code, key } synced per team
-  const synced = useRef({ host: null, guest: null })
-  useEffect(() => {
-    for (const team of ['host', 'guest']) {
-      const code = codes[team]
-      const key = squadKeys[team]
-      const last = synced.current[team]
-      if (code === null) {
-        synced.current[team] = null
-        continue
-      }
-      const newRoster = last?.code !== code
-      if (!newRoster && last.key === key) continue
-      synced.current[team] = { code, key }
-      // A new roster with no squad keeps the start filters
-      if (newRoster && key === '') continue
-      const places = key === '' ? [] : key.split(',').map(Number)
-      setBreakdownChoice((prev) => {
-        const old = prev[team]?.code === code ? prev[team] : null
-        return {
-          ...prev,
-          [team]: {
-            code,
-            threat: old?.threat ?? null,
-            filters: filtersWithSquad(old?.filters ?? DEFAULT_FILTERS, places),
-          },
-        }
-      })
-    }
-  }, [codes.host, codes.guest, squadKeys.host, squadKeys.guest]) // eslint-disable-line react-hooks/exhaustive-deps
-  // The threat values that the game can still have, or all crisis threats when the rosters have none
-  const breakdownThreats = useMemo(() => {
-    const threats = possibleThreats(setup, parsedRosters, (code) => rosterCard(code)?.threat)
-    return threats.length > 0 ? threats : CRISIS_THREATS
-  }, [setup, parsedRosters])
-
   // The Breakdown tab of the open roster popup, only while the squad of that roster is not placed, and in a
   // multiplayer room (hiddenSquads set) only on the own roster (docs/features/squad-breakdown.md). Without it, a popup left on that tab shows the first tab with cards.
-  let popupBreakdown = null
   let popupSquad = null
   let rosterPopupTab = openRoster?.tab
+  const popupBreakdown =
+    openRoster && rosters[openRoster.team] ? breakdownFor(openRoster.team) : null
   if (openRoster && rosters[openRoster.team]) {
     const { team } = openRoster
-    const breakdownShown = !placedSides(setup)[team] && !(hiddenSquads && team !== mySide)
-    if (breakdownShown) {
-      // A choice of another roster code counts as no choice. A threat that left the list shows the first
-      // value; the filters stay (docs/features/squad-breakdown.md, "State").
-      const stored = breakdownChoice[team]
-      const choice = stored && stored.code === rosters[team].code ? stored : null
-      const store = (change) =>
-        setBreakdownChoice((prev) => {
-          const prevChoice = prev[team]?.code === rosters[team].code ? prev[team] : null
-          return {
-            ...prev,
-            [team]: {
-              code: rosters[team].code,
-              threat: prevChoice?.threat ?? breakdownThreats[0],
-              filters: prevChoice?.filters ?? DEFAULT_FILTERS,
-              ...change,
-            },
-          }
-        })
-      popupBreakdown = {
-        threats: breakdownThreats,
-        threat:
-          choice && breakdownThreats.includes(choice.threat) ? choice.threat : breakdownThreats[0],
-        filters: choice?.filters ?? DEFAULT_FILTERS,
-        onThreatChange: (threat) => store({ threat }),
-        onFiltersChange: (filters) => store({ filters }),
-        // Whether a click chooses a squad, the reason when not, and the squad characters this browser may show
-        chooseBlock: squadBlock(team),
-        squadCharacters: visibleSquad(team),
-        onChoose: (places) => handleBreakdownChoose(team, places),
-      }
+    if (popupBreakdown) {
       // The Add to squad button of the card tabs. Not while the squad is blocked (Ready, other roster).
       if (!squadBlock(team)) {
         const current = hiddenSquads ? ownSquad : setup.squads[team]

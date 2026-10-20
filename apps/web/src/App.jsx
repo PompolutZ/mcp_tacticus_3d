@@ -36,6 +36,7 @@ import { Preload, Ready } from './scene/Preload.jsx'
 import { TokenPanel } from './tokens/TokenPanel.jsx'
 import { CardPeek, CardPopup } from './rosters/CardPopup.jsx'
 import { TrayPopup } from './characters/TrayPopup.jsx'
+import { useBreakdownChoice } from './rosters/useBreakdownChoice.js'
 import { RosterPopupHost } from './rosters/RosterPopupHost.jsx'
 import { CrisisCompare } from './crisis/CrisisCompare.jsx'
 import { CrisisChoose } from './crisis/CrisisChoose.jsx'
@@ -501,6 +502,17 @@ export default function App({
     showHudMessage,
     table,
     userId,
+  })
+  // One Breakdown state for the roster popup and the other users of the Breakdown tab
+  const { breakdownFor } = useBreakdownChoice({
+    setup,
+    rosters,
+    parsedRosters,
+    hiddenSquads,
+    mySide,
+    ownSquad,
+    squadBlock,
+    handleBreakdownChoose,
   })
   // A click on a roster card: { team, tab, index }. The popup opens only on a card with an image. For a card
   // without one, the HUD shows what the app is missing. A character without an image also has no model.
@@ -1030,11 +1042,10 @@ export default function App({
           rosters={rosters}
           setup={setup}
           parsedRosters={parsedRosters}
+          breakdownFor={breakdownFor}
           squadBlock={squadBlock}
           hiddenSquads={hiddenSquads}
-          mySide={mySide}
           ownSquad={ownSquad}
-          handleBreakdownChoose={handleBreakdownChoose}
           handleSquadToggle={handleSquadToggle}
         />
         {openTray && (
