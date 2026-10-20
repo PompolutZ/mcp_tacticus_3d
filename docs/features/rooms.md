@@ -44,7 +44,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 ## Lobby
 
 - **Hero:** the top of the page (`LobbyHero.jsx`). The title "Assemble at the table!" with two buttons: **New room!** opens the new room dialog, the same as the **+** tile, and **Open sandbox** opens the Sandbox. The panels wrap on a narrow screen.
-- **Join by code:** a box "Got a room code?" with a field and **Join!**. The code may have lower case, spaces and no hyphen (`rooms/roomCode.js`, `parseRoomCode`). A valid code opens `#room=<code>`, and the room page logic decides the rest (room, join page, or the lobby with a message, see "Pages"). A text that is not a code shows an error under the field and opens nothing.
+- **Join by code:** a box "Got a room code?" with a field and **Join!**. The box also takes a room link. The code may have lower case, spaces and no hyphen (`rooms/roomCode.js`, `parseRoomCode`). A valid code opens `#room=<code>`, and the room page logic decides the rest (room, join page, or the lobby with a message, see "Pages"). A text that is not a code shows an error under the field and opens nothing.
 - **Messages:** a message at the top of the lobby (a room link that is not found, a failed load) shows as a yellow comic box.
 - **Your rooms:** the title "Your rooms" with a badge "1 battle in progress" or "N battles in progress" (the number of listed rooms, hidden with no rooms). Then one list with a tile for each single player room and each multiplayer room, the last changed room first, and the **+** tile at the end. With login off, the list has only single player rooms and makes no API call.
 - **Room tile:** an article, not clickable. **Enter the fight →** is the only way into a room. The tile shows:

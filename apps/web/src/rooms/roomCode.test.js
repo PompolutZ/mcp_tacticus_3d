@@ -24,3 +24,22 @@ test('a character outside the alphabet is null', () => {
   for (const text of ['K7Q2-M9XI', 'K7Q2-M9XL', 'K7Q2-M9XO', 'K7Q2-M9XU', 'K7Q2-M9X!', 'K7Q2_M9XD'])
     assert.equal(parseRoomCode(text), null, text)
 })
+
+test('a room link gives the code in it', () => {
+  assert.equal(parseRoomCode('https://example.com/#room=K7Q2-M9XD'), 'K7Q2-M9XD')
+  assert.equal(parseRoomCode(' https://example.com/app/#room=K7Q2-M9XD&x=1 '), 'K7Q2-M9XD')
+})
+
+test('a room link with a lower case code or no hyphen gives the normal form', () => {
+  assert.equal(parseRoomCode('https://example.com/#room=k7q2-m9xd'), 'K7Q2-M9XD')
+  assert.equal(parseRoomCode('https://example.com/#room=K7Q2M9XD'), 'K7Q2-M9XD')
+})
+
+test('a room link with a bad code is null', () => {
+  for (const text of [
+    'https://example.com/#room=K7Q2-M9XI',
+    'https://example.com/#room=K7Q2',
+    'https://example.com/#room=',
+  ])
+    assert.equal(parseRoomCode(text), null, text)
+})

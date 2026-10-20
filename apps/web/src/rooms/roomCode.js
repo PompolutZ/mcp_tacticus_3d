@@ -6,11 +6,13 @@ export const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 export const CODE_LENGTH = 8
 
 // The room code that text means, in its normal form (for example K7Q2-M9XD), or null. The text may have
-// lower case, spaces and no hyphen. Other characters, including I, L, O and U, make it null.
+// lower case, spaces and no hyphen. It may also be a room link (https://host/#room=K7Q2-M9XD): then only the
+// value after `room=` counts. Other characters, including I, L, O and U, make it null.
 export function parseRoomCode(text) {
-  const chars = String(text ?? '')
-    .toUpperCase()
-    .replace(/[\s-]/g, '')
+  const raw = String(text ?? '')
+  const at = raw.indexOf('room=')
+  const value = at < 0 ? raw : (raw.slice(at + 5).split(/[&#\s]/)[0] ?? '')
+  const chars = value.toUpperCase().replace(/[\s-]/g, '')
   if (chars.length !== CODE_LENGTH) return null
   if ([...chars].some((c) => !CODE_CHARS.includes(c))) return null
   const half = CODE_LENGTH / 2
