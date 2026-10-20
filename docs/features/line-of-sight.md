@@ -37,7 +37,7 @@ A drag on the line turns it around the looker's base center (`turnAround`). Q / 
 ## Length
 
 - The line runs from the looker's base center to the mat edge, or to the first terrain whose Size is larger than the block Size.
-- The terrain that the looker stands on is skipped.
+- The terrain that the looker stands on is skipped. This is the whole piece, also its other parts (for example a duct on the roof).
 - Terrain of the same or smaller Size does not stop the line.
 - Characters do not stop it.
 - With a clear sight segment (see The line) and the line through the target base, the line runs at least to the far edge of the target base (center distance + target radius), or further when the normal cast goes further. With no clear segment, or with the line turned away from the target, the length is as above.

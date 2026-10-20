@@ -35,6 +35,14 @@ export function standingColliders(world, rapier, start, ground, radius, halfH) {
   return found
 }
 
+// The skip predicate for a base standing at handles (standingColliders): true for those colliders and for
+// every other collider of the same terrain piece (a duct on the roof). The whole piece is one terrain
+// feature that the base ignores (rules p17).
+export function standingSkip(world, handles) {
+  const pieces = new Set([...handles].map((h) => ownerId(world.getCollider(h))).filter(Boolean))
+  return (collider) => handles.has(collider.handle) || pieces.has(ownerId(collider))
+}
+
 // A base never leaves the mat (rules p13). Distance along dir until the base edge (radius) reaches the
 // mat edge; radius 0 for a line. The mat turns only by 90° around its center, so its edges stay at
 // ±MAT_SIZE / 2.

@@ -5,7 +5,7 @@
 
 import { BASE_HALF_H, NO_ROTATION, baseGroundY } from './base.js'
 import { castAlong, castDown } from '../physics.js'
-import { TOUCH_MARGIN, matEdgeDistance, ownerId, standingColliders } from './terrainUnder.js'
+import { TOUCH_MARGIN, matEdgeDistance, standingColliders, standingSkip } from './terrainUnder.js'
 
 // The base moves this far (inches) above the ground where it starts, so the terrain cast does not hit
 // the surface that the base stands on
@@ -95,9 +95,7 @@ function terrainHitDistance(world, rapier, start, dir, distance, radius, ground,
     BASE_HALF_H,
   )
   // The whole piece is one terrain feature: its other colliders (a duct on the roof) are ignored too
-  const startedPieces = new Set(
-    [...started].map((h) => ownerId(world.getCollider(h))).filter(Boolean),
-  )
+  const skip = standingSkip(world, started)
   const base = new rapier.Cylinder(BASE_HALF_H, radius)
   const pos = { x: start.x, y: startBottom + BASE_HALF_H, z: start.z }
   return castAlong(
@@ -108,7 +106,7 @@ function terrainHitDistance(world, rapier, start, dir, distance, radius, ground,
     pos,
     { x: dir.x, y: 0, z: dir.z },
     distance,
-    (collider) => !started.has(collider.handle) && !startedPieces.has(ownerId(collider)),
+    (collider) => !skip(collider),
   )
 }
 

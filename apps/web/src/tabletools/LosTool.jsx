@@ -17,7 +17,7 @@ import {
 } from './losLength.js'
 import { losBlock, standingTerrainSize } from './losBlock.js'
 import { FOOTPRINT_COLOR } from '../scene/footprintProjection.js'
-import { TOUCH_MARGIN, standingColliders } from '../characters/terrainUnder.js'
+import { TOUCH_MARGIN, standingColliders, standingSkip } from '../characters/terrainUnder.js'
 import { ToolFootprint } from './ToolFootprint.jsx'
 import { useDragTool } from './useDragTool.js'
 import { useRestStore } from './useRestStore.js'
@@ -85,16 +85,17 @@ function useLosLine(rigidRef, looker, target) {
       const at = model.getCenter()
       return standingColliders(world, rapier, at, at.y, model.radius - TOUCH_MARGIN, BASE_HALF_H)
     }
-    const skipped = stand(looker)
+    const standing = stand(looker)
+    const skip = standingSkip(world, standing)
     const lead = target ?? looker
-    const under = target ? stand(target) : skipped
+    const under = target ? stand(target) : standing
     const block = losBlock({
       size: lead.size(),
       terrain: standingTerrainSize([...under].map((h) => terrainSize(world.getCollider(h)))),
       name: lead.name,
       own: !target,
     })
-    const keep = losKeep(skipped, block.size)
+    const keep = losKeep(skip, block.size)
     if (target && frame.sight) {
       st.sight = clearSight({
         from: { x: c.x, z: c.z },
@@ -109,7 +110,7 @@ function useLosLine(rigidRef, looker, target) {
       yaw,
       width: looker.radius * 2,
       blockSize: block.size,
-      skipped,
+      skip,
       cast: losCast(world, rapier),
     })
     // The line must pass through the target base for the sight to count

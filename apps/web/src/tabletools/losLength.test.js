@@ -8,12 +8,13 @@ import {
   newLosSchedule,
   terrainSize,
 } from './losLength.js'
+import { standingSkip } from '../characters/terrainUnder.js'
 
 // A fake terrain collider: handle, and the Size on its parent body. size undefined: not terrain.
-const piece = (handle, size, distance) => ({
+const piece = (handle, size, distance, id) => ({
   handle,
   distance,
-  parent: () => ({ userData: size === undefined ? undefined : { size } }),
+  parent: () => ({ userData: size === undefined ? undefined : { size, id } }),
 })
 
 // A fake cast: the first collider along the line (sorted by distance) that keep accepts
@@ -34,7 +35,7 @@ const run = (colliders, over = {}) =>
     yaw: 0,
     width: 1,
     blockSize: 2,
-    skipped: new Set(),
+    skip: () => false,
     cast: fakeCast(colliders),
     ...over,
   })
@@ -75,8 +76,19 @@ test('the first larger piece stops it, a nearer smaller one does not', () => {
 
 test('terrain the looker stands on is skipped', () => {
   const under = piece(1, 4, 0)
-  assert.equal(run([under], { skipped: new Set([1]) }).blocker, null)
+  assert.equal(run([under], { skip: (c) => c.handle === 1 }).blocker, null)
   assert.equal(run([under]).blocker.collider, under)
+})
+
+test('the whole piece under the looker is skipped, another larger piece still stops', () => {
+  const stand = piece(1, 4, 0, 'roof')
+  const duct = piece(2, 4, 3, 'roof')
+  const wall = piece(3, 5, 9, 'wall')
+  const world = { getCollider: (h) => [stand, duct, wall].find((c) => c.handle === h) }
+  const skip = standingSkip(world, new Set([1]))
+  assert.equal(run([stand, duct], { skip }).blocker, null)
+  assert.equal(run([stand, duct, wall], { skip }).blocker.collider, wall)
+  assert.equal(run([stand, duct]).blocker.collider, stand)
 })
 
 test('the table is not terrain', () => {

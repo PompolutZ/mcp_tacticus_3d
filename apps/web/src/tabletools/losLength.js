@@ -1,6 +1,6 @@
 // Line of Sight length (docs/features/line-of-sight.md): how far the line runs from the looker's base
 // center. To the mat edge, or to the first terrain whose Size is larger than the block Size. The terrain
-// that the looker stands on is skipped. Terrain of the same or smaller Size does not stop it.
+// that the looker stands on is skipped, the whole piece. Terrain of the same or smaller Size does not stop it.
 // Characters do not stop it, and height does not matter.
 
 import { castAlongHit } from '../physics.js'
@@ -25,24 +25,24 @@ export function terrainSize(collider) {
   return typeof size === 'number' ? size : null
 }
 
-// The collider filter: terrain with Size > blockSize that is not in skipped (a Set of collider handles)
-export const losKeep = (skipped, blockSize) => (collider) => {
-  if (skipped.has(collider.handle)) return false
+// The collider filter: terrain with Size > blockSize for which skip(collider) is false (standingSkip: the whole piece under the looker)
+export const losKeep = (skip, blockSize) => (collider) => {
+  if (skip(collider)) return false
   const size = terrainSize(collider)
   return size !== null && size > blockSize
 }
 
 // start: looker base center (table XZ). yaw: direction as for tools (dir = cos yaw, -sin yaw). width: line
-// width, the base diameter. blockSize: Size that terrain must exceed to stop the line. skipped: Set of
-// collider handles that never stop it (standingColliders under the looker).
+// width, the base diameter. blockSize: Size that terrain must exceed to stop the line. skip: predicate
+// for colliders that never stop it (standingSkip: the whole terrain piece under the looker).
 // cast({ start, yaw, width, maxDistance, keep }): moves a box along the line and gives
 // { distance, collider } for the first collider with keep(collider) true (losCast, or a fake in tests).
 // Returns { distance, blocker }: blocker is { collider, size } of the terrain that stops the line, or
 // null when it runs to the mat edge. The line is the center line, so the mat edge is at radius 0.
-export function losLength({ start, yaw, width, blockSize, skipped, cast }) {
+export function losLength({ start, yaw, width, blockSize, skip, cast }) {
   const dir = { x: Math.cos(yaw), z: -Math.sin(yaw) }
   const edge = matEdgeDistance(start, dir, 0)
-  const keep = losKeep(skipped, blockSize)
+  const keep = losKeep(skip, blockSize)
   const hit = cast({ start, yaw, width, maxDistance: edge, keep })
   if (!hit.collider) return { distance: edge, blocker: null }
   return {
