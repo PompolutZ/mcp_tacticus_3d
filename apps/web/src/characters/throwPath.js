@@ -74,3 +74,35 @@ function terrainHitDistance(world, rapier, start, dir, distance, radius, ground,
     (collider) => !started.has(collider.handle),
   )
 }
+
+// The slide of a move (docs/features/range-movement-tools.md; slide in CharacterModel.jsx).
+// The base starts fast and slows down evenly, as if friction stops it at the end. Picked without a look
+// in the app, not measured in TTS.
+const SLIDE_SPEED = 15
+const SLIDE_MIN_TIME = 0.2
+
+// points: the polyline of the move, at least two body positions { x, y, z }. y is null when nothing is
+// under the point (see baseGroundY in base.js); a segment with a null end has y null. The caller
+// gives y, this does not look at the world.
+// Returns { path, duration }. path(f): the body position at the share f (0..1) of the duration.
+// duration: the full length / SLIDE_SPEED seconds, and at least SLIDE_MIN_TIME.
+export function slidePath(points) {
+  const lengths = points.slice(1).map((p, i) => Math.hypot(p.x - points[i].x, p.z - points[i].z))
+  const total = lengths.reduce((sum, l) => sum + l, 0)
+  function path(f) {
+    // Distance along the polyline at the share f: total * (1 - (1 - f)²)
+    let d = total * (1 - (1 - Math.min(1, Math.max(0, f))) ** 2)
+    for (let i = 0; i < lengths.length; i++) {
+      if (d <= lengths[i] || i === lengths.length - 1) {
+        const a = points[i]
+        const b = points[i + 1]
+        const u = lengths[i] > 0 ? Math.min(1, d / lengths[i]) : 1
+        const y = a.y === null || b.y === null ? null : a.y + (b.y - a.y) * u
+        return { x: a.x + (b.x - a.x) * u, y, z: a.z + (b.z - a.z) * u }
+      }
+      d -= lengths[i]
+    }
+    return { ...points[0] }
+  }
+  return { path, duration: Math.max(SLIDE_MIN_TIME, total / SLIDE_SPEED) }
+}

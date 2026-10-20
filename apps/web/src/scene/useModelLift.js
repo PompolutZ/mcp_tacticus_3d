@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { setDynamic, setKinematic } from '../physics.js'
 
 // The R key lifts a model straight up by LIFT_HEIGHT (inches), and a second press puts it back at the
@@ -17,7 +17,8 @@ const LIFT_MOVED = 0.001
 const ZERO = { x: 0, y: 0, z: 0 }
 
 // The lift of a model (R key). Its refs and functions are used by the frame, the drag and the lift handle
-// of CharacterFigure. It has no effect.
+// of CharacterFigure. It has no effect. The lift ref stays inside: the caller uses clearLift, isLifted, isUp
+// and restPosition.
 // liveRb(): the body or null. groundY(x, z): the ground under the base. isDragging, remoteRef: refs of
 // CharacterFigure. clearRest(): forgets the pose the settle timer watches (a hook must not write to a ref it
 // gets as an argument).
@@ -94,5 +95,16 @@ export function useModelLift({ liveRb, groundY, isDragging, remoteRef, clearRest
     })
   }
 
-  return { lift, toggleLift, lowerLift, moveLift }
+  // Ends the lift without a move: the caller puts the body elsewhere
+  const clearLift = useCallback(() => {
+    lift.current = null
+  }, [])
+
+  const isLifted = () => lift.current !== null
+  const isUp = () => lift.current?.up === true
+  // The body position before the lift, or null when the model is not lifted
+  const restPosition = () =>
+    lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z }
+
+  return { toggleLift, lowerLift, moveLift, clearLift, isLifted, isUp, restPosition }
 }

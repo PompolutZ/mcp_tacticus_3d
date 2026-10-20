@@ -32,6 +32,7 @@ import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
 import { useOnMount } from '../scene/useLatest.js'
 import { BASE_HALF_H, BASE_RADIUS, NO_ROTATION, baseGroundY, upright } from './base.js'
 import { useModelLift } from '../scene/useModelLift.js'
+import { useModelSlide } from '../scene/useModelSlide.js'
 import { useLandingSound } from './useLandingSound.js'
 import { useModelFollow } from '../scene/useModelFollow.js'
 import { useFigureMaterials } from './useFigureMaterials.jsx'
@@ -164,7 +165,7 @@ function standeeScene(front, back, radius) {
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // onRest(): the body fell asleep, so the model rests. Scene.jsx stores its pose.
 // liftRef: gets { toggle(), toggleFloor(), down(), cancel() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
-// (a lifted model does not stop it), isBusy() (a drag or lift is going on), and restPosition() for the stored pose: the body position before the
+// (a lifted model does not stop it), slide(path, duration) for Advance (see useModelSlide.js), isBusy() (a drag, lift or slide is going on), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
 // leaves the release to Scene, which releases when the body is at rest (docs/features/peer-to-peer.md, "Rules").
@@ -265,14 +266,24 @@ function CharacterFigure({
   const rest = useRef(null)
   // The remote prop for the closures that are made once (toggleLift)
   const remoteRef = useRef(remote)
-  const { lift, toggleLift, lowerLift, moveLift } = useModelLift({
+  const clearRest = () => {
+    rest.current = null
+  }
+  const { toggleLift, lowerLift, moveLift, clearLift, isLifted, isUp, restPosition } = useModelLift(
+    {
+      liveRb,
+      groundY,
+      isDragging,
+      remoteRef,
+      clearRest,
+    },
+  )
+  const { startSlide, moveSlide, clearSlide, isSliding } = useModelSlide({
     liveRb,
-    groundY,
     isDragging,
     remoteRef,
-    clearRest: () => {
-      rest.current = null
-    },
+    clearLift,
+    clearRest,
   })
   const wasRemote = useRef(false)
   const { follow, following, setFollowing, followLive } = useModelFollow({ getLivePose, claimKey })
@@ -363,17 +374,16 @@ function CharacterFigure({
 
   useOnMount(() => {
     liftRef?.({
-      toggle: toggleLift,
+      // A lift does not start during a slide
+      toggle: () => (isSliding() ? undefined : toggleLift()),
+      slide: startSlide,
       toggleFloor,
       down: lowerLift,
       // Ends the lift without a move: the caller puts the body elsewhere (Scene.jsx, returnModels)
-      cancel: () => {
-        lift.current = null
-      },
-      isUp: () => lift.current?.up === true,
-      isBusy: () => isDragging.current || lift.current !== null,
-      restPosition: () =>
-        lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z },
+      cancel: clearLift,
+      isUp,
+      isBusy: () => isDragging.current || isLifted() || isSliding(),
+      restPosition,
     })
     return () => {
       liftRef?.(null)
@@ -394,7 +404,8 @@ function CharacterFigure({
       return
     }
     if (!isDragging.current) {
-      if (lift.current) moveLift(rb, dt)
+      if (isSliding()) moveSlide(rb, dt)
+      else if (isLifted()) moveLift(rb, dt)
       else settle(rb, dt)
       return
     }
@@ -443,11 +454,12 @@ function CharacterFigure({
       rb.collider(i).setSolverGroups(remote ? SOLVER_NONE : SOLVER_ALL)
     }
     if (remote) {
-      lift.current = null
+      clearLift()
+      clearSlide()
       rest.current = null
       setKinematic(rb)
     }
-  }, [remote, remoteBump, lift, livePlace, liveRb])
+  }, [remote, remoteBump, clearLift, clearSlide, livePlace, liveRb])
 
   useFigureMaterials(scene, team)
 
@@ -469,8 +481,9 @@ function CharacterFigure({
       releaseAtEnd: false,
       onStart: () => {
         onDragSelect?.()
-        // A drag ends a lift. The model follows the pointer and drops where it is released.
-        lift.current = null
+        // A drag ends a lift or a slide. The model follows the pointer and drops where it is released.
+        clearLift()
+        clearSlide()
         {
           const b = liveRb()
           if (b) setKinematic(b)

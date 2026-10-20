@@ -1,7 +1,7 @@
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import { throwMove } from './throwPath.js'
+import { throwMove, slidePath } from './throwPath.js'
 
 const require = createRequire(import.meta.resolve('@react-three/rapier'))
 let rapier
@@ -44,4 +44,45 @@ test('another base stops the base edge to edge', () => {
 test('the mat edge stops the base', () => {
   const moved = move({ start: { x: 0, z: 0 }, dir: { x: 0, z: 1 }, distance: 1000 })
   assert.ok(moved < 1000)
+})
+
+const pt = (x, z, y = 0) => ({ x, y, z })
+
+test('a longer slide takes longer', () => {
+  const short = slidePath([pt(0, 0), pt(10, 0)])
+  const long = slidePath([pt(0, 0), pt(100, 0)])
+  assert.ok(long.duration > short.duration)
+})
+
+test('a slide never takes less than the minimum', () => {
+  const tiny = slidePath([pt(0, 0), pt(0.01, 0)])
+  const none = slidePath([pt(1, 1), pt(1, 1)])
+  const long = slidePath([pt(0, 0), pt(100, 0)])
+  assert.ok(tiny.duration > 0)
+  assert.equal(tiny.duration, none.duration)
+  assert.ok(long.duration > tiny.duration)
+})
+
+test('the slide path starts at the first point and ends at the last', () => {
+  const points = [pt(0, 0, 1), pt(4, 0, 1), pt(4, 3, 2)]
+  const { path } = slidePath(points)
+  assert.deepEqual(path(0), points[0])
+  assert.deepEqual(path(1), points[2])
+})
+
+test('the slide path follows the bend and moves forward only', () => {
+  const { path } = slidePath([pt(0, 0), pt(4, 0), pt(4, 3)])
+  let last = -1
+  for (let f = 0; f <= 1; f += 0.1) {
+    const p = path(f)
+    const along = p.z === 0 ? p.x : 4 + p.z
+    assert.ok(along >= last)
+    last = along
+  }
+  assert.ok(path(0.5).x > 0)
+})
+
+test('a point without ground gives a null height', () => {
+  const { path } = slidePath([pt(0, 0), pt(4, 0, null)])
+  assert.equal(path(1).y, null)
 })
