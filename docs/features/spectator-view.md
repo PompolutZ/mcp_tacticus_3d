@@ -9,7 +9,7 @@ A viewer reads the state of each character from the model, without looking at th
 The badge is made of the same pieces as the character tray, so it looks the same. From top to bottom, a badge shows:
 
 - the objective tokens the character holds (Extract Asset, Civilian, supply tokens). The same 3D disk as a crisis token on the mat or on the tray card.
-- the Damage and Power counters of the tray (`TrayCounters` in `TrayControls.jsx`), without the − and + buttons
+- the Damage and Power counters of the tray (`TrayCounters` in `TrayControls.jsx`), without the − and + buttons. On the Injured side the Damage counter has a red border and red tint, as on the tray, so the Injured state shows at a glance
 - the tokens on the character (conditions, Activated, Dazed, character and tactic tokens), as the same 3D tokens as in the tray's "On" row (`TokenFace.jsx`), with the count when it is above 1
 
 ## Squad columns

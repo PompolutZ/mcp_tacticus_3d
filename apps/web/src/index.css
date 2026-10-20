@@ -178,6 +178,13 @@ body {
   cursor: pointer;
 }
 
+/* Damage counter on the Injured side, in the popup and the badge. Same colors as INJURED_FILL and
+   INJURED_LINE in trayControls.js (docs/features/character-trays.md). */
+.tray-counter--injured {
+  background: rgba(150, 30, 30, 0.85);
+  border-color: #e5484d;
+}
+
 .tray-counter-btn {
   font: inherit;
   font-size: calc(var(--tray-counter-size, 14px) * 0.72);

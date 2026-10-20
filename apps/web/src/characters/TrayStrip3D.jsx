@@ -141,10 +141,10 @@ function Plane({ el, map, ...events }) {
 function Counter3D({ el, counter, icon, onStep }) {
   const [hover, setHover] = useState(null)
   useHoverCursor(hover !== null, 'pointer')
-  const { value, max, warn } = counter
+  const { value, max, warn, injured } = counter
   const draw = useMemo(
-    () => (ctx) => drawCounter(ctx, el.w, el.h, { icon, value, max, warn, hover }),
-    [el.w, el.h, icon, value, max, warn, hover],
+    () => (ctx) => drawCounter(ctx, el.w, el.h, { icon, value, max, warn, injured, hover }),
+    [el.w, el.h, icon, value, max, warn, injured, hover],
   )
   const map = useDrawn(el.w, el.h, draw)
   const zoneOf = (e) => counterZone(e.object.worldToLocal(e.point.clone()).x, el.w)

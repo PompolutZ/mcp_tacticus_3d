@@ -11,8 +11,13 @@ export function removeState({ onBoard, removeWait = null }) {
   return { disabled: !onBoard || Boolean(removeWait), title: removeWait ?? REMOVE_TITLE }
 }
 
+export const INJURED_FILL = 'rgba(150, 30, 30, 0.85)'
+export const INJURED_LINE = '#e5484d'
+
 // The counters of a character, in order: Damage (value / Stamina, warn at Stamina), and Power (value / 10)
-// unless a grunt (character.host), which has none.
+// unless a grunt (character.host), which has none. injured: the Damage counter of a character on the
+// Injured side, drawn with a red border and tint (INJURED_FILL and INJURED_LINE; .tray-counter--injured in
+// index.css has the same colors).
 export function trayCounters(character, stamina) {
   const counters = [
     {
@@ -21,6 +26,7 @@ export function trayCounters(character, stamina) {
       value: character.damage,
       max: stamina,
       warn: character.damage >= stamina,
+      injured: character.side === 'injured',
     },
   ]
   if (!character.host) {

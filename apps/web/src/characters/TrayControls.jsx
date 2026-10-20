@@ -133,6 +133,7 @@ export function TrayCounters({ character, stamina, onDamage, onPower }) {
             value={c.value}
             max={c.max}
             warn={c.warn}
+            injured={c.injured}
             onDec={set && (() => applyCounter(character, c.kind, -1, handlers))}
             onInc={set && (() => applyCounter(character, c.kind, 1, handlers))}
           />
@@ -146,7 +147,7 @@ export function TrayCounters({ character, stamina, onDamage, onPower }) {
 // Without onDec and onInc it has no buttons and no click. With them, a left click on the body (icon or
 // value) adds 1 and a right click takes 1, as in TTS; no browser menu, and the table does not see it.
 // onDamage/onPower clamp (actions.js), so the click needs no limit of its own.
-function Counter({ icon, alt, label, value, max, warn = false, onDec, onInc }) {
+function Counter({ icon, alt, label, value, max, warn = false, injured = false, onDec, onInc }) {
   const clickable = Boolean(onDec && onInc)
   function handleClick(e) {
     if (e.target.closest('.tray-counter-btn')) return
@@ -160,7 +161,7 @@ function Counter({ icon, alt, label, value, max, warn = false, onDec, onInc }) {
   }
   return (
     <div
-      className={`tray-counter${clickable ? ' tray-counter--click' : ''}`}
+      className={`tray-counter${clickable ? ' tray-counter--click' : ''}${injured ? ' tray-counter--injured' : ''}`}
       onClick={clickable ? handleClick : undefined}
       onContextMenu={clickable ? handleContextMenu : undefined}
     >

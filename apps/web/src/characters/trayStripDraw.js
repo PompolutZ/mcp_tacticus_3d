@@ -1,5 +1,5 @@
 import { UI_COLORS } from '../uiColors.js'
-import { BUTTON_ZONE } from './trayControls.js'
+import { BUTTON_ZONE, INJURED_FILL, INJURED_LINE } from './trayControls.js'
 
 // Canvas drawing of the parts of the 3D controls strip (TrayStrip3D.jsx). The look follows the DOM
 // controls (index.css, .tray-counter and .chip), at PX_PER_INCH canvas pixels per inch. Not tested: it
@@ -49,11 +49,17 @@ export function drawChip(
 
 // A counter: - button, icon, value/max, + button. icon: an image, or null while it loads. hover: the
 // part under the pointer ('dec', 'inc', 'body') or null, drawn lighter.
-export function drawCounter(ctx, width, height, { icon, value, max, warn, hover = null }) {
+export function drawCounter(
+  ctx,
+  width,
+  height,
+  { icon, value, max, warn, injured = false, hover = null },
+) {
   const w = width * PX_PER_INCH
   const h = height * PX_PER_INCH
   ctx.clearRect(0, 0, w, h)
-  box(ctx, 2, 2, w - 4, h - 4, 14, hover === 'body' ? PANEL_HOVER : PANEL, LINE)
+  const fill = injured ? INJURED_FILL : hover === 'body' ? PANEL_HOVER : PANEL
+  box(ctx, 2, 2, w - 4, h - 4, 14, fill, injured ? INJURED_LINE : LINE)
   const side = h - 0.12 * PX_PER_INCH
   const pad = 0.06 * PX_PER_INCH
   const buttons = [
