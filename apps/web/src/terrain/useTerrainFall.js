@@ -24,7 +24,9 @@ export function useTerrainFall({
   // A terrain piece is about to be deleted (App, handleTerrainRemove): plans what stood on it. Returns
   // { terrain: { id: delta }, models: { id: { delta, pose } } } for App to store (the delete entry, for
   // the undo), and keeps the poses after the fall for the effect below, which runs after the piece left the
-  // world. A model that the other player moves, a lifted one and one that is dragged here is not planned.
+  // world. A model that the other player moves, or that is dragged or slid here, is not planned. A lifted
+  // one is planned from its place before the lift, but it does not move: its lift gets the new place
+  // (dropRest) and it lowers onto the new surface. It is not in the result, so the undo does not raise it.
   // Delta: inches straight down. pose: the stored pose after the fall.
   const pendingPoses = useRef({})
   function planFall(removedId) {
@@ -33,11 +35,16 @@ export function useTerrainFall({
     pendingPoses.current = {}
     if (!world || !rapier) return { terrain: {}, models: {} }
     const list = []
+    const lifted = new Set()
     for (const model of models) {
       const body = liveCharBody(model.id)
       if (!body || ownership?.owner(modelKey(model.id)) === 'other') continue
-      if (charLifts.current.get(model.id)?.isBusy()) continue
-      const t = body.translation()
+      const lift = charLifts.current.get(model.id)
+      // A lift ends a drag and a slide when it starts, so a lifted model is not dragged or sliding
+      const rest = lift?.restPosition()
+      if (lift?.isBusy() && !rest) continue
+      if (rest) lifted.add(model.id)
+      const t = rest ?? body.translation()
       list.push({ id: model.id, x: t.x, y: t.y, z: t.z, radius: BASE_DIAMETER[model.base] / 2 })
     }
     const plan = planTerrainDrop({
@@ -51,6 +58,10 @@ export function useTerrainFall({
     for (const [id, delta] of Object.entries(plan.models)) {
       const body = liveCharBody(id)
       if (!body) continue
+      if (lifted.has(id)) {
+        charLifts.current.get(id)?.dropRest(delta)
+        continue
+      }
       const t = body.translation()
       falls[id] = {
         delta,

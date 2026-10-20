@@ -22,8 +22,18 @@ export function deleteEntryData(piece, mapId, placed, fall) {
   }
 }
 
-const samePose = (a, b) =>
-  Boolean(a && b) && ['x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'].every((key) => a[key] === b[key])
+// A model counts as not moved since the fall when its stored pose is this close (inches, radians) to the one
+// after the fall. After the fall the body settles on the surface, and its rest pose differs a little from
+// the pose that was applied, so an exact compare would skip every rise.
+export const SAME_POSE_MOVE = 0.05
+export const SAME_POSE_TURN = 0.02
+
+export function samePose(a, b) {
+  if (!a || !b) return false
+  if (Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) > SAME_POSE_MOVE) return false
+  const dot = a.qx * b.qx + a.qy * b.qy + a.qz * b.qz + a.qw * b.qw
+  return 2 * Math.acos(Math.min(1, Math.abs(dot))) <= SAME_POSE_TURN
+}
 
 // What an undo does. entry: the `terrainDeleted` entry, stored: the stored terrain list now, placed: the
 // terrain with placements now, poses: the stored model poses now.

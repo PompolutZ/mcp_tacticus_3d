@@ -43,10 +43,12 @@ export function useModelSync({
   const posesRef = useRef(poses)
   const prevPoses = useRef(poses)
 
-  // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later ("Rules" 6)
+  // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later ("Rules" 6). A lift of
+  // the model ends with no move (cancel): its place from before the lift would otherwise pull the model back.
   function applyPose(id, pose) {
     const body = liveCharBody(id)
     if (!body) return
+    charLifts.current.get(id)?.cancel()
     setDynamic(body)
     body.setTranslation({ x: pose.x, y: pose.y, z: pose.z }, true)
     body.setRotation({ x: pose.qx, y: pose.qy, z: pose.qz, w: pose.qw }, true)

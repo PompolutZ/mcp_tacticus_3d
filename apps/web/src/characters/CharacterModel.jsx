@@ -269,15 +269,14 @@ function CharacterFigure({
   const clearRest = () => {
     rest.current = null
   }
-  const { toggleLift, lowerLift, moveLift, clearLift, isLifted, isUp, restPosition } = useModelLift(
-    {
+  const { toggleLift, lowerLift, moveLift, clearLift, dropRest, isLifted, isUp, restPosition } =
+    useModelLift({
       liveRb,
       groundY,
       isDragging,
       remoteRef,
       clearRest,
-    },
-  )
+    })
   const { startSlide, moveSlide, clearSlide, isSliding } = useModelSlide({
     liveRb,
     isDragging,
@@ -381,6 +380,7 @@ function CharacterFigure({
       down: lowerLift,
       // Ends the lift without a move: the caller puts the body elsewhere (Scene.jsx, returnModels)
       cancel: clearLift,
+      dropRest,
       isUp,
       isBusy: () => isDragging.current || isLifted() || isSliding(),
       restPosition,

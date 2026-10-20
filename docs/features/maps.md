@@ -86,7 +86,7 @@ The order of the imports in `index.js` is the order of the maps in the lists. A 
 - What stood on the piece goes straight down to the next surface (another piece, or the mat). Nothing is pushed: a model gets its new place at once, with no speed, and keeps its heading. So nothing is bumped.
 - A piece that stood on it gets a new height, stored as `y` in the document (`rooms.md`). Both players see it. A piece or model that stands on a piece that falls goes down with it by the same distance.
 - What stands on a piece: a surface of it within 0.2 in under the bottom of the thing (casts down from several points under a piece, and from the base of a model).
-- Only the browser that deletes plans it. The other one gets the document and the model poses. A model that the other player moves, lifts or drags is not moved. Tokens are not moved.
+- Only the browser that deletes plans it. The other one gets the document and the model poses. A model that the other player moves, or that is dragged, is not moved. A lifted model (R) stays up, and lowers onto the new surface. The undo does not raise it. Tokens are not moved.
 - The delete has a log entry with an **Undo** button (`game-log.md`, "Panel"). The undo puts the piece back and lifts what fell with it, if it has not moved since.
 - Not covered: a thing that stands on the deleted piece and on a second piece that falls too. Such a thing may stay in the air.
 

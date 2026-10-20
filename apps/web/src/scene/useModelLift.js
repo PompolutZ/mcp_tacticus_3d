@@ -100,11 +100,17 @@ export function useModelLift({ liveRb, groundY, isDragging, remoteRef, clearRest
     lift.current = null
   }, [])
 
+  // The piece under a lifted model was deleted: its place from before the lift goes down by delta, so it
+  // lowers onto the new surface. No move now: the model stays up.
+  const dropRest = (delta) => {
+    if (lift.current) lift.current.y -= delta
+  }
+
   const isLifted = () => lift.current !== null
   const isUp = () => lift.current?.up === true
   // The body position before the lift, or null when the model is not lifted
   const restPosition = () =>
     lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z }
 
-  return { toggleLift, lowerLift, moveLift, clearLift, isLifted, isUp, restPosition }
+  return { toggleLift, lowerLift, moveLift, clearLift, dropRest, isLifted, isUp, restPosition }
 }

@@ -356,14 +356,13 @@ function Scene(props) {
   // goes back to its place on the tray, upright, so the model turns as it did at its spawn. A model that
   // the other player moves is skipped. y = 0 is the rest height: the card has no collider and the table
   // top is y = 0, the same as at the spawn, so the sleeping body touches only the table. A lift ends
-  // (cancel) and does not animate down, which would move the body back to the place before the lift.
+  // (applyPose cancels it) and does not animate down, which would move the body back to the place before the lift.
   // The pose goes to the document at once, the same as a rest. The other browser waits for the claim of
   // this one to end, then applies it (the otherOwned effect); with no claim it applies it at once.
   function returnModels(characterId) {
     for (const model of models) {
       if (model.character.id !== characterId || !charBodies.current.has(model.id)) continue
       if (!claimModel(model.id)) continue
-      charLifts.current.get(model.id)?.cancel()
       turnsLeft.current.delete(modelKey(model.id))
       const [x, y, z] = trayPlace(model)
       const pose = poseOf({ x, y, z }, yawQuaternion(modelSpawnYaw(model.character.team)))

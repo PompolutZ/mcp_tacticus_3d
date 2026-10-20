@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { deleteEntryData, undoPlan } from './terrainUndo.js'
+import { deleteEntryData, undoPlan, SAME_POSE_MOVE, SAME_POSE_TURN } from './terrainUndo.js'
 
 const pose = { x: 1, y: 0.5, z: 2, qx: 0, qy: 0, qz: 0, qw: 1 }
 const placed = [
@@ -42,4 +42,23 @@ test('a model that moved after the fall stays', () => {
   const now = [{ id: 'b', position: [5, 1, 5] }]
   const plan = undoPlan(entry(), stored, now, { m1: { ...pose, x: 9 } })
   assert.deepEqual(plan.rises, [])
+})
+
+test('a model that settled a little after the fall still rises', () => {
+  const now = [{ id: 'b', position: [5, 1, 5] }]
+  const settled = { ...pose, y: pose.y + SAME_POSE_MOVE / 5, x: pose.x - SAME_POSE_MOVE / 5 }
+  const plan = undoPlan(entry(), stored, now, { m1: settled })
+  assert.deepEqual(
+    plan.rises.map((r) => r.id),
+    ['m1'],
+  )
+})
+
+test('a model turned or moved by the player stays', () => {
+  const now = [{ id: 'b', position: [5, 1, 5] }]
+  const half = (SAME_POSE_TURN * 4) / 2
+  const turned = { ...pose, qy: Math.sin(half), qw: Math.cos(half) }
+  assert.deepEqual(undoPlan(entry(), stored, now, { m1: turned }).rises, [])
+  const moved = { ...pose, z: pose.z + SAME_POSE_MOVE * 4 }
+  assert.deepEqual(undoPlan(entry(), stored, now, { m1: moved }).rises, [])
 })
