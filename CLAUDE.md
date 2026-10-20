@@ -11,8 +11,11 @@
 
 ## Worktrees
 
-- Each plan runs in its own worktree `../mcp_assist_3d-<plan>`, on branch `<plan>` from main. The coder works only there.
-- The main dir is only for user tests.
+- By default the coder works in the main dir, on main.
+- Use a worktree only in these cases:
+  - The main dir has uncommitted changes. Then create the worktree without asking.
+  - The work is a plan with more than one step. Then ask the user if a worktree should be created.
+- A worktree is `../mcp_assist_3d-<plan>`, on branch `<plan>` from main. The coder then works only there, and the main dir is only for user tests.
 - Work done: in the worktree, merge main into the branch. In the main dir, `git switch --detach <plan>`. The user tests. Fixes go in the worktree, then the main dir moves to the new head the same way.
 - Create the worktree only when the user says to start the work. Making or showing a plan is not the start. Until then, the plan doc is in the main dir, not committed. At the start, move it into the worktree.
 - Create a worktree with `scripts/new-worktree.sh <plan>`. It copies the `.env` files, so the user can also run the app from the worktree folder.
