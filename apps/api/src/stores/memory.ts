@@ -26,6 +26,7 @@ export function createMemoryStore(): Store {
   const messages = new Map<string, MessageDoc>()
   const errors: ErrorReport[] = []
   const boards = new Map<string, BoardDoc>()
+  const boardImages = new Map<string, Uint8Array>()
   return {
     users: {
       async upsertDiscord(profile, now) {
@@ -154,11 +155,23 @@ export function createMemoryStore(): Store {
         const doc = boards.get(userId)
         return doc ? structuredClone(doc) : null
       },
-      async put(userId, board, now) {
-        boards.set(userId, { _id: userId, board: structuredClone(board), updatedAt: now })
+      async put(userId, board, now, image) {
+        boards.set(userId, {
+          _id: userId,
+          board: structuredClone(board),
+          updatedAt: now,
+          hasImage: image !== undefined,
+        })
+        if (image) boardImages.set(userId, new Uint8Array(image))
+        else boardImages.delete(userId)
+      },
+      async getImage(userId) {
+        const image = boardImages.get(userId)
+        return image ? new Uint8Array(image) : null
       },
       async delete(userId) {
         boards.delete(userId)
+        boardImages.delete(userId)
       },
     },
     errors: {

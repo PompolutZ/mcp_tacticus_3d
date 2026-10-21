@@ -1,6 +1,7 @@
 import { tokenSize } from '../tokens/tokens.js'
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, memo } from 'react'
 import { useLatest } from './useLatest.js'
+import { useThree } from '@react-three/fiber'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import TokenLayer from '../tokens/TokenLayer.jsx'
 import OwnTools from '../tabletools/OwnTools.jsx'
@@ -8,6 +9,7 @@ import OtherTools from '../tabletools/OtherTools.jsx'
 import { DeployRangeTool } from '../tabletools/ToolParts.jsx'
 import { TOOL_HOVER_HEIGHT } from '../tabletools/toolGeometry.js'
 import { createSceneApi } from './sceneApi.js'
+import { captureBoardImage as captureBoard } from '../terrain/boardImage.js'
 import { useModelRegistry } from './useModelRegistry.js'
 import { useTerrainFall } from '../terrain/useTerrainFall.js'
 import { useModelClaims } from './useModelClaims.js'
@@ -408,6 +410,14 @@ function Scene(props) {
     [trackPiece, hoveredPiece, draggedPiece, toolTurns, toolLives],
   )
 
+  // The top view of the mat and the terrain (terrain/boardImage.js). matGroup: the group that turns with matTurns.
+  const gl = useThree((state) => state.gl)
+  const threeScene = useThree((state) => state.scene)
+  const toneMapping = useTableStore((s) => s.look.toneMapping)
+  const matGroup = useRef(null)
+  const captureBoardImage = () =>
+    captureBoard({ gl, scene: threeScene, keep: matGroup.current, turns: matTurns, toneMapping })
+
   // Registered after every render of Scene, so the closures above see the latest characters and objects. Every
   // value they read is a prop or a store value that Scene reads, so they change only when Scene renders (it is
   // memo). A layout effect: App can call the api in the commit that follows. The shape is documented in sceneApi.js.
@@ -423,6 +433,7 @@ function Scene(props) {
         terrainAt,
         planFall,
         raiseModels,
+        captureBoardImage,
         modelDrag,
         addDice,
         toolPoint,
@@ -738,7 +749,7 @@ function Scene(props) {
               </div>
             </OnTable>
           )}
-          <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
+          <group ref={matGroup} rotation={[0, (matTurns * Math.PI) / 2, 0]}>
             {/* mapId null: a random room waits for its map. The mat and the terrain load here, in their own
               Suspense, when the map comes. */}
             {mat && (

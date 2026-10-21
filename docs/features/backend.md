@@ -81,7 +81,7 @@ apps/api/src/
   local.ts        Node entry for dev: @hono/node-server, memory or Mongo store, the dev login route
   config.ts       the config type. Read from SSM (Lambda) or from process.env (local)
   auth/           token (session token), discord (Discord client)
-  routes/         health, errors (POST of client error reports), auth, devAuth (local only), me, board (GET and PUT of /me/board), rooms (room and seat routes), table (GET and PUT of the snapshot), signal (POST and GET of the messages)
+  routes/         health, errors (POST of client error reports), auth, devAuth (local only), me, board (GET and PUT of /me/board, GET of /me/board/image), rooms (room and seat routes), table (GET and PUT of the snapshot), signal (POST and GET of the messages)
   rooms/          code (room code), table (Yjs check and merge), read (room read, 404, host-gone cleanup), seats (seat cache, 30 s per room)
   middleware/     user (token check and user read), session (token check only, for polls), validate (body check), errors, log
   stores/         store interfaces, and a memory and a Mongo version of each
@@ -194,7 +194,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
   - Database user `mcptacticus-api` with `readWrite@assist3d`.
   - IP access list `0.0.0.0/0`. The Lambda has no fixed IP address. A fixed address needs a NAT gateway, and a NAT gateway costs money.
 - Atlas is not in CDK. The Atlas CloudFormation resources need the Atlas API key in Secrets Manager ($0.40 per month), and third-party extensions that are activated in the account.
-- Collections: `users`, `rooms`, `messages`, `customBoards` and `errors` (see "Error reports"). `customBoards` holds one record per user: `{ _id: userId, board, updatedAt }` (`board.author`: the display name of the user at the last save), no extra index. `DELETE /me` deletes it. `messages` holds the signaling messages: `{ _id, room, from, to, type, data, user, expiresAt }`. The `_id` is 13 digits of the server time in ms, `-`, and 8 random characters, so it sorts by time. Indexes: `{ room: 1, _id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `expiresAt` is 1 hour after the write. `DELETE /rooms/{code}` and `DELETE /me` delete the messages too.
+- Collections: `users`, `rooms`, `messages`, `customBoards` and `errors` (see "Error reports"). `customBoards` holds one record per user: `{ _id: userId, board, updatedAt, hasImage, image }` (`board.author`: the display name of the user at the last save; `image`: the top view as BSON binary, a WebP of at most 150 KB; a record saved before the images has neither `image` nor `hasImage`), no extra index. `boards.get` leaves `image` out (projection) and `boards.getImage` reads it. Binary responses such as `image/webp` go through the Lambda adapter base64 encoded (`test/lambda-binary.test.ts`). `DELETE /me` deletes it. `messages` holds the signaling messages: `{ _id, room, from, to, type, data, user, expiresAt }`. The `_id` is 13 digits of the server time in ms, `-`, and 8 random characters, so it sorts by time. Indexes: `{ room: 1, _id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `expiresAt` is 1 hour after the write. `DELETE /rooms/{code}` and `DELETE /me` delete the messages too.
 - The connection rules of the peer-to-peer doc stay: one client per Lambda instance, `maxPoolSize: 2`, `serverSelectionTimeoutMS: 5000`, indexes created at cold start.
 
 ### Free cluster limits

@@ -33,6 +33,11 @@ test('the card carries the author of the saved board, empty when there is none',
   assert.equal(myBoardChoice(saved('Docks')).author, '')
 })
 
+test('the card says if the account has the top view', () => {
+  assert.equal(myBoardChoice(saved('Docks')).hasImage, false)
+  assert.equal(myBoardChoice(saved('Docks'), true).hasImage, true)
+})
+
 test('the maps of a random room never include the board', () => {
   assert.ok(!MAP_IDS.includes('custom'))
 })

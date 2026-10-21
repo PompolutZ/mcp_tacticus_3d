@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { assetUrl, hasAsset } from '../assets/index.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { MAP_CARD_BACK, mapCard } from '../terrain/files.js'
-import { getBoard } from '../api/board.js'
+import { getBoardInfo } from '../api/board.js'
 import { MAP_IDS, carouselIds, myBoardChoice } from './myBoard.js'
+import { BoardCard } from './BoardCard.jsx'
+import { useBoardImageUrl } from './useBoardImageUrl.js'
 import { CUSTOM_MAP_ID } from './table.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
@@ -68,6 +70,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   const [savedBoard, setMyBoard] = useState(null)
   const myBoard = loggedIn ? savedBoard : null
   const ids = carouselIds(myBoard)
+  const boardImage = useBoardImageUrl(Boolean(myBoard?.hasImage))
   const mapName = (id) => (id === CUSTOM_MAP_ID ? myBoard.name : MAPS[id].name)
   const mapImage = (id) =>
     id !== CUSTOM_MAP_ID && hasAsset(mapCard(id)) ? mapCard(id) : MAP_CARD_BACK
@@ -86,9 +89,9 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   useEffect(() => {
     if (!loggedIn) return
     let cancelled = false
-    getBoard()
+    getBoardInfo()
       .then((saved) => {
-        if (!cancelled) setMyBoard(myBoardChoice(saved))
+        if (!cancelled) setMyBoard(saved && myBoardChoice(saved.board, saved.hasImage))
       })
       .catch(() => {})
     return () => {
@@ -190,14 +193,23 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
             index={mapIndex}
             onIndexChange={setMapIndex}
             itemName="Map"
-            renderSlide={(i) => (
-              <img
-                className="carousel-card new-room-card"
-                src={assetUrl(mapImage(ids[i]))}
-                alt={mapName(ids[i])}
-                draggable={false}
-              />
-            )}
+            renderSlide={(i) =>
+              ids[i] === CUSTOM_MAP_ID ? (
+                <BoardCard
+                  className="carousel-card new-room-card"
+                  name={myBoard.name}
+                  author={myBoard.author}
+                  imageUrl={boardImage}
+                />
+              ) : (
+                <img
+                  className="carousel-card new-room-card"
+                  src={assetUrl(mapImage(ids[i]))}
+                  alt={mapName(ids[i])}
+                  draggable={false}
+                />
+              )
+            }
             renderNav={({ index, count, prev, next }) => (
               <div className="new-room-nav">
                 <button

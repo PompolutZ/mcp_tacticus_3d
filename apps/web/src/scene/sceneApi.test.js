@@ -20,6 +20,7 @@ function makeParts() {
     terrainAt: spy('terrainAt', 't1'),
     planFall: spy('planFall', { terrain: {}, models: {} }),
     raiseModels: spy('raiseModels'),
+    captureBoardImage: spy('captureBoardImage', 'blob'),
     modelDrag: { current: null },
     addDice: { current: {} },
     toolPoint: { current: null },
@@ -45,6 +46,7 @@ test('each wrapper calls its part with the same arguments', () => {
   assert.equal(api.terrainAt(), 't1')
   assert.deepEqual(api.planFall('t'), { terrain: {}, models: {} })
   api.raiseModels([], {})
+  assert.equal(api.captureBoardImage(), 'blob')
   assert.deepEqual(calls, [
     ['characterAt', [1, 2, options]],
     ['modelPosition', ['a']],
@@ -55,6 +57,7 @@ test('each wrapper calls its part with the same arguments', () => {
     ['terrainAt', []],
     ['planFall', ['t']],
     ['raiseModels', [[], {}]],
+    ['captureBoardImage', []],
   ])
 })
 

@@ -14,13 +14,15 @@
 //   planFall(terrainId) -> { terrain, models }. What falls when that terrain piece is deleted.
 //   raiseModels(models, poses): undo of a delete. models: the entry models, poses: the stored poses now. Those that are
 //     still where they fell go back up (a lifted one: its lift place), after the next terrain change.
+//   captureBoardImage() -> Promise of a WebP Blob: the top view of the mat and the terrain (terrain/boardImage.js). Nothing
+//     changes on screen. Rejects when there is no mat or the browser cannot encode WebP.
 //   modelDragId() -> model id or null. The own model that is dragged now.
 //   addDice(side, count): clears the own dice tray of that side, then adds that many dice.
 //   pointAtPointer(), pointAtCenter() -> { x, y, z } or null (undefined with no tool point yet).
 //     Table points for a free tool spawn and the ping (ToolPoint.jsx).
 //
 // parts: the functions characterAt, modelPosition, returnModels, turnPiece, liftPiece, floorPiece,
-// terrainAt, planFall, raiseModels, and the refs modelDrag (current: model id or null), addDice (current: side ->
+// terrainAt, planFall, raiseModels, captureBoardImage, and the refs modelDrag (current: model id or null), addDice (current: side ->
 // add function) and toolPoint (current: { atPointer(), atCenter() } or null). The wrappers read the
 // refs at the call. A missing part throws here, so a typo does not fail silently later.
 
@@ -34,6 +36,7 @@ const FUNCTION_PARTS = [
   'terrainAt',
   'planFall',
   'raiseModels',
+  'captureBoardImage',
 ]
 const REF_PARTS = ['modelDrag', 'addDice', 'toolPoint']
 
@@ -47,6 +50,7 @@ export const SCENE_API_KEYS = [
   'terrainAt',
   'planFall',
   'raiseModels',
+  'captureBoardImage',
   'modelDragId',
   'addDice',
   'pointAtPointer',
@@ -72,6 +76,7 @@ export function createSceneApi(parts) {
     terrainAt: () => parts.terrainAt(),
     planFall: (terrainId) => parts.planFall(terrainId),
     raiseModels: (models, poses) => parts.raiseModels(models, poses),
+    captureBoardImage: () => parts.captureBoardImage(),
     modelDragId: () => parts.modelDrag.current,
     addDice: (side, count) => parts.addDice.current[side]?.(count),
     pointAtPointer: () => parts.toolPoint.current?.atPointer(),

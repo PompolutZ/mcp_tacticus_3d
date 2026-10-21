@@ -8,13 +8,14 @@ import { CUSTOM_MAP_ID } from './table.js'
 // The maps of a random room and of the map carousel: the maps of the app. Never the board.
 export const MAP_IDS = Object.keys(MAPS)
 
-// The saved board of the account (the answer of getBoard: the map JSON, or null) -> { board (checked), name, author }, or
+// The saved board of the account (the map JSON, or null) -> { board (checked), name, author, hasImage }, or
 // null when there is none or the saved data is not a good board. name: the board name, else "My board". author: the author set by the server, or '' (old saved board).
-export function myBoardChoice(saved) {
+// hasImage: the account has the top view of it (getBoardInfo).
+export function myBoardChoice(saved, hasImage = false) {
   if (!saved) return null
   const { board } = validateBoard(saved)
   return board
-    ? { board, name: board.name.trim() || MY_BOARD_NAME, author: board.author.trim() }
+    ? { board, name: board.name.trim() || MY_BOARD_NAME, author: board.author.trim(), hasImage }
     : null
 }
 

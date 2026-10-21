@@ -14,7 +14,8 @@ import { MAPS } from './maps/index.js'
 // keys are the builder's only then.
 // mapId, mat (game.mat): the board. terrain: the pieces with placements. edits: useBuilderEdits. onRemove(id): the
 // Delete of the game (handleTerrainRemove: the pieces above drop down, the log has an Undo). onLoadMap(id): the Map
-// select of the Sandbox. keysOn: false while a popup is open.
+// select of the Sandbox. keysOn: false while a popup is open. sceneApi: the ref of Scene (scene/sceneApi.js), for the
+// top view image that Save to account sends.
 export default function SandboxBuilder({
   mapId,
   mat,
@@ -22,6 +23,7 @@ export default function SandboxBuilder({
   edits,
   onRemove,
   onLoadMap,
+  sceneApi,
   keysOn,
 }) {
   const selected = useTableStore((s) => selectedPieceId(s.selection, 'terrain'))
@@ -93,8 +95,15 @@ export default function SandboxBuilder({
   async function saveToAccount() {
     if (!shownMat || !boardName.trim()) return
     try {
-      await saveBoard(exportBoard(boardState()))
-      setMessage('Saved to your account.')
+      // A board without an image is still saved: no mat drawn yet, or no WebP in this browser
+      let image
+      try {
+        image = await sceneApi.current?.captureBoardImage()
+      } catch (error) {
+        console.warn('Top view image failed', error)
+      }
+      await saveBoard(exportBoard(boardState()), image)
+      setMessage(image ? 'Saved to your account.' : 'Saved to your account, without the top view.')
     } catch (error) {
       setMessage(`Save failed: ${error.message}`)
     }

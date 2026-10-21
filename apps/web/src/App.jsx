@@ -1001,6 +1001,7 @@ export default function App({
             mat={mat}
             terrain={terrain}
             edits={builder}
+            sceneApi={sceneApi}
             onRemove={handleTerrainRemove}
             onLoadMap={handleMapChange}
             keysOn={!popupOpen}

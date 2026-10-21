@@ -23,6 +23,14 @@ const board = {
   placements: [placement, { ...placement, piece: 'taxi', scale: [1, 1, 2], size: undefined }],
 }
 
+// The start of a WebP file, with bytes above 127
+const webp = new Uint8Array(
+  [...'RIFF', 0, 0, 0, 0, ...'WEBP', 0xff, 0xd8].map((v) =>
+    typeof v === 'string' ? v.charCodeAt(0) : v,
+  ),
+)
+const b64 = (bytes: Uint8Array) => Buffer.from(bytes).toString('base64')
+
 const put = (app: ReturnType<typeof makeApp>['app'], headers: object, body: unknown) =>
   app.request('/me/board', {
     method: 'PUT',
@@ -115,8 +123,75 @@ describe('/me/board', () => {
   it('PUT refuses a huge body with 413', async () => {
     const { app, store } = makeApp()
     const a = await addUser(store, 'a')
-    const res = await put(app, a.headers, { ...board, name: 'x'.repeat(200 * 1024) })
+    const res = await put(app, a.headers, { ...board, name: 'x'.repeat(400 * 1024) })
     expect(res.status).toBe(413)
+  })
+
+  it('PUT then GET image: the bytes come back as image/webp; GET says hasImage', async () => {
+    const { app, store } = makeApp()
+    const a = await addUser(store, 'a')
+    const b = await addUser(store, 'b')
+    expect((await put(app, a.headers, { ...board, image: b64(webp) })).status).toBe(204)
+    const info = (await (await app.request('/me/board', { headers: a.headers })).json()) as {
+      hasImage: boolean
+    }
+    expect(info.hasImage).toBe(true)
+    const res = await app.request('/me/board/image', { headers: a.headers })
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toBe('image/webp')
+    expect(res.headers.get('cache-control')).toBe('private, no-cache')
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(webp)
+    expect((await app.request('/me/board/image', { headers: b.headers })).status).toBe(404)
+    expect((await app.request('/me/board/image')).status).toBe(401)
+  })
+
+  it('a board without an image: hasImage false, image 404; a save without image drops the old one', async () => {
+    const { app, store } = makeApp()
+    const a = await addUser(store, 'a')
+    await put(app, a.headers, board)
+    const info = (await (await app.request('/me/board', { headers: a.headers })).json()) as {
+      hasImage: boolean
+    }
+    expect(info.hasImage).toBe(false)
+    expect((await app.request('/me/board/image', { headers: a.headers })).status).toBe(404)
+    await put(app, a.headers, { ...board, image: b64(webp) })
+    await put(app, a.headers, board)
+    expect((await app.request('/me/board/image', { headers: a.headers })).status).toBe(404)
+  })
+
+  it('PUT refuses an image that is not WebP with 400, and does not save the board', async () => {
+    const { app, store } = makeApp()
+    const a = await addUser(store, 'a')
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0])
+    for (const image of [b64(png), b64(new Uint8Array(5)), 'not base64!', '']) {
+      const res = await put(app, a.headers, { ...board, image })
+      expect(res.status).toBe(400)
+    }
+    expect(await store.boards.get(a.id)).toBeNull()
+  })
+
+  it('PUT refuses an image over 150 KB with 413, accepts 150 KB', async () => {
+    const { app, store } = makeApp()
+    const a = await addUser(store, 'a')
+    const sized = (n: number) => {
+      const bytes = new Uint8Array(n)
+      bytes.set(webp)
+      return b64(bytes)
+    }
+    expect((await put(app, a.headers, { ...board, image: sized(150 * 1024 + 1) })).status).toBe(413)
+    expect(await store.boards.get(a.id)).toBeNull()
+    expect((await put(app, a.headers, { ...board, image: sized(150 * 1024) })).status).toBe(204)
+  })
+
+  it('DELETE /me removes the board and its image', async () => {
+    const store = createMemoryStore()
+    const { app } = makeApp(store)
+    const a = await addUser(store, 'a')
+    await put(app, a.headers, { ...board, image: b64(webp) })
+    expect(await store.boards.getImage(a.id)).not.toBeNull()
+    expect((await app.request('/me', { method: 'DELETE', headers: a.headers })).status).toBe(204)
+    expect(await store.boards.get(a.id)).toBeNull()
+    expect(await store.boards.getImage(a.id)).toBeNull()
   })
 
   it('DELETE /me removes the board', async () => {

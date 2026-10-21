@@ -89,3 +89,30 @@ it('PUT and GET move binary bodies through the Lambda adapter', async () => {
     cardA: 'moved éÿ',
   })
 })
+
+it('GET /me/board/image answers image/webp base64 encoded through the Lambda adapter', async () => {
+  const store = createMemoryStore()
+  const handler = handle(createApp({ store, config: testConfig, discord: null }))
+  const alice = await addUser(store, 'alice')
+  const image = new Uint8Array([
+    ...Buffer.from('RIFF'),
+    0,
+    255,
+    128,
+    200,
+    ...Buffer.from('WEBP'),
+    255,
+  ])
+  await store.boards.put(alice.id, { mat: 'm', matRotation: 0, placements: [] }, new Date(), image)
+
+  const got = (await handler(event('GET', '/me/board/image', alice.headers))) as {
+    statusCode: number
+    isBase64Encoded: boolean
+    body: string
+    headers: Record<string, string>
+  }
+  expect(got.statusCode).toBe(200)
+  expect(got.isBase64Encoded).toBe(true)
+  expect(got.headers['content-type']).toBe('image/webp')
+  expect(new Uint8Array(Buffer.from(got.body, 'base64'))).toEqual(image)
+})

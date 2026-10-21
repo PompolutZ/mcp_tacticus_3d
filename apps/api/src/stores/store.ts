@@ -185,17 +185,20 @@ export interface BoardPlacement {
   tint?: number[]
 }
 
-// One record per user, _id is the user id.
+// One record per user, _id is the user id. The top view image (WebP) is stored in the record, and read apart
+// with getImage, so get does not move its bytes. hasImage: false for a record saved before the images.
 export interface BoardDoc {
   _id: string
   board: Board
   updatedAt: Date
+  hasImage: boolean
 }
 
 export interface BoardsStore {
   get(userId: string): Promise<BoardDoc | null>
-  // Replaces the board of the user.
-  put(userId: string, board: Board, now: Date): Promise<void>
+  // Replaces the board of the user, and its image (none when image is undefined).
+  put(userId: string, board: Board, now: Date, image?: Uint8Array): Promise<void>
+  getImage(userId: string): Promise<Uint8Array | null>
   delete(userId: string): Promise<void>
 }
 

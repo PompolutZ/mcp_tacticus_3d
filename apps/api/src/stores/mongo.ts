@@ -18,6 +18,8 @@ import {
 
 // In Mongo the table is BSON binary.
 type RoomRow = Omit<RoomDoc, 'table'> & { table: Binary }
+// The board record: the image is BSON binary. A record saved before the images has no image and no hasImage.
+type BoardRow = Omit<BoardDoc, 'hasImage'> & { hasImage?: boolean; image?: Binary }
 
 // A record of the current shape. Old records keep the seats under the old color keys and have no players.host.
 const CURRENT = { 'players.host': { $exists: true } } as const
@@ -46,7 +48,7 @@ export function createMongoStore({
   const usersCol = db.collection<UserDoc>('users')
   const roomsCol = db.collection<RoomRow>('rooms')
   const messagesCol = db.collection<MessageDoc>('messages')
-  const boardsCol = db.collection<BoardDoc>('customBoards')
+  const boardsCol = db.collection<BoardRow>('customBoards')
   const errorsCol = db.collection<ErrorReport>('errors')
 
   // A capped collection: Mongo deletes the oldest reports when it is full. It must be created
@@ -231,11 +233,25 @@ export function createMongoStore({
     boards: {
       async get(userId) {
         await ready()
-        return boardsCol.findOne({ _id: userId })
+        const doc = await boardsCol.findOne({ _id: userId }, { projection: { image: 0 } })
+        if (!doc) return null
+        return {
+          _id: doc._id,
+          board: doc.board,
+          updatedAt: doc.updatedAt,
+          hasImage: doc.hasImage === true,
+        }
       },
-      async put(userId, board, now) {
+      async put(userId, board, now, image) {
         await ready()
-        await boardsCol.replaceOne({ _id: userId }, { board, updatedAt: now }, { upsert: true })
+        const row: Omit<BoardRow, '_id'> = { board, updatedAt: now, hasImage: image !== undefined }
+        if (image) row.image = new Binary(image)
+        await boardsCol.replaceOne({ _id: userId }, row, { upsert: true })
+      },
+      async getImage(userId) {
+        await ready()
+        const doc = await boardsCol.findOne({ _id: userId }, { projection: { image: 1 } })
+        return doc?.image ? new Uint8Array(doc.image.value()) : null
       },
       async delete(userId) {
         await ready()

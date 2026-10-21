@@ -1,0 +1,54 @@
+/* The board card: the places and sizes are those of the map cards (800 x 1400 px), in percent of the card and in cqw
+   (1cqw = 8 px of that card). */
+.board-card {
+  position: relative;
+  container-type: inline-size;
+  overflow: hidden;
+  user-select: none;
+}
+
+.board-card-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.board-card-title {
+  position: absolute;
+  top: 3%;
+  left: 8.5%;
+  right: 6%;
+  max-height: 13%;
+  overflow: hidden;
+  font: 400 8.6cqw/1 var(--font-title, 'Bangers', cursive);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #1c1c1c;
+  overflow-wrap: anywhere;
+}
+
+.board-card-author {
+  position: absolute;
+  top: 17.5%;
+  left: 8.5%;
+  right: 6%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 400 5.6cqw/1.2 var(--font-label, 'Barlow Condensed', sans-serif);
+  color: #2a2a2a;
+}
+
+.board-card-view {
+  position: absolute;
+  left: 17%;
+  bottom: 2.3%;
+  width: 66%;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  border: 0.6cqw solid #4aa11f;
+  border-radius: 1.4cqw;
+  object-fit: cover;
+}
