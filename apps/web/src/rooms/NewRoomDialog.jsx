@@ -215,6 +215,9 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
                     Map {index + 1} of {count}
                   </div>
                   <div className="new-room-nav-name">{mapName(ids[index])}</div>
+                  {ids[index] === CUSTOM_MAP_ID && myBoard.author && (
+                    <div className="new-room-nav-author">by {myBoard.author}</div>
+                  )}
                 </div>
                 <button
                   type="button"

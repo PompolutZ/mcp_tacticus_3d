@@ -59,7 +59,7 @@ A logged-in player keeps one board in the account (`docs/features/auth.md`, "End
 
 ## Board in a new room
 
-A logged-in player with a saved board (`GET /me/board`, checked with `validateBoard`) sees a card "My board" after the maps in the new room dialog. It shows the card back (`maps/back.webp`) and the board name, or "My board" when the board has none. No login, no saved board, or a saved board that fails the check: no card. Reason: the board needs the account to be fetched, and a bad record must not open a broken table.
+A logged-in player with a saved board (`GET /me/board`, checked with `validateBoard`) sees a card "My board" after the maps in the new room dialog. It shows the card back (`maps/back.webp`) and the board name, or "My board" when the board has none. Under the name is a smaller line "by <author>" (the author the server set on the board); a saved board without an author has no such line. No login, no saved board, or a saved board that fails the check: no card. Reason: the board needs the account to be fetched, and a bad record must not open a broken table.
 
 - A room on it has `mapId: 'custom'`. `startTable(mapId, board)` (`src/rooms/table.js`) gives `game.mat` of the board and its placements as custom pieces (`boardPieces`, ids `custom:<n>`).
 - The board is copied into the room at creation. Solo: the checked board is in the room record (`board`), and the table is built from it when the room opens. Versus: the host builds the document with the board, and the guest gets it with the document sync. A later save of the board changes no existing room.
