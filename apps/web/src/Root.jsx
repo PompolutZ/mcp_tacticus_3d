@@ -6,7 +6,7 @@ import { useUser } from './auth/useUser.js'
 import { getRoom } from './rooms/serverStore.js'
 import { multiplayerRoom, roomPage } from './rooms/roomPage.js'
 import { openRoom } from './rooms/store.js'
-import { MAPS } from './terrain/maps/index.js'
+import { isPlayableMap } from './rooms/table.js'
 import { LoadingOverlay } from './rooms/LoadingOverlay.jsx'
 
 // The table page (three.js, Rapier, models) is its own chunk. The prefetch in Root starts it once the lobby
@@ -39,7 +39,7 @@ function pageOf(hash) {
 // A room of this browser with a map that the app has, or null
 function findRoom(id) {
   const room = openRoom(id)
-  return room && MAPS[room.mapId] ? room : null
+  return room && isPlayableMap(room.mapId) ? room : null
 }
 
 // Opens the page of hash ('' is the lobby). replace: no new entry in the browser history.

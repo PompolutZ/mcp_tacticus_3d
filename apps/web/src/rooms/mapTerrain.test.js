@@ -8,11 +8,14 @@ import {
   applyEmptyMat,
   applyMap,
   fillMap,
+  isPlayableMap,
   mapChoice,
   mapTerrain,
   startTable,
   tableMat,
+  withPlacements,
 } from './table.js'
+import { mapFace } from '../terrain/mapFace.js'
 
 test('mapTerrain ids are mapId:index and the same on every call', () => {
   const mapId = Object.keys(MAPS)[0]
@@ -106,4 +109,17 @@ test('the Map select shows the map, a custom board or the empty mat', () => {
   assert.equal(mapChoice(null, mat, 0), `mat:${mat.name}`)
   assert.equal(mapChoice(null, mat, 2), 'custom')
   assert.equal(mapChoice(null, null, 0), '')
+})
+
+test("readers tolerate mapId 'custom': no map data, fillMap writes nothing, the mat is game.mat", () => {
+  const table = createTable(new Y.Doc())
+  assert.equal(fillMap(table, 'custom'), false)
+  assert.deepEqual(withPlacements('custom', [{ id: 'a', index: 0, locked: true }]), [])
+  assert.equal(tableMat('custom', null), null)
+  assert.equal(isPlayableMap('custom'), true)
+  assert.equal(mapFace('custom').name, 'My board')
+  // A guest of a room on the board does not get a map over it
+  fillTable(table, { ...startTable('custom'), rosters: { host: null, guest: null } })
+  assert.equal(fillMap(table, Object.keys(MAPS)[0]), false)
+  assert.equal(table.game.get('mapId'), 'custom')
 })

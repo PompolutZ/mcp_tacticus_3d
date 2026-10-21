@@ -66,3 +66,11 @@ test('rosterLinks: single player shows the colors of the record, or numbers', ()
     ['Roster 1', 'Roster 2'],
   )
 })
+
+test('a room on the board (mapId custom) stays in the list', () => {
+  const list = roomList([single('S1', 1, 'custom')], [multi('M1', 2, 'custom')])
+  assert.deepEqual(
+    list.map((i) => i.id),
+    ['M1', 'S1'],
+  )
+})

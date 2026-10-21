@@ -1,6 +1,6 @@
 // One list of the single player and the multiplayer rooms (docs/features/rooms.md, "Lobby"). No React.
 
-import { MAPS } from '../terrain/maps/index.js'
+import { isPlayableMap } from './table.js'
 import { TEAMS } from '../setup/setup.js'
 
 // single: records of rooms/store.js (updatedAt in ms). multiplayer: rooms of the API (updatedAt is ISO).
@@ -29,7 +29,9 @@ export function roomList(single, multiplayer) {
     })),
   ]
   return items
-    .filter((item) => (item.kind === 'multiplayer' && item.mapId === null) || MAPS[item.mapId])
+    .filter(
+      (item) => (item.kind === 'multiplayer' && item.mapId === null) || isPlayableMap(item.mapId),
+    )
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
 

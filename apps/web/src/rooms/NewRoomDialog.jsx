@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { assetUrl, hasAsset } from '../assets/index.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { MAP_CARD_BACK, mapCard } from '../terrain/files.js'
+import { getBoard } from '../api/board.js'
+import { MAP_IDS, carouselIds, myBoardChoice } from './myBoard.js'
+import { CUSTOM_MAP_ID } from './table.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
 import { DISCORD_ON } from '../auth/session.js'
@@ -18,8 +21,6 @@ import { TEAMS } from '../setup/setup.js'
 import { RosterField } from '../rosters/RosterField.jsx'
 import './comicBase.js'
 import './newRoom.css'
-
-const MAP_IDS = Object.keys(MAPS)
 
 // The attributes of the arrow icons of the map buttons
 const ARROW = {
@@ -63,6 +64,13 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   const [createError, setCreateError] = useState(null)
   const [random, setRandom] = useState(true)
   const [mapIndex, setMapIndex] = useState(0)
+  // The saved board of the account ({ board, name }), or null: no login, none saved, or not loaded yet
+  const [savedBoard, setMyBoard] = useState(null)
+  const myBoard = loggedIn ? savedBoard : null
+  const ids = carouselIds(myBoard)
+  const mapName = (id) => (id === CUSTOM_MAP_ID ? myBoard.name : MAPS[id].name)
+  const mapImage = (id) =>
+    id !== CUSTOM_MAP_ID && hasAsset(mapCard(id)) ? mapCard(id) : MAP_CARD_BACK
   const [text, setText] = useState({ host: '', guest: '' })
   // The browser did not store the room
   const [failed, setFailed] = useState(false)
@@ -76,20 +84,37 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
     : !isEmptyRoster(parsed.host) && (!text.guest.trim() || !isEmptyRoster(parsed.guest))
 
   useEffect(() => {
+    if (!loggedIn) return
+    let cancelled = false
+    getBoard()
+      .then((saved) => {
+        if (!cancelled) setMyBoard(myBoardChoice(saved))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [loggedIn])
+
+  useEffect(() => {
     function handleKeyDown(e) {
       if (!random && CARD_STEP_KEYS[e.code] && !isEditing(e.target)) {
-        setMapIndex((i) => (i + CARD_STEP_KEYS[e.code] + MAP_IDS.length) % MAP_IDS.length)
+        setMapIndex((i) => (i + CARD_STEP_KEYS[e.code] + ids.length) % ids.length)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [random])
+  }, [random, ids.length])
 
   async function handleCreate(e) {
     e.preventDefault()
     if (!canCreate) return
     // Multiplayer and random: the server picks the map when the guest joins, so the table has no map
-    const mapId = random ? MAP_IDS[Math.floor(Math.random() * MAP_IDS.length)] : MAP_IDS[mapIndex]
+    // A random room never gets the board (MAP_IDS has only the maps)
+    const mapId = random
+      ? MAP_IDS[Math.floor(Math.random() * MAP_IDS.length)]
+      : ids[Math.min(mapIndex, ids.length - 1)]
+    const board = mapId === CUSTOM_MAP_ID ? myBoard.board : null
     const roster = (team) =>
       isEmptyRoster(parsed[team]) ? null : { code: formatMctCode(parsed[team]) }
     if (multiplayer) {
@@ -100,7 +125,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
         const created = await createServerRoom({
           ...(random ? { maps: MAP_IDS } : { mapId }),
           roster: own,
-          table: startTableBytes(random ? null : mapId, rosters),
+          table: startTableBytes(random ? null : mapId, rosters, board),
         })
         onCreate({ id: created.code })
       } catch (err) {
@@ -109,7 +134,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
       }
       return
     }
-    const room = createRoom(mapId, { host: roster('host'), guest: roster('guest') })
+    const room = createRoom(mapId, { host: roster('host'), guest: roster('guest') }, board)
     if (room) onCreate(room)
     else setFailed(true)
   }
@@ -159,16 +184,17 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
           </>
         ) : (
           <Carousel
+            key={ids.length}
             fan
-            count={MAP_IDS.length}
+            count={ids.length}
             index={mapIndex}
             onIndexChange={setMapIndex}
             itemName="Map"
             renderSlide={(i) => (
               <img
                 className="carousel-card new-room-card"
-                src={assetUrl(hasAsset(mapCard(MAP_IDS[i])) ? mapCard(MAP_IDS[i]) : MAP_CARD_BACK)}
-                alt={MAPS[MAP_IDS[i]].name}
+                src={assetUrl(mapImage(ids[i]))}
+                alt={mapName(ids[i])}
                 draggable={false}
               />
             )}
@@ -188,7 +214,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
                   <div className="new-room-nav-count">
                     Map {index + 1} of {count}
                   </div>
-                  <div className="new-room-nav-name">{MAPS[MAP_IDS[index]].name}</div>
+                  <div className="new-room-nav-name">{mapName(ids[index])}</div>
                 </div>
                 <button
                   type="button"

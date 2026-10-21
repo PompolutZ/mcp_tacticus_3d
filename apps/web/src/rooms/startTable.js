@@ -7,9 +7,10 @@ import { createTable, encodeTable, fillTable } from '../net/doc.js'
 import { startTable } from './table.js'
 
 // mapId null: a random room, the table has no map yet. rosters: { host, guest }, each { code } or null
-export function startTableBytes(mapId, rosters) {
+// board: the checked board of a room on mapId 'custom' (table.js, startTable), else null
+export function startTableBytes(mapId, rosters, board = null) {
   const doc = new Y.Doc()
-  fillTable(createTable(doc), { ...startTable(mapId), rosters })
+  fillTable(createTable(doc), { ...startTable(mapId, board), rosters })
   const bytes = encodeTable({ doc })
   doc.destroy()
   return bytes

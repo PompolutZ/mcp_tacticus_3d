@@ -221,7 +221,7 @@ export function openTableSession({
       }
       if (action === 'fill' || (action === 'migrate' && !migrate(table, schema))) {
         const rosters = room?.rosters ?? { host: null, guest: null }
-        fillTable(table, { ...startTable(room?.mapId ?? START_MAP), rosters })
+        fillTable(table, { ...startTable(room?.mapId ?? START_MAP, room?.board), rosters })
       }
       // A random room: the map comes from the room (the guest joined). A table that already has one stays.
       if (room?.multiplayer) fillMap(table, room.mapId)

@@ -67,6 +67,7 @@ The **+** tile opens a framed comic dialog on a blurred backdrop, the same style
 - **Left column (the map):** a yellow rays panel with a caption tab in the top left corner: "A mystery map awaits…" with Random map on, "Pick your battleground!" with it off.
   - Random map on: one card back, turned, with a hard shadow.
   - Random map off: the map cards in a fan, the same carousel as in the roster popup (drag, swipe, arrow keys, a click on a side card). The card in the middle is the map of the room. Under it: a ← button, a box "Map N of M" with the map name, and a → button.
+- With a saved board (logged in), the carousel has one more card after the maps: "My board", the card back with the board name (`map-builder.md`, "Board in a new room"). With Random map on, the board is never picked.
 - **Right column:** the title "New room!", then the choice, **Random map**, the roster fields and the footer.
 - With login on, a choice "Choose your battle": **Solo** ("Run both sides yourself") or **Versus** ("Share a code with a friend") (`docs/features/auth.md`, "Lobby and room UI"). With login off, the dialog makes a solo room and has no choice. The rest of this list describes **Solo**.
 - **Random map** is a white row with a hint ("Turn off to pick the map yourself", "Browse the maps on the left") and an ON / OFF switch, on by default. Solo: the app picks the map when the player creates the room. Versus: the server picks the map when the guest joins, so nobody knows it before.
@@ -155,7 +156,8 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
   id: 'K7Q2-M9XD',
   owner: '<user id>',
   createdAt, updatedAt,           // ms since 1970
-  mapId: 'vibranium-heist',       // key in MAPS
+  mapId: 'vibranium-heist',       // key in MAPS, or 'custom': the board of the host
+  board: { ... },                 // only with mapId 'custom': the checked board (map-builder.md), copied at creation
   rosters: { host: { code }, guest: null | { code } },   // docs/features/roster.md, "State"
   colors: { host: 'blue', guest: 'red' },                // sideColorsOf of the setup; a record from before has none
 }

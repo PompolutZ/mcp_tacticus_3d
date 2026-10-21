@@ -105,8 +105,10 @@ export function openRoom(id) {
 }
 
 // Creates and stores a room. rosters: { host: { code }, guest: null | { code } }, code: the MCT code of the
-// roster (rosters/mct.js, formatMctCode). Returns the room, or null when the browser did not store it.
-export function createRoom(mapId, rosters) {
+// roster (rosters/mct.js, formatMctCode). board: the checked board of a room on mapId 'custom' (rooms/myBoard.js),
+// copied into the record, because the table is built when the room opens. Returns the room, or null when the browser
+// did not store it.
+export function createRoom(mapId, rosters, board = null) {
   let id = newRoomCode()
   while (read(ROOM_PREFIX + id)) id = newRoomCode()
   const now = Date.now()
@@ -117,6 +119,7 @@ export function createRoom(mapId, rosters) {
     createdAt: now,
     updatedAt: now,
     mapId,
+    ...(board ? { board } : {}),
     rosters,
     colors: START_COLORS,
   }

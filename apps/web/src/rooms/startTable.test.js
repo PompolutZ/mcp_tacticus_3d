@@ -4,6 +4,7 @@ import * as Y from 'yjs'
 import { createTable, tableSchema, SCHEMA } from '../net/doc.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { startTableBytes } from './startTable.js'
+import { tableMat } from './table.js'
 
 test('the start table has the map, the rosters and the terrain of the map', () => {
   const mapId = Object.keys(MAPS)[0]
@@ -53,4 +54,31 @@ test('terrain ids are fixed per map, so two fills merge into one set', () => {
       .terrain.read()
       .map((p) => p.id),
   )
+})
+
+test('the start table with a board has its mat and custom pieces, and no map terrain', () => {
+  const board = {
+    mat: 'Vibranium Heist',
+    matRotation: 90,
+    placements: [
+      { piece: 'taxi-cab', position: [1, 2, 3], rotation: [0, 0, 0], scale: 1 },
+      { piece: 'traffic-light', position: [0, 0, 0], rotation: [0, 0, 0], scale: 1 },
+    ],
+  }
+  const doc = new Y.Doc()
+  Y.applyUpdate(doc, startTableBytes('custom', { host: null, guest: null }, board))
+  const table = createTable(doc)
+  assert.equal(table.game.get('mapId'), 'custom')
+  assert.deepEqual(table.game.get('mat'), { name: 'Vibranium Heist', rotation: 90 })
+  const terrain = table.terrain.read()
+  assert.deepEqual(
+    terrain.map((p) => p.piece),
+    ['taxi-cab', 'traffic-light'],
+  )
+  assert.equal(new Set(terrain.map((p) => p.id)).size, 2)
+  assert.ok(terrain.every((p) => p.index === undefined))
+  assert.deepEqual(tableMat('custom', table.game.get('mat')), {
+    name: 'Vibranium Heist',
+    rotation: 90,
+  })
 })

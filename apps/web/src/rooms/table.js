@@ -5,6 +5,7 @@ import { MAPS } from '../terrain/maps/index.js'
 import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
 import { newSetup } from '../setup/setup.js'
+import { boardPieces } from '../terrain/builder.js'
 
 // Terrain pieces of a map, as tracked in App state (the id is fixed per piece, so two browsers that fill the
 // same map write the same keys and the pieces merge, docs/features/rooms.md, "Room"): the placements of terrain/maps/<id>.json with an id and
@@ -99,6 +100,11 @@ export function applyEmptyMat(table, mat) {
 // The value of the Map select for the table: the map id, 'custom' (no map, but pieces: a built or imported
 // board), 'mat:<name>' (an empty mat) or '' (nothing).
 export const CUSTOM_BOARD = 'custom'
+// A room on the saved board of its host has this mapId (docs/features/map-builder.md, "Board in a new room").
+// MAPS has no such key, so a reader of mapId checks it first (isPlayableMap).
+export const CUSTOM_MAP_ID = CUSTOM_BOARD
+// A map the app can open: a key in MAPS, or the board copied into the room
+export const isPlayableMap = (mapId) => mapId === CUSTOM_MAP_ID || Boolean(MAPS[mapId])
 export const MAT_PREFIX = 'mat:'
 export function mapChoice(mapId, mat, pieceCount) {
   if (mapId != null) return mapId
@@ -124,13 +130,21 @@ export function droppedY(position, delta) {
   return Math.round((position[1] - delta) * 1e3) / 1e3
 }
 
+// Ids of the pieces of a board in a new room: fixed per index, as the ids of a map
+function boardIds() {
+  let n = 0
+  return () => `${CUSTOM_MAP_ID}:${n++}`
+}
+
 // The state of a new table on the map mapId: the fields of fillTable in net/doc.js, without the rosters.
 // mapId null: a random multiplayer room, the map comes when the guest joins. No map, no terrain.
-export function startTable(mapId) {
+// board: a checked board (terrain/builder.js, validateBoard) of a room on CUSTOM_MAP_ID. Its mat is game.mat and
+// its placements are custom pieces, the same as applyBoard writes. Without the board, CUSTOM_MAP_ID has no terrain.
+export function startTable(mapId, board = null) {
   return {
     mapId,
     // { name, rotation } or null: the mat of the map (tableMat)
-    mat: null,
+    mat: board ? { name: board.mat, rotation: board.matRotation } : null,
     matTurns: 0,
     deployLine: false,
     crisis: { secure: null, extract: null },
@@ -140,7 +154,11 @@ export function startTable(mapId) {
     priority: null,
     lastActivated: null,
     setup: newSetup(),
-    terrain: mapId == null ? [] : mapTerrain(mapId),
+    terrain: board
+      ? boardPieces(board, boardIds())
+      : mapId == null || mapId === CUSTOM_MAP_ID
+        ? []
+        : mapTerrain(mapId),
     characters: [],
     tokens: [],
     tactics: [],
