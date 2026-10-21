@@ -1,20 +1,19 @@
 import { useMemo, useState } from 'react'
 import { MAPS } from './maps/index.js'
-import { MAP_ID_PATTERN } from './exportMap.js'
 import { SORTED_MATS, pieceGroups } from './builder.js'
 
 // The side panel of the map builder (docs/features/map-builder.md). It owns no board data, only the piece filter:
 // the board comes in by props and every change goes out by a callback (the Sandbox keeps the board in the table
 // document).
-// mapId, mapName, onMapId, onMapName: the `id` and `name` fields of the export. matName: the shown mat.
+// mapName, onMapName: the `name` field of the export (required for Export and Save; the id is made from it). matName: the shown mat.
 // pieceCount: placed pieces. onLoadMap(id), onExport(), onPickMat(name), onClear(), onAdd(piece).
 // onImport(file): the Import button, a .json file in the map format; without it there is no button. onSave(), onLoad():
 // the account buttons; without them there are none. message: a line
 // under the buttons (a refused file). canExport: false when there is nothing to export (no mat).
+const NAME_REQUIRED = 'Enter a name first'
+
 export default function BuilderPanel({
-  mapId,
   mapName,
-  onMapId,
   onMapName,
   matName,
   pieceCount,
@@ -30,6 +29,7 @@ export default function BuilderPanel({
   canExport = true,
 }) {
   const [filter, setFilter] = useState('')
+  const hasName = mapName.trim() !== ''
   const groups = useMemo(() => pieceGroups(filter), [filter])
   return (
     <aside className="terrain-panel">
@@ -50,15 +50,7 @@ export default function BuilderPanel({
       <input
         type="text"
         className="chip chip--text terrain-filter"
-        placeholder="id (kebab-case)"
-        aria-label="Map id"
-        value={mapId}
-        onChange={(e) => onMapId(e.target.value)}
-      />
-      <input
-        type="text"
-        className="chip chip--text terrain-filter"
-        placeholder="Name"
+        placeholder="Name (required)"
         aria-label="Map name"
         value={mapName}
         onChange={(e) => onMapName(e.target.value)}
@@ -66,7 +58,8 @@ export default function BuilderPanel({
       <button
         type="button"
         className="terrain-row"
-        disabled={!canExport || !MAP_ID_PATTERN.test(mapId)}
+        disabled={!canExport || !hasName}
+        title={hasName ? undefined : NAME_REQUIRED}
         onClick={onExport}
       >
         Export
@@ -87,7 +80,13 @@ export default function BuilderPanel({
         </label>
       )}
       {onSave && (
-        <button type="button" className="terrain-row" disabled={!canExport} onClick={onSave}>
+        <button
+          type="button"
+          className="terrain-row"
+          disabled={!canExport || !hasName}
+          title={hasName ? undefined : NAME_REQUIRED}
+          onClick={onSave}
+        >
           Save to account
         </button>
       )}

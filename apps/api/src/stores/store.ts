@@ -169,6 +169,8 @@ export const ERRORS_MAX_BYTES = 10 * 1024 * 1024
 export interface Board {
   id?: string
   name?: string
+  // The display name of the user at the last save. Set by the server, never from the body.
+  author?: string
   mat: string
   matRotation: number
   placements: BoardPlacement[]

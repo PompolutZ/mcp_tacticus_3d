@@ -43,6 +43,7 @@ A map is `src/terrain/maps/<id>.json`. The fields:
 
 - `id`: the file name without `.json`, and the key in `MAPS`.
 - `name`: the name in the app.
+- `author`: optional. The display name of the player who built the board in the Sandbox. Written after `name`. Maps from the mod have none.
 - `ttsMap`: the id of the map in the mod's Terrain Database. Left out for a map not made from the mod.
 - `note`: optional text about the map.
 - `mat`: the mat name. The image is `src/assets/<mat>-mat.webp` (`matImage` in `files.js`).
@@ -96,7 +97,7 @@ The order of the imports in `index.js` is the order of the maps in the lists. A 
 Status: built.
 
 1. Open the Sandbox (`#sandbox`), click **Build**, pick a mat, place the pieces (or load a map and change it). See `map-builder.md`.
-2. Fill `id` (kebab-case, the file name) and `name`, click **Export**.
+2. Fill `name`, click **Export**. The file is `<id>.json`, the id made from the name.
 3. Put `<id>.json` in `src/terrain/maps/` and add its import to `src/terrain/maps/index.js` (the order of the imports is the order in the new room dialog).
 4. Optional: the card image `src/assets/maps/<id>.webp`. Without it, the new room dialog shows the card back (`maps/back.webp`).
 5. A new release ships the map.

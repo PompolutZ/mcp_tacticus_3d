@@ -3,7 +3,7 @@ import { useTableStore } from '../table/TableStoreContext.jsx'
 import { selectedId as selectedPieceId } from '../selection.js'
 import { tableMat } from '../rooms/table.js'
 import BuilderPanel from './BuilderPanel.jsx'
-import { exportBoard, exportBoardText } from './builder.js'
+import { boardIdFromName, exportBoard, exportBoardText, newIdSuffix } from './builder.js'
 import { getBoard, saveBoard } from '../api/board.js'
 import { useUser } from '../auth/useUser.js'
 import { useBuilderKeys } from './useBuilderKeys.js'
@@ -25,12 +25,18 @@ export default function SandboxBuilder({
   keysOn,
 }) {
   const selected = useTableStore((s) => selectedPieceId(s.selection, 'terrain'))
-  // The id and name fields of the export
-  const [boardId, setBoardId] = useState('')
+  // The name field. The id is made from the name and a suffix that stays for the board (builder.js,
+  // boardIdFromName). fixedId: the id of a loaded map or an imported file, which stays as it is.
   const [boardName, setBoardName] = useState('')
+  const [suffix] = useState(() => newIdSuffix())
+  const [fixedId, setFixedId] = useState(null)
+  const [importedAuthor, setImportedAuthor] = useState('')
   const [message, setMessage] = useState('')
   const shownMat = tableMat(mapId, mat)
-  const loggedIn = useUser().status === 'in'
+  // status: off, loading, out, error, in. Only 'in' has a user, so only then the account buttons show.
+  const { status, user } = useUser()
+  const loggedIn = status === 'in' && Boolean(user)
+  const boardId = fixedId ?? boardIdFromName(boardName, suffix)
 
   const target = keysOn && terrain.some((p) => p.id === selected) ? selected : null
   useBuilderKeys({
@@ -42,14 +48,15 @@ export default function SandboxBuilder({
   // The board state of the export file and of the account
   const boardState = () => ({
     id: boardId,
-    name: boardName,
+    name: boardName.trim(),
+    author: (loggedIn ? user.name : '') || importedAuthor,
     mat: shownMat.name,
     matRotation: shownMat.rotation,
     placements: terrain,
   })
 
   function exportFile() {
-    if (!shownMat) return
+    if (!shownMat || !boardName.trim()) return
     const text = exportBoardText(boardState())
     const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
     const a = document.createElement('a')
@@ -62,7 +69,8 @@ export default function SandboxBuilder({
   function loadMap(id) {
     if (!MAPS[id]) return
     onLoadMap(id)
-    setBoardId(id)
+    setFixedId(id)
+    setImportedAuthor(MAPS[id].author ?? '')
     setBoardName(MAPS[id].name)
     setMessage('')
   }
@@ -73,7 +81,8 @@ export default function SandboxBuilder({
       return
     }
     setMessage('')
-    setBoardId(result.board.id)
+    setFixedId(result.board.id || null)
+    setImportedAuthor(result.board.author)
     setBoardName(result.board.name)
   }
 
@@ -82,7 +91,7 @@ export default function SandboxBuilder({
   }
 
   async function saveToAccount() {
-    if (!shownMat) return
+    if (!shownMat || !boardName.trim()) return
     try {
       await saveBoard(exportBoard(boardState()))
       setMessage('Saved to your account.')
@@ -110,9 +119,7 @@ export default function SandboxBuilder({
   return (
     <div className="comic build-panel">
       <BuilderPanel
-        mapId={boardId}
         mapName={boardName}
-        onMapId={setBoardId}
         onMapName={setBoardName}
         matName={shownMat?.name ?? ''}
         pieceCount={terrain.length}

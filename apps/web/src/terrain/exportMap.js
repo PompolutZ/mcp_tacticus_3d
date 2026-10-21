@@ -15,6 +15,7 @@ export function mapToState(map, newId) {
   return {
     id: map.id,
     name: map.name,
+    author: map.author,
     mat: map.mat,
     matRotation: map.matRotation,
     // Kept for export, not edited on the page
@@ -25,11 +26,12 @@ export function mapToState(map, newId) {
   }
 }
 
-// The page state { id, name, ttsMap, note, mat, matRotation, placements, skipped } -> the map object, with the
+// The page state { id, name, author, ttsMap, note, mat, matRotation, placements, skipped } -> the map object, with the
 // field order of the migrate script. Positions have 3 decimals, rotations 2. The page-only fields of a
 // placement (id, rev, locked, index) are dropped.
 export function exportMap(state) {
   const map = { id: state.id, name: state.name }
+  if (state.author) map.author = state.author
   if (state.ttsMap != null) map.ttsMap = state.ttsMap
   if (state.note != null) map.note = state.note
   map.mat = state.mat

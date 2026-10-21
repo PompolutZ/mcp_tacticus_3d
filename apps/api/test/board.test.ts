@@ -51,14 +51,14 @@ describe('/me/board', () => {
     const res = await app.request('/me/board', { headers: a.headers })
     expect(res.status).toBe(200)
     expect(((await res.json()) as { board: unknown }).board).toEqual(
-      JSON.parse(JSON.stringify(board)),
+      JSON.parse(JSON.stringify({ ...board, author: 'a' })),
     )
     const small = { mat: 'Other', matRotation: 0, placements: [] }
     expect((await put(app, a.headers, small)).status).toBe(204)
     const again = (await (await app.request('/me/board', { headers: a.headers })).json()) as {
       board: unknown
     }
-    expect(again.board).toEqual(small)
+    expect(again.board).toEqual({ ...small, author: 'a' })
     expect((await app.request('/me/board', { headers: b.headers })).status).toBe(404)
   })
 
@@ -68,7 +68,16 @@ describe('/me/board', () => {
     const body = { ...board, extra: 1, placements: [{ ...placement, id: 'x', y: 3 }] }
     expect((await put(app, a.headers, body)).status).toBe(204)
     const doc = await store.boards.get(a.id)
-    expect(doc?.board).toEqual({ ...board, placements: [placement] })
+    expect(doc?.board).toEqual({ ...board, author: 'a', placements: [placement] })
+  })
+
+  it('author is the display name of the user; a body author is ignored', async () => {
+    const { app, store } = makeApp()
+    const a = await addUser(store, 'Alice')
+    expect((await put(app, a.headers, { ...board, author: 'Mallory' })).status).toBe(204)
+    expect((await store.boards.get(a.id))?.board.author).toBe('Alice')
+    const res = await app.request('/me/board', { headers: a.headers })
+    expect(((await res.json()) as { board: { author: string } }).board.author).toBe('Alice')
   })
 
   it('PUT refuses a bad shape with 400', async () => {

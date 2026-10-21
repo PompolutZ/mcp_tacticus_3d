@@ -60,6 +60,29 @@ export function turnPlacement(list, id, dir) {
   return change(list, id, (p) => ({ ...p, rotation: turnedRotation(p.rotation, dir) }))
 }
 
+const SLUG_MAX = 40
+const SUFFIX_LENGTH = 4
+
+// A short random suffix of a board id (base 36, 4 chars). Made once per board, so the id stays the same.
+export function newIdSuffix(random = Math.random) {
+  let out = ''
+  while (out.length < SUFFIX_LENGTH) out += Math.floor(random() * 36).toString(36)
+  return out
+}
+
+// The board id from the name (docs/features/map-builder.md, "Name and id"): lower case, runs of other
+// characters become one hyphen, no hyphen at the ends, at most SLUG_MAX chars, then `-suffix`. A name with no
+// letter or digit gives the suffix alone. The result matches MAP_ID_PATTERN when suffix does.
+export function boardIdFromName(name, suffix) {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, SLUG_MAX)
+    .replace(/-+$/, '')
+  return slug ? `${slug}-${suffix}` : suffix
+}
+
 // The board state -> the map object (the JSON of the export file, also what is saved to the account)
 export function exportBoard(state) {
   return exportMap(state)
@@ -115,7 +138,7 @@ const isNum = (v) => typeof v === 'number' && Number.isFinite(v)
 const isVec3 = (v) => Array.isArray(v) && v.length === 3 && v.every(isNum)
 
 // The check of an imported map file (the map JSON format, docs/features/maps.md). data: the parsed JSON.
-// Returns { board: { id, name, mat, matRotation, placements } } with the placements cleaned to the stored fields
+// Returns { board: { id, name, author, mat, matRotation, placements } } with the placements cleaned to the stored fields
 // (no id yet), or { error } in words for the player. Pure, so a bad file is refused before anything changes.
 export function validateBoard(data) {
   const fail = (error) => ({ error })
@@ -148,6 +171,7 @@ export function validateBoard(data) {
     board: {
       id: typeof data.id === 'string' ? data.id : '',
       name: typeof data.name === 'string' ? data.name : '',
+      author: typeof data.author === 'string' ? data.author : '',
       mat: mat.name,
       matRotation: data.matRotation ?? mat.rotation,
       placements,

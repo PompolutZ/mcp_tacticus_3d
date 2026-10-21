@@ -2,7 +2,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Box3, Vector3 } from 'three'
 import {
+  boardIdFromName,
   boardPieces,
+  newIdSuffix,
   editStoredPiece,
   unlockedView,
   validateBoard,
@@ -12,6 +14,7 @@ import {
   turnPlacement,
 } from './builder.js'
 import { MATS } from './catalog.js'
+import { MAP_ID_PATTERN, exportMap } from './exportMap.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { MAPS } from './maps/index.js'
 import { IMPORT_ROTATION, restY, toThreeTransform } from './placementMove.js'
@@ -167,4 +170,44 @@ test('Build mode unlocks the view only: the stored pieces keep their lock', () =
   assert.equal(view[1], open)
   assert.equal(locked.locked, true)
   assert.equal(unlockedView([locked])[0], view[0])
+})
+
+test('boardIdFromName: slug, hyphen runs, trimmed, cut, suffix kept', () => {
+  assert.equal(boardIdFromName('My  Cool Map!', 'k3x9'), 'my-cool-map-k3x9')
+  assert.equal(boardIdFromName('  --Ünï--  ', 'k3x9'), 'n-k3x9')
+  assert.equal(boardIdFromName('!!!', 'k3x9'), 'k3x9')
+  assert.equal(boardIdFromName('', 'k3x9'), 'k3x9')
+  const long = boardIdFromName('a'.repeat(39) + ' bbbbbb', 'k3x9')
+  assert.equal(long, `${'a'.repeat(39)}-k3x9`)
+  // Same suffix: renaming changes the slug only
+  assert.ok(boardIdFromName('One', 'ab12').endsWith('-ab12'))
+  assert.ok(boardIdFromName('Two', 'ab12').endsWith('-ab12'))
+  assert.equal(boardIdFromName('One', 'ab12'), boardIdFromName('One', 'ab12'))
+})
+
+test('ids from boardIdFromName and newIdSuffix match MAP_ID_PATTERN', () => {
+  for (const name of ['x', 'Hello World', '123', '---', 'Ab_Cd', 'z'.repeat(100)]) {
+    const suffix = newIdSuffix()
+    assert.match(suffix, /^[a-z0-9]{4}$/)
+    assert.match(boardIdFromName(name, suffix), MAP_ID_PATTERN)
+  }
+})
+
+test('validateBoard keeps a string author, else empty', () => {
+  const base = { mat: MATS[0].name, placements: [] }
+  assert.equal(validateBoard({ ...base, author: 'Al' }).board.author, 'Al')
+  assert.equal(validateBoard({ ...base, author: 5 }).board.author, '')
+})
+
+test('exportMap writes author after name, only when set', () => {
+  const state = { id: 'a', name: 'A', author: 'Al', mat: 'm', matRotation: 0, placements: [] }
+  assert.deepEqual(Object.keys(exportMap(state)), [
+    'id',
+    'name',
+    'author',
+    'mat',
+    'matRotation',
+    'placements',
+  ])
+  assert.equal('author' in exportMap({ ...state, author: '' }), false)
 })

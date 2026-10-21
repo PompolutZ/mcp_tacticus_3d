@@ -71,6 +71,7 @@ export function boardRoutes(deps: { store: Store; config: Config }) {
       }
       if (body.id !== undefined) board.id = body.id
       if (body.name !== undefined) board.name = body.name
+      board.author = c.get('user').name
       await store.boards.put(c.get('user')._id, board, new Date())
       return c.body(null, 204)
     },
