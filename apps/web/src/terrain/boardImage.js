@@ -11,6 +11,7 @@ import {
   ShaderMaterial,
   WebGLRenderTarget,
 } from 'three'
+import { withoutShades } from '../scene/shade.js'
 import { MAT_SIZE } from '../table.js'
 
 // The image is a square of this many pixels
@@ -127,7 +128,8 @@ function encode(rgba) {
   })
 }
 
-// Draws the mat group (the mat and the terrain: keep) from above and returns the WebP image as a Blob.
+// Draws the mat group (the mat and the terrain: keep) from above, without the models, their shadows and the selection
+// shade, and returns the WebP image as a Blob.
 // gl, scene: the renderer and the scene of the Canvas. turns: matTurns. toneMapping: the look option of the table.
 // Everything it changes is put back in finally, and it draws in one synchronous block, so nothing shows on screen.
 export async function captureBoardImage({ gl, scene, keep, turns = 0, toneMapping = 'neutral' }) {
@@ -147,7 +149,10 @@ export async function captureBoardImage({ gl, scene, keep, turns = 0, toneMappin
     scene.updateMatrixWorld()
     gl.setRenderTarget(target)
     gl.clear()
-    gl.render(scene, topCamera(turns))
+    // Shadow updates are on demand (scene/ShadowUpdates.jsx): without this, the hidden models still cast shadows
+    gl.shadowMap.needsUpdate = true
+    // No selection shade (the orange tint of a selected piece with the composer off, scene/shade.js)
+    withoutShades(() => gl.render(scene, topCamera(turns)))
     gl.setRenderTarget(output)
     gl.render(pass.scene, pass.camera)
     gl.readRenderTargetPixels(output, 0, 0, IMAGE_SIZE, IMAGE_SIZE, rgba)

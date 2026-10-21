@@ -56,7 +56,7 @@ Change:
 - Take the selection shade off during the capture. Preferred: `useOutline` exposes a way to drop and restore the shade, and the capture calls it. The coder checks how the shade is set and picks the simplest way that keeps `useOutline` the single owner of the shade.
 - `docs/features/map-builder.md` (top view): no models, no shadows of models, no selection shade.
 
-**Result:**
+**Result:** `captureBoardImage` sets `gl.shadowMap.needsUpdate = true` after `hideOthers`, before the draw; the one in `finally` stays. The shade: `shade.js` keeps a set of the shades that are on (`applyShade` adds, its restore removes). `withoutShades(draw)` puts the original materials on, runs the draw, and puts the shaded copies back in `finally`. It makes and disposes nothing, so `useOutline` stays the owner. The capture draws the scene inside it, in the same synchronous block. Chosen over a function from `useOutline`: the capture is plain code with no React context, and the shade state already lives in `shade.js`. It drops every shade (also overlap), which is fine, because the models are hidden. Test: `withoutShades` gives the originals in the draw and the copies after, also after a throw, and a restored shade is not touched. No test for the shadow map flag: it would need a WebGL renderer. `map-builder.md` updated.
 
 ### 4. Bad data does not break the table (review items 5, 6, 9)
 

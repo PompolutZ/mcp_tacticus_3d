@@ -26,6 +26,9 @@ function shadeMaterial(material, shade) {
   return copy
 }
 
+// The shades that are on now, one [[mesh, original material]] list each, for withoutShades
+const shaded = new Set()
+
 // Gives each mesh its own shaded copy of its material (the materials of a GLB are shared with the other models made
 // from the same file). Returns the function that disposes the copies and puts the originals back.
 export function applyShade(meshes, shade) {
@@ -35,10 +38,30 @@ export function applyShade(meshes, shade) {
       ? material.map((m) => shadeMaterial(m, shade))
       : shadeMaterial(material, shade)
   }
+  shaded.add(saved)
   return () => {
+    shaded.delete(saved)
     for (const [mesh, material] of saved) {
       for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) m.dispose()
       mesh.material = material
     }
+  }
+}
+
+// Runs draw with the original materials on every shaded mesh, then puts the shaded copies back. For a draw that must
+// not show the state marks (the top view image, terrain/boardImage.js). draw must be synchronous, so no frame shows
+// the meshes without their shade. The shades stay owned by useOutline: nothing is made or disposed here.
+export function withoutShades(draw) {
+  const copies = []
+  for (const saved of shaded) {
+    for (const [mesh, material] of saved) {
+      copies.push([mesh, mesh.material])
+      mesh.material = material
+    }
+  }
+  try {
+    return draw()
+  } finally {
+    for (const [mesh, copy] of copies) mesh.material = copy
   }
 }
