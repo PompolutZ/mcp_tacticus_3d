@@ -33,7 +33,6 @@ The URL hash selects the page. So the browser back button works, and a reload st
 | none | Lobby |
 | `#room=K7Q2-M9XD` | Room |
 | `#sandbox` | Sandbox |
-| `#terrain` | Terrain page (dev only, `docs/features/maps.md`). The production build does not have it. |
 | `#models` | Model viewer (dev only, `docs/features/model-viewer.md`). The production build does not have it. |
 
 - `#room=<code>` is the link format of the peer-to-peer doc ("Connect flow"). So the same link invites the second player.

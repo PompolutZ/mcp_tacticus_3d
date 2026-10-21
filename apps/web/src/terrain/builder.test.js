@@ -2,16 +2,13 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Box3, Vector3 } from 'three'
 import {
-  addPlacement,
   boardPieces,
-  clearPlacements,
   editStoredPiece,
   unlockedView,
   validateBoard,
   movePlacement,
   newPlacement,
   pieceGroups,
-  removePlacement,
   turnPlacement,
 } from './builder.js'
 import { MATS } from './catalog.js'
@@ -78,18 +75,13 @@ test('a move keeps the height and the other pieces', () => {
   assert.equal(a.position[0], 0)
 })
 
-test('turn changes the Y rotation only, remove and clear drop pieces', () => {
+test('turn changes the Y rotation only', () => {
   const a = newPlacement(PIECE, 'a', MIDDLE)
   const b = newPlacement(PIECE, 'b', MIDDLE)
-  const list = addPlacement([a], b)
+  const list = [a, b]
   const turned = turnPlacement(list, 'b', 1)
   assert.deepEqual(turned[1].rotation, [0, 345, 0])
   assert.deepEqual(turned[0], a)
-  assert.deepEqual(
-    removePlacement(list, 'a').map((p) => p.id),
-    ['b'],
-  )
-  assert.deepEqual(clearPlacements(), [])
 })
 
 test('the filter keeps the groups that have a match', () => {

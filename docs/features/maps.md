@@ -91,25 +91,12 @@ The order of the imports in `index.js` is the order of the maps in the lists. A 
 - The delete has a log entry with an **Undo** button (`game-log.md`, "Panel"). The undo puts the piece back and lifts what fell with it, if it has not moved since.
 - Not covered: a thing that stands on the deleted piece and on a second piece that falls too. Such a thing may stay in the air.
 
-## Terrain page
+## Add a new map to the app
 
 Status: built.
 
-- Dev only, at `#terrain` (`src/debug/TerrainPage.jsx`). The edit code and the panel are shared (`src/terrain/builder.js`, `BuilderPanel.jsx`; see `map-builder.md`). The production build does not have it, and the lobby has no link to it. A reload clears the placed pieces.
-- Its own small scene: table, mat, backdrop, lights, `Terrain` and physics, with the camera of the game (mouse, W A S D, arrows, wheel). No characters, dice, tools or room.
-- The side panel has the mat list (one row per mat, by name, 21). A click shows the mat, turned by the `matRotation` of the first map that uses it. A new mat keeps the placed pieces, and the pieces do not turn with the mat (the placements are relative to the mat center).
-- Below it, a filter field (by piece name) and the piece list in groups: size 1 to 5, then "No size". A group header shows the number of pieces. A piece with two sizes is in both groups. A piece with a default `size` that no map places (a scan piece) is in the group of that size, with scale 1 and no tint.
-- A click on a piece row adds the piece at the mat center, with the bottom of its mesh on the mat top (not its origin; see `map-builder.md`, "Add"), turned 0°, with the scale and tint that its placements at that size use most often (`src/terrain/catalog.js`). The new piece is selected. A click on a placed piece selects it, a click on the empty table clears the selection.
-- A drag moves a placed piece on the mat (left button, after 4 px, the camera does not turn). The point that the press grabbed stays under the pointer: the drag plane is the horizontal plane through that point (`map-builder.md`, "Drag"). The height stays, so the piece does not climb on other pieces. Pieces do not push each other. The drop writes the new position (the height stays), and the piece is mounted again with its fixed body.
-- Q and E turn the selected piece by 15° around Y (Q counter-clockwise seen from above). Delete or Backspace removes it. The keys do nothing while the filter field has the focus. The "Clear" button above the piece list removes all placed pieces.
-- The "Map" block at the top of the panel: a list to load a map, the fields `id` and `name`, and the "Export" button. Loading replaces the mat, the `matRotation` (not the catalog one) and the placed pieces, and keeps `id`, `name`, `ttsMap`, `note` and `skipped` for export. A note on a placement stays on it. The page does not edit these kept fields.
-- A fresh mat (no map loaded) has empty `id` and `name`, and the catalog rotation of the mat. A click on a mat in the list after a load sets the catalog rotation.
-- "Export" downloads `<id>.json`, in the format above. It is disabled while `id` is empty or not kebab-case (`a-b-c`, lower case letters and digits). `src/terrain/exportMap.js` writes the file: the field order and number rounding of the migrate script (positions 3 decimals, rotations 2), 2-space indent, trailing newline. The script uses the same writer. The page-only fields (`id`, `rev`, `locked`) are dropped. A loaded map that is exported without change gives its file byte for byte (a test checks all maps).
-
-### Add a new map to the app
-
-1. Open `#terrain` in the dev server, pick a mat, place the pieces (or load a map and change it).
-2. Fill `id` (kebab-case, the file name) and `name`, click "Export".
+1. Open the Sandbox (`#sandbox`), click **Build**, pick a mat, place the pieces (or load a map and change it). See `map-builder.md`.
+2. Fill `id` (kebab-case, the file name) and `name`, click **Export**.
 3. Put `<id>.json` in `src/terrain/maps/` and add its import to `src/terrain/maps/index.js` (the order of the imports is the order in the new room dialog).
 4. Optional: the card image `src/assets/maps/<id>.webp`. Without it, the new room dialog shows the card back (`maps/back.webp`).
 5. A new release ships the map.

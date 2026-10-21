@@ -156,12 +156,12 @@ pnpm --filter web turn-model model-candidates/hulk.glb -45   # a candidate file
 
 ## Terrain pieces
 
-Status: built for two pieces, the Traffic Light and the Taxi Cab. They are in `pieces.js` and show on the `#terrain` page. No map places them yet.
+Status: built for two pieces, the Traffic Light and the Taxi Cab. They are in `pieces.js` and show in the Sandbox builder. No map places them yet.
 
 Leave out `--base` and pass `--size <1-5>` with `--height <mm>` or `--width <mm>`. The script scales the piece to that height or width and puts its bottom on the table. The output is one GLB with the texture inside (WebP, Draco compression). Terrain scans use the figure settings: `--texture 1024 --tone medium --triangles 60000`.
 
 - **Scale by width or height.** Object Capture scales all axes by one number, so a scan can have a wrong ratio of height to width. Use `--width` when the footprint matters more (the Traffic Light: base 36 mm, the height comes out a bit high). Use `--height` when the photos fill the frame and the height is exact (the Taxi Cab: 50 mm to the top of the roof sign).
-- **Piece kind.** The file goes to `src/assets/terrain/<key>.glb`, and `pieces.js` gets `{ name, scan: true, size }`. A scan piece is drawn like a bundle piece (the GLB materials, tint, footprints) and its collider is the convex hull of the visible mesh (see [Maps](maps.md#pieces)). `size` is the Size of a new piece on the terrain page.
+- **Piece kind.** The file goes to `src/assets/terrain/<key>.glb`, and `pieces.js` gets `{ name, scan: true, size }`. A scan piece is drawn like a bundle piece (the GLB materials, tint, footprints) and its collider is the convex hull of the visible mesh (see [Maps](maps.md#pieces)). `size` is the Size of a new piece in the builder.
 - **Record.** The command is in `scripts/custom-models.json` under the piece key, with the file `terrain/<key>.glb`, as for a character. The migrate and turn scripts look up character keys only, so a piece key does not disturb them.
 - **The front of the piece is random.** Object Capture does not know which side is the front, so the piece can be turned (about 90° in the test). The placement turn of a map sets it right. `turn-model` with a file path turns the file, see [Front](#front).
 - **The center is the center of the bounding box.** This is correct for terrain, because the placements in `maps/<id>.json` are relative to the piece center.

@@ -4,8 +4,8 @@ import { MAP_ID_PATTERN } from './exportMap.js'
 import { SORTED_MATS, pieceGroups } from './builder.js'
 
 // The side panel of the map builder (docs/features/map-builder.md). It owns no board data, only the piece filter:
-// the board comes in by props and every change goes out by a callback, so the dev page (state in React) and the
-// Sandbox (state in the table document) use the same panel.
+// the board comes in by props and every change goes out by a callback (the Sandbox keeps the board in the table
+// document).
 // mapId, mapName, onMapId, onMapName: the `id` and `name` fields of the export. matName: the shown mat.
 // pieceCount: placed pieces. onLoadMap(id), onExport(), onPickMat(name), onClear(), onAdd(piece).
 // onImport(file): the Import button, a .json file in the map format; without it there is no button. onSave(), onLoad():

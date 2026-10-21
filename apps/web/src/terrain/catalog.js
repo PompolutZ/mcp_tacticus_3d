@@ -1,4 +1,4 @@
-// The mats and the pieces of all maps, for the terrain page (docs/features/maps.md, "Terrain page").
+// The mats and the pieces of all maps, for the builder (docs/features/map-builder.md).
 import { TERRAIN_PIECES } from './pieces.js'
 import { MAPS } from './maps/index.js'
 

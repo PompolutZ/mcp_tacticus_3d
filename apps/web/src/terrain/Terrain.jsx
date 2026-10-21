@@ -295,7 +295,7 @@ function PieceBody({
 
   // pointerdown stops here, so a piece behind this one does not start its own select or drag.
   // The camera still turns on a drag, because OrbitControls does not get R3F events.
-  // onPointerDown(e) is the press of a drag (TerrainPage). Without it the press only stops here.
+  // onPointerDown(e) is the press of a drag (the builder drag). Without it the press only stops here.
   function handlePointerDown(e) {
     e.stopPropagation()
     onPointerDown?.(e)

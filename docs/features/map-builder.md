@@ -1,12 +1,12 @@
 # Map builder
 
-Status: partly built. The shared code, the dev page `#terrain`, the board in the document and the Sandbox Build mode work. The save in the account and the "My board" room card work. `#terrain` is not removed yet (`docs/plans/map-builder.md`).
+Status: built.
 
-The builder makes a board: a mat, its rotation and a list of terrain pieces, in the map JSON format (`maps.md`, "JSON format"). The same edit code serves the dev page and the Sandbox.
+The builder makes a board: a mat, its rotation and a list of terrain pieces, in the map JSON format (`maps.md`, "JSON format"). It lives in the Sandbox (Build mode). The dev page `#terrain` is gone.
 
 ## Shared code
 
-- `src/terrain/builder.js`: the edit actions as pure functions on a plain list of placements (add, move, turn, remove, clear, load a map, export). They return a new list. Reason: the dev page keeps the list in React state, and the Sandbox keeps it in the table document, so the actions must not own the state.
+- `src/terrain/builder.js`: the edit actions as pure functions on a plain list of placements (add, move, turn, remove, clear, load a map, export). They return a new list. Reason: the Sandbox keeps the list in the table document, so the actions must not own the state.
 - `src/terrain/BuilderPanel.jsx`: the side panel. It takes the board data and callbacks as props and owns only the piece filter.
 - `src/terrain/useTerrainDrag.js`: the drag of a placed piece. `src/terrain/useBuilderKeys.js`: Q, E and Delete.
 
@@ -40,6 +40,10 @@ The **Build** button next to the Map select (Sandbox only) turns Build mode on a
 - A moved or turned map piece becomes a custom piece (`toCustomPiece`). Every edit writes the stored pieces and `game.mat`. A move or turn raises `rev` of the piece (stored), so the other browser mounts the piece again with its fixed body.
 - **Add** writes a custom piece at the mat center, at its rest height (see "Add").
 - **Panel:** the mat list (sets `game.mat`, keeps the pieces), **Clear** (removes all pieces at once; models that stood on them do not drop), the filter, the pieces by size with the scanned ones, **Load map** (sets the map and its terrain, `game.mat` null), the `id` and `name` fields, **Export** (the map JSON file, with the mat of the table), **Import**, and, only when logged in, **Save to account** and **Load from account**.
+- **Mat list:** one row per mat, by name. A click shows the mat, turned by the `matRotation` of the first map that uses it (`src/terrain/catalog.js`). A new mat keeps the placed pieces, and the pieces do not turn with the mat (the placements are relative to the mat center). A fresh board (no map loaded) has empty `id` and `name`.
+- **Piece list:** a filter field (by piece name) and the pieces in groups: size 1 to 5, then "No size". A group header shows the number of pieces. A piece with two sizes is in both groups. A piece with a default `size` that no map places (a scan piece) is in the group of that size, with scale 1 and no tint. A click on a row adds the piece with the scale and tint that its placements at that size use most often (`catalog.js`), and selects it. A click on the empty table clears the selection.
+- **Load map** keeps `id`, `name`, `ttsMap`, `note` and `skipped` for the export. A note on a placement stays on it. The builder does not edit these fields.
+- **Export** is disabled while `id` is empty or not kebab-case (`a-b-c`, lower case letters and digits). `src/terrain/exportMap.js` writes the file: the field order and number rounding of the migrate script (positions 3 decimals, rotations 2), 2-space indent, trailing newline. The script uses the same writer. The builder-only fields (`id`, `rev`, `locked`) are dropped. A loaded map that is exported without change gives its file byte for byte (a test checks all maps).
 - Each piece has its own Suspense, so a piece that loads its files does not hide the others.
 
 ## Import

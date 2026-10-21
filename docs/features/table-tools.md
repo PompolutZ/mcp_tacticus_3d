@@ -136,7 +136,7 @@ A **Streamer** section has a "Streamer columns size" slider, 60 to 150 percent, 
 
 ### Turn
 
-A **Turn** section has a "Turn step" slider, 5° to 15°, step 1°, default 15°, with the value shown. It is the step of every Q / E press and wheel step on the table: characters and tools, turns and bends. The speed of a held key (90° per second) does not change. The terrain page keeps its own 15° (`maps.md`).
+A **Turn** section has a "Turn step" slider, 5° to 15°, step 1°, default 15°, with the value shown. It is the step of every Q / E press and wheel step on the table: characters and tools, turns and bends. The speed of a held key (90° per second) does not change. The map builder keeps its own 15° (`map-builder.md`).
 
 ### Keys and mouse
 

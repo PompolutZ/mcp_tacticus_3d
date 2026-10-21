@@ -1,4 +1,4 @@
-// The terrain page state <-> the map JSON (docs/features/maps.md, "Terrain page"). Pure, no imports: the migrate
+// The builder board state <-> the map JSON (docs/features/map-builder.md). Pure, no imports: the migrate
 // script uses mapJsonText too, so there is one writer of the map files.
 
 const round = (v, digits) => Number(v.toFixed(digits))

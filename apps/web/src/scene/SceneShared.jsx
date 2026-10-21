@@ -10,7 +10,7 @@ import { DEFAULT_LOOK } from '../table/tableStore.js'
 import { FRICTION } from '../physics.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 
-// Parts of the scene that the game (Scene.jsx) and the terrain page (debug/TerrainPage.jsx) share.
+// Parts of the scene (Scene.jsx).
 
 // The mat image. Its own component, so a new mat's image loads inside the mat's Suspense below.
 // The image turns by -(matRotation - 180) degrees around Y (docs/features/maps.md, "Mat rotation").

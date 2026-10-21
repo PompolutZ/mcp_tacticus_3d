@@ -1117,7 +1117,7 @@ body {
   pointer-events: none;
 }
 
-/* Dev-only terrain page (debug/TerrainPage.jsx): the side panel and the canvas */
+/* Side panel of the builder (BuilderPanel) and the models page */
 .terrain-page {
   display: flex;
   height: 100%;

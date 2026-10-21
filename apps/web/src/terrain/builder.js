@@ -1,7 +1,7 @@
 import { MATS, PIECES_BY_SIZE } from './catalog.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { toCustomPiece } from '../rooms/table.js'
-import { exportMap, exportMapText, mapToState } from './exportMap.js'
+import { exportMap, exportMapText } from './exportMap.js'
 import { movedPosition, restY, turnedRotation } from './placementMove.js'
 
 // The edit actions of the map builder (docs/features/map-builder.md). Pure functions on a plain list of
@@ -9,7 +9,7 @@ import { movedPosition, restY, turnedRotation } from './placementMove.js'
 // center. Each returns a new list and does not touch the old one. No React, no Three scene: the page keeps
 // the list in its state, the Sandbox keeps it in the table document.
 
-export const SIZE_GROUPS = [
+const SIZE_GROUPS = [
   { key: '1', title: 'Size 1' },
   { key: '2', title: 'Size 2' },
   { key: '3', title: 'Size 3' },
@@ -46,10 +46,6 @@ export function newPlacement(piece, id, box) {
   return placement
 }
 
-export function addPlacement(list, placement) {
-  return [...list, placement]
-}
-
 function change(list, id, fn) {
   return list.map((p) => (p.id === id ? { ...fn(p), rev: (p.rev ?? 0) + 1 } : p))
 }
@@ -62,19 +58,6 @@ export function movePlacement(list, id, dx, dz) {
 // Q (dir 1) or E (dir -1): a 15° turn around Y
 export function turnPlacement(list, id, dir) {
   return change(list, id, (p) => ({ ...p, rotation: turnedRotation(p.rotation, dir) }))
-}
-
-export function removePlacement(list, id) {
-  return list.filter((p) => p.id !== id)
-}
-
-export function clearPlacements() {
-  return []
-}
-
-// A map of MAPS -> the board state { id, name, mat, matRotation, placements, ttsMap, note, skipped }
-export function loadMapState(map, newId) {
-  return mapToState(map, newId)
 }
 
 // The board state -> the map object (the JSON of the export file, also what is saved to the account)
