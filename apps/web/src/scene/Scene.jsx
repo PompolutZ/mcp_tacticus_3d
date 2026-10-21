@@ -494,7 +494,8 @@ function Scene(props) {
             z: 0,
           },
         isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
-        // For Advance: moves the character along the path (slidePath in throwPath.js)
+        // For Advance: whether a slide can start, and the slide along the path (slidePath in throwPath.js)
+        canSlide: () => charLifts.current.get(model.id)?.canSlide() ?? false,
         slide: (path, duration) => charLifts.current.get(model.id)?.slide(path, duration),
         // For the Line of Sight tool: the name, and the Size of the side that faces up
         name: characterName(model.character.key),

@@ -165,7 +165,7 @@ function standeeScene(front, back, radius) {
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // onRest(): the body fell asleep, so the model rests. Scene.jsx stores its pose.
 // liftRef: gets { toggle(), toggleFloor(), down(), cancel() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
-// (a lifted model does not stop it), slide(path, duration) for Advance (see useModelSlide.js), isBusy() (a drag, lift or slide is going on), and restPosition() for the stored pose: the body position before the
+// (a lifted model does not stop it), canSlide() and slide(path, duration) for Advance (see useModelSlide.js), isBusy() (a drag, lift or slide is going on), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
 // leaves the release to Scene, which releases when the body is at rest (docs/features/peer-to-peer.md, "Rules").
@@ -277,7 +277,7 @@ function CharacterFigure({
       remoteRef,
       clearRest,
     })
-  const { startSlide, moveSlide, clearSlide, isSliding } = useModelSlide({
+  const { canSlide, startSlide, moveSlide, clearSlide, isSliding } = useModelSlide({
     liveRb,
     isDragging,
     remoteRef,
@@ -375,6 +375,7 @@ function CharacterFigure({
     liftRef?.({
       // A lift does not start during a slide
       toggle: () => (isSliding() ? undefined : toggleLift()),
+      canSlide,
       slide: startSlide,
       toggleFloor,
       down: lowerLift,

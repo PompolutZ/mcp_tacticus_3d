@@ -80,7 +80,7 @@ Problem: `handleAdvance` in `tabletools/useToolLimits.js:248,265` claims the mod
 
 Change: `startSlide` returns true or false. `handleAdvance` checks the same refusal before the claim (a `canSlide()` on the target), or calls `moved()` only after a true. The claim must not stay when the slide is refused. Test for the refusal if the hook has a pure part to test, else say so in the Result.
 
-**Result:**
+**Result:** `useModelSlide` has `canSlide()`: the body is there, no drag, no remote mode. `startSlide` uses it as its guard and returns true or false. `CharacterModel` puts `canSlide` on the lift handle next to `slide`, and the character target in `Scene.jsx` (`toolModels`) gets `canSlide()` (false with no handle). `handleAdvance` returns on `!target.canSlide()` before the claim and `moved()`, so a refused slide claims nothing and counts nothing. Only characters have `slide`: a token target has no `getBody`, and `handleAdvance` returns before for it. No test: the condition reads refs and the live body inside the hook, and `handleAdvance` is inside the `useToolLimits` hook; the app has no hook test setup (tests are `node:test` on pure functions). A pure copy of the three checks would only repeat the condition. `range-movement-tools.md` (Advance): no Advance for a dragged character, and an ignored click claims and counts nothing.
 
 ### 6. Cleanups (review items 7, 8, 11, 12, 13)
 

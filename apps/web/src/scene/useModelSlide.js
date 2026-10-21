@@ -14,17 +14,22 @@ export function useModelSlide({ liveRb, isDragging, remoteRef, clearLift, clearR
   // The slide: { path, duration, time }, or null
   const slide = useRef(null)
 
+  // A slide can start: the body is there, and no drag and no remote mode holds it. The caller checks
+  // it before it claims the model and counts the move, so a refused slide does neither.
+  const canSlide = () => Boolean(liveRb()) && !isDragging.current && !remoteRef.current
+
   // Moves the model along path in duration seconds. path(f) is the body position at the share f (0..1) of
   // the slide, with y null when nothing is under it (slidePath in throwPath.js). The body is kinematic
   // during the slide, so physics does not move it. A slide ends a lift, and a drag ends a slide. The
-  // caller claims the model and counts the move.
+  // caller claims the model and counts the move. Returns false when the slide is refused (canSlide).
   function startSlide(path, duration) {
+    if (!canSlide()) return false
     const rb = liveRb()
-    if (!rb || isDragging.current || remoteRef.current) return
     clearLift()
     clearRest()
     setKinematic(rb)
     slide.current = { path, duration, time: 0 }
+    return true
   }
 
   // Moves a sliding model one frame. It stands upright, as during a drag. Its height follows the path,
@@ -59,5 +64,5 @@ export function useModelSlide({ liveRb, isDragging, remoteRef, clearLift, clearR
 
   const isSliding = () => slide.current !== null
 
-  return { startSlide, moveSlide, clearSlide, isSliding }
+  return { canSlide, startSlide, moveSlide, clearSlide, isSliding }
 }

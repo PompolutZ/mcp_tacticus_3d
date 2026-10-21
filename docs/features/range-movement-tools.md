@@ -159,7 +159,7 @@ The character slides to the far end, so the move can be seen. It ends with the b
 
 The height follows the ground along the path, so a character that leaves a roof drops.
 
-Advance does nothing for a token (it has no body), for a lifted character, for the angle tool, or when the other player moves the character. Then the click is ignored.
+Advance does nothing for a token (it has no body), for a lifted character, for a character that is dragged, for the angle tool, or when the other player moves the character. Then the click is ignored: the character is not claimed and the move is not counted.
 
 ### Input rules
 

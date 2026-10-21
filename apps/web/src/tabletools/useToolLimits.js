@@ -240,11 +240,13 @@ export function useToolLimits({
   // Advance (docs/features/range-movement-tools.md, "Advance"): a right click on the far half moves the
   // snapped character to the far end, by a slide. Throw off: along the tool, bent as it is, no collision.
   // Throw on: along the Throw line, up to the stop point. No Advance for a token, a lifted character,
-  // an angle tool or a character that the other player moves.
+  // an angle tool or a character that the other player moves. A slide that would be refused (a drag or
+  // the remote mode holds the body) is checked before the claim, so it claims nothing and counts no move.
   function handleAdvance() {
     const target = throwLock ? throwLock.target : snap?.target
     const rb = liveRb()
     if (!target?.getBody?.() || !rb || target.isLifted() || angle) return
+    if (!target.canSlide()) return
     if (target.claim && !target.claim()) return
     const shape = toolShape(toolPose(rb), turn)
     let points
