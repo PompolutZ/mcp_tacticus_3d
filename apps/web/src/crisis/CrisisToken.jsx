@@ -18,6 +18,7 @@ import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/so
 import { tokenStack } from '../tokens/stack.js'
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useColorTexture } from '../scene/useColorTexture.js'
+import useFlipTurn, { flipLift } from '../scene/useFlipTurn.js'
 import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
 import { useOnMount } from '../scene/useLatest.js'
 import TurnHandle from '../tabletools/TurnHandle.jsx'
@@ -70,8 +71,8 @@ function angleTo(pivot, p) {
   return Math.atan2(pivot.z - p.z, p.x - pivot.x)
 }
 
-// The textures of a token: the face that is up, the other face, and the damage marker. One URL list
-// for every user, so CrisisToken and the spectator view (SpectatorBadge.jsx) share the loaded textures.
+// The textures of a token: the front, the back and the damage marker. One URL list for every user, so
+// CrisisToken and the spectator view (SpectatorBadge.jsx) share the loaded textures.
 export function useTokenMaps(token) {
   const backKey = token.backKey ?? token.frontKey
   const [frontMap, backMap, damageMap] = useColorTexture([
@@ -79,11 +80,12 @@ export function useTokenMaps(token) {
     assetUrl(crisisToken(backKey)),
     assetUrl(crisisMarker('damage')),
   ])
-  return token.up === 'front' ? [frontMap, backMap, damageMap] : [backMap, frontMap, damageMap]
+  return [frontMap, backMap, damageMap]
 }
 
-// The token disk: the face that is up, the other face and the edge, centered on y = 0. Used by
-// CrisisToken and the spectator view (SpectatorBadge.jsx). diskRef: the group, for the outline.
+// The token disk: the top face, the bottom face and the edge, centered on y = 0. Used by
+// CrisisToken (front on top, back below, the disk turns, see useFlipTurn.js) and the spectator view
+// (SpectatorBadge.jsx, the face that is up on top). diskRef: the group, for the outline.
 // events: pointer props of the top face and the edge.
 export function TokenDisk({ topMap, bottomMap, diskRef, events }) {
   return (
@@ -172,13 +174,18 @@ export default function CrisisToken({
   const rangeMark = useRangeMark('token', token.id)
   const otherSelected = useOtherSelected('token', token.id)
   const remote = useRemote(`token:${token.id}`)
-  const [topMap, bottomMap, damageMap] = useTokenMaps(token)
+  const [frontMap, backMap, damageMap] = useTokenMaps(token)
 
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
   const shape = useMemo(() => new rapier.Cylinder(HALF_H, RADIUS), [rapier])
 
   const groupRef = useRef()
+  // The turn of a flip: the disk turns around local x through its center (the back lies on the bottom
+  // face). The markers stay on top and are hidden during the turn.
+  const flipTurn = useFlipTurn(token.up !== 'front')
+  const flipGroupRef = useRef()
+  const markersRef = useRef()
   // The token disk (faces and edge), without the markers and the turn handle, for the outline
   const diskRef = useRef()
   const [hovered, setHovered] = useState(false)
@@ -236,7 +243,7 @@ export default function CrisisToken({
     }
   }, [showArc])
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     const { x, z, yaw } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
     const lifted = draggingRef.current || follow.current.moved
@@ -251,8 +258,11 @@ export default function CrisisToken({
       const top = y + HALF_H + (token.control || token.damage ? MARKER_TOP : 0)
       tokenStack.putCrisis(token.id, x, z, RADIUS, top)
     }
+    const angle = flipTurn.step(dt)
+    if (flipGroupRef.current) flipGroupRef.current.rotation.x = angle
+    if (markersRef.current) markersRef.current.visible = !flipTurn.turning()
     if (groupRef.current) {
-      groupRef.current.position.set(x, y, z)
+      groupRef.current.position.set(x, y + flipLift(angle, RADIUS * 2), z)
       groupRef.current.rotation.y = yaw
     }
     if (arcSlot.current)
@@ -386,35 +396,43 @@ export default function CrisisToken({
 
   return (
     <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
-      <TokenDisk
-        topMap={topMap}
-        bottomMap={bottomMap}
-        diskRef={diskRef}
-        events={{ onPointerDown, onPointerOver: over, onPointerOut: out }}
-      />
-      {token.control && (
-        <mesh position={[0, HALF_H + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[CONTROL_INNER, CONTROL_OUTER, 32]} />
-          <meshStandardMaterial color={COLOR_HEX[controlColor]} roughness={0.5} side={DoubleSide} />
-        </mesh>
-      )}
-      {/* Its own Suspense: while a new affiliation image loads, only the marker is missing, not
+      <group ref={flipGroupRef}>
+        <TokenDisk
+          topMap={frontMap}
+          bottomMap={backMap}
+          diskRef={diskRef}
+          events={{ onPointerDown, onPointerOver: over, onPointerOut: out }}
+        />
+      </group>
+      <group ref={markersRef}>
+        {token.control && (
+          <mesh position={[0, HALF_H + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[CONTROL_INNER, CONTROL_OUTER, 32]} />
+            <meshStandardMaterial
+              color={COLOR_HEX[controlColor]}
+              roughness={0.5}
+              side={DoubleSide}
+            />
+          </mesh>
+        )}
+        {/* Its own Suspense: while a new affiliation image loads, only the marker is missing, not
           the whole token */}
-      {token.control && controlAffiliation && (
-        <Suspense fallback={null}>
-          <AffiliationMarker
-            affiliation={controlAffiliation}
-            x={markerPair ? -PAIR_X : 0}
-            radius={markerRadius}
-          />
-        </Suspense>
-      )}
-      {token.damage && (
-        <mesh position={[markerPair ? PAIR_X : 0, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[markerRadius * 2, markerRadius * 2]} />
-          <FaceMaterial map={damageMap} transparent />
-        </mesh>
-      )}
+        {token.control && controlAffiliation && (
+          <Suspense fallback={null}>
+            <AffiliationMarker
+              affiliation={controlAffiliation}
+              x={markerPair ? -PAIR_X : 0}
+              radius={markerRadius}
+            />
+          </Suspense>
+        )}
+        {token.damage && (
+          <mesh position={[markerPair ? PAIR_X : 0, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[markerRadius * 2, markerRadius * 2]} />
+            <FaceMaterial map={damageMap} transparent />
+          </mesh>
+        )}
+      </group>
       {(dragging || remote) && <DragFootprint getShape={footprintShape} />}
       {selected && token.hasArc && (
         <TurnHandle

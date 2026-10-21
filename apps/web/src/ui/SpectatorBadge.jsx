@@ -61,7 +61,8 @@ function rowX(index, count, pitch) {
 
 // A crisis token as on the tray card: the same disk as CrisisToken.jsx, without its drag and markers
 function Objective({ token }) {
-  const [topMap, bottomMap] = useTokenMaps(token)
+  const [frontMap, backMap] = useTokenMaps(token)
+  const [topMap, bottomMap] = token.up === 'front' ? [frontMap, backMap] : [backMap, frontMap]
   return <TokenDisk topMap={topMap} bottomMap={bottomMap} events={NO_EVENTS} />
 }
 

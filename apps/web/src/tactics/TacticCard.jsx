@@ -14,6 +14,7 @@ import FaceMaterial from '../scene/FaceMaterial.jsx'
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import useLiveFollow from '../scene/useLiveFollow.jsx'
 import { useColorTexture } from '../scene/useColorTexture.js'
+import useFlipTurn, { flipLift } from '../scene/useFlipTurn.js'
 import { useTacticFaceMap } from './useTacticFaceTexture.js'
 import { isFaceKey } from './faceData.js'
 import { NO_ROTATION } from '../characters/base.js'
@@ -27,18 +28,6 @@ const HALF_H = 0.01
 // Cards that overlap lie in the order of the tacticCards list (App.jsx): each card is this much
 // higher than the card before it, so two cards do not z-fight
 const STACK_STEP = 0.005
-// A pointer that moves more than this many pixels is a drag, not a click
-// Flip (F): the card turns 180° around its long side (local z) in FLIP_DURATION seconds. It goes up
-// while it turns, so its edges stay above the table: at 90° it stands on its long edge, FLIP_EDGE_GAP
-// above the table. Both values were chosen by look, not measured in TTS.
-const FLIP_DURATION = 0.4
-const FLIP_EDGE_GAP = 0.3
-const FLIP_LIFT = TACTIC_CARD_WIDTH / 2 + FLIP_EDGE_GAP
-// The turn starts and ends slowly (smoothstep)
-const ease = (t) => t * t * (3 - 2 * t)
-const upAngle = (up) => (up === 'back' ? Math.PI : 0)
-const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time / FLIP_DURATION)
-
 // One Team Tactic card, flat on the table or on the terrain under it. It has no physics body, the
 // same as a token on the table. See docs/features/team-tactic-cards.md, "Card on the table".
 // card: { id, key, team, x, z, up }, see App.jsx, tacticCards. stackIndex: its place in that list.
@@ -81,16 +70,8 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover, 
   const [dragging, setDragging] = useState(false)
   // False while the pointer is off the table: the footprint hides, a release puts the card back
   const overTableRef = useRef(true)
-  // The turn around the long side: { up, from, to, time }. An angle that is an even multiple of π is
-  // face up, an odd multiple is back up. up: the side of the last flip. time: seconds since that flip,
-  // FLIP_DURATION when it is over. Each flip adds π to `to`, so the card always turns the same way.
-  // A flip during a flip starts where the card is.
-  const flipRef = useRef({
-    up: card.up,
-    from: upAngle(card.up),
-    to: upAngle(card.up),
-    time: FLIP_DURATION,
-  })
+  // The turn around the long side (local z), see useFlipTurn.js. The card is back up when card.up is 'back'.
+  const flipTurn = useFlipTurn(card.up === 'back')
 
   // The place in the document, for a cancelled drag
   const placeRef = useRef({ x: card.x, z: card.z })
@@ -106,27 +87,16 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover, 
     placeRef,
   })
 
-  useEffect(() => {
-    const flip = flipRef.current
-    if (flip.up === card.up) return
-    flip.from = flipAngle(flip)
-    flip.to += Math.PI
-    flip.time = 0
-    flip.up = card.up
-  }, [card.up])
-
   useFrame((_, dt) => {
     const { x, z } = poseRef.current
-    const flip = flipRef.current
-    flip.time = Math.min(flip.time + dt, FLIP_DURATION)
-    const angle = flipAngle(flip)
+    const angle = flipTurn.step(dt)
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
     const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H) ?? 0
     const y =
       ground +
       TACTIC_CARD_Y +
       (draggingRef.current || follow.current.moved ? TOKEN_DRAG_LIFT : stackIndex * STACK_STEP)
-    groupRef.current?.position.set(x, y + FLIP_LIFT * Math.abs(Math.sin(angle)), z)
+    groupRef.current?.position.set(x, y + flipLift(angle, TACTIC_CARD_WIDTH), z)
     if (flipGroupRef.current) flipGroupRef.current.rotation.z = angle
   })
 

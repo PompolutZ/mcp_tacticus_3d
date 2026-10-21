@@ -1,4 +1,5 @@
 import { Suspense, memo, useCallback, useRef, useState } from 'react'
+import { useFrame } from '@react-three/fiber'
 import { UI_COLORS } from '../uiColors.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { DoubleSide } from 'three'
@@ -29,6 +30,7 @@ import TokenFace from '../tokens/TokenFace.jsx'
 import TrayStrip3D from './TrayStrip3D.jsx'
 import { CLICK_MOVE } from './trayControls.js'
 import { useColorTexture } from '../scene/useColorTexture.js'
+import useFlipTurn, { flipLift } from '../scene/useFlipTurn.js'
 import { useHoverCursor, useHoverPeek, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
@@ -37,6 +39,39 @@ import { useTableStore } from '../table/TableStoreContext.jsx'
 // trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
 // table (LooseToken.jsx).
 const TOKEN_Y = 0
+
+// One stat card: a flip group with two single-sided planes, healthy up and injured down. A Flip turns it
+// around its long side (local x), the same as a Team Tactic card (useFlipTurn.js), and lifts it so its
+// edges stay above the table. A model on the card may pass through it during the turn. A grunt card
+// (no backMap) has one plane and never turns. The group holds the pointer props, so a hit on either
+// plane reaches them. z: the card's place on the tray.
+function TrayCard({ z, width, height, frontMap, backMap, flipped, events }) {
+  const turn = useFlipTurn(flipped)
+  const groupRef = useRef()
+  useFrame((_, dt) => {
+    const angle = turn.step(dt)
+    if (!groupRef.current) return
+    groupRef.current.rotation.x = angle
+    groupRef.current.position.y = flipLift(angle, height)
+  })
+  return (
+    <group ref={groupRef} position={[0, 0, z]} {...events}>
+      {/* Rx(-pi/2) lays the face flat, facing up, with its top to local -z */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[width, height]} />
+        <FaceMaterial map={frontMap} side={backMap ? undefined : DoubleSide} />
+      </mesh>
+      {/* Rx(pi/2) lays the back flat, facing down, with its top to local +z. After a turn of pi around x,
+          it lies the same way as the face. */}
+      {backMap && (
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[width, height]} />
+          <FaceMaterial map={backMap} />
+        </mesh>
+      )}
+    </group>
+  )
+}
 
 // One character tray: a background plate, the "On" row of tokens on the character, the stat card
 // (the side that faces up), and the controls strip (see TrayStrip3D.jsx). A character whose second
@@ -117,8 +152,8 @@ export default memo(function CharacterTray({
   const maps = useColorTexture(
     cardNumbers.flatMap((n) => sides.map((side) => assetUrl(cardFile(n, side)))),
   )
-  const sideMap = (n) =>
-    maps[(n - 1) * sides.length + (character.side === 'injured' && !isGrunt ? 1 : 0)]
+  // Map of card n: side 0 is healthy, 1 is injured
+  const cardMap = (n, side) => maps[(n - 1) * sides.length + side]
   const plate = trayPlate(cards, grunts)
   const stamina = characterStamina(character.key, character.side)
   const yaw = trayYaw(character.team)
@@ -231,27 +266,24 @@ export default memo(function CharacterTray({
       <group position={[slot[0], 0, slot[1]]} ref={isGrunt ? objectRef : undefined}>
         <group ref={cardRef}>
           {cardNumbers.map((n) => (
-            <mesh
+            <TrayCard
               key={n}
-              position={[0, 0, isGrunt ? GRUNT_CARD_LOCAL_Z : trayCardLocalZ(n)]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              onClick={openPopup}
-              onPointerDown={startSwap}
-              onPointerOver={(e) => {
-                e.stopPropagation()
-                setHoveredCard(n)
+              z={isGrunt ? GRUNT_CARD_LOCAL_Z : trayCardLocalZ(n)}
+              width={isGrunt ? GRUNT_CARD_WIDTH : TRAY_CARD_WIDTH}
+              height={isGrunt ? GRUNT_CARD_HEIGHT : TRAY_CARD_HEIGHT}
+              frontMap={cardMap(n, 0)}
+              backMap={isGrunt ? undefined : cardMap(n, 1)}
+              flipped={character.side === 'injured' && !isGrunt}
+              events={{
+                onClick: openPopup,
+                onPointerDown: startSwap,
+                onPointerOver: (e) => {
+                  e.stopPropagation()
+                  setHoveredCard(n)
+                },
+                onPointerOut: () => setHoveredCard((now) => (now === n ? null : now)),
               }}
-              onPointerOut={() => setHoveredCard((now) => (now === n ? null : now))}
-            >
-              <planeGeometry
-                args={
-                  isGrunt
-                    ? [GRUNT_CARD_WIDTH, GRUNT_CARD_HEIGHT]
-                    : [TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]
-                }
-              />
-              <FaceMaterial map={sideMap(n)} side={DoubleSide} />
-            </mesh>
+            />
           ))}
         </group>
         {/* "On" row above the card, where TTS shows the tokens on a character. Each token has its own
