@@ -42,6 +42,18 @@
   top: calc(16.4% + 4.786%);
 }
 
+/* Source line: takes the Creator line's place without an author, else one pitch lower. It wraps to a second line
+   (no ellipsis) if too long; the top view square is far below. */
+.board-card-source {
+  top: calc(16.4% + 4.786%);
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.board-card-source-low {
+  top: calc(16.4% + 2 * 4.786%);
+}
+
 .board-card-view {
   position: absolute;
   left: 17.1%;
