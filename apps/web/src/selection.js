@@ -9,7 +9,7 @@ import { modelCharacterId } from './characters/models.js'
 
 export const NO_PIECES = []
 
-// A piece that the tools snap to and measure against, and that F flips: a character, a crisis token or a loose token.
+// A piece that the tools snap to and measure against: a character, a crisis token or a loose token.
 // Terrain is not one of them.
 export function isToolPiece(piece) {
   return piece.kind === 'character' || piece.kind === 'token' || piece.kind === 'loose'

@@ -1,5 +1,3 @@
-import { isToolPiece } from './selection.js'
-
 // Which hovered thing a key acts on. h: the hovers now, from useHovered().current().
 
 // Delete: the first of these that is under the pointer, or null: a table token, a held token, a pile,
@@ -14,15 +12,17 @@ export function deleteTarget(h) {
   return null
 }
 
-// F: the piece under the pointer, else the token or character selected last. A piece, a token (also
-// one that a character holds), a character (its tray card), a tactic card, or undefined.
-// ?? skips only null and undefined, so a falsy id that is not null stops the chain (as before).
-export function flipTarget(h, selection) {
+// F: only a thing under the pointer, else null: a crisis token (also one that a character holds), a
+// character (its tray card), a Team Tactic card. A character model, a loose token and terrain under the
+// pointer give null, and so does nothing under it: no fallback to the selection.
+// ?? skips only null and undefined, so a falsy id that is not null stops the chain.
+export function flipTarget(h) {
+  if (h.piece?.kind === 'character') return null
   return (
-    h.piece ??
+    (h.piece?.kind === 'token' ? h.piece : null) ??
     (h.held && { kind: 'token', id: h.held }) ??
     (h.trayCard && { kind: 'character', id: h.trayCard }) ??
     (h.tactic && { kind: 'tactic', id: h.tactic }) ??
-    selection.findLast(isToolPiece)
+    null
   )
 }

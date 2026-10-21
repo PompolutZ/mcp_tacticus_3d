@@ -51,49 +51,40 @@ test('deleteTarget: a falsy id is skipped, as an if chain does', () => {
   })
 })
 
-test('flipTarget: order is piece, held token, tray card, tactic, last selected tool piece', () => {
-  const selection = [
-    { kind: 'character', id: 's1' },
-    { kind: 'terrain', id: 'z' },
-  ]
+test('flipTarget: order is piece token, held token, tray card, tactic', () => {
   const piece = { kind: 'token', id: 'p' }
-  assert.equal(
-    flipTarget({ ...none, piece, held: 'h', trayCard: 'c', tactic: 'a' }, selection),
-    piece,
-  )
-  assert.deepEqual(flipTarget({ ...none, held: 'h', trayCard: 'c', tactic: 'a' }, selection), {
+  assert.equal(flipTarget({ ...none, piece, held: 'h', trayCard: 'c', tactic: 'a' }), piece)
+  assert.deepEqual(flipTarget({ ...none, held: 'h', trayCard: 'c', tactic: 'a' }), {
     kind: 'token',
     id: 'h',
   })
-  assert.deepEqual(flipTarget({ ...none, trayCard: 'c', tactic: 'a' }, selection), {
+  assert.deepEqual(flipTarget({ ...none, trayCard: 'c', tactic: 'a' }), {
     kind: 'character',
     id: 'c',
   })
-  assert.deepEqual(flipTarget({ ...none, tactic: 'a' }, selection), { kind: 'tactic', id: 'a' })
-  assert.deepEqual(flipTarget(none, selection), { kind: 'character', id: 's1' })
+  assert.deepEqual(flipTarget({ ...none, tactic: 'a' }), { kind: 'tactic', id: 'a' })
 })
 
-test('flipTarget: the last selected tool piece, terrain is skipped', () => {
-  const selection = [
-    { kind: 'character', id: 'a' },
-    { kind: 'token', id: 'b' },
-    { kind: 'terrain', id: 'z' },
-  ]
-  assert.deepEqual(flipTarget(none, selection), { kind: 'token', id: 'b' })
-  assert.equal(flipTarget(none, [{ kind: 'terrain', id: 'z' }]), undefined)
-  assert.equal(flipTarget(none, []), undefined)
+test('flipTarget: nothing under the pointer is null, a selection is not read', () => {
+  assert.equal(flipTarget(none), null)
+  assert.equal(flipTarget({ held: undefined, trayCard: undefined, tactic: undefined }), null)
+})
+
+test('flipTarget: a hovered character model flips nothing', () => {
+  const piece = { kind: 'character', id: 's2' }
+  assert.equal(flipTarget({ ...none, piece, held: 'h', trayCard: 'c', tactic: 'a' }), null)
 })
 
 test('flipTarget: undefined hovers fall through like null', () => {
-  assert.deepEqual(flipTarget({ held: undefined, trayCard: undefined, tactic: 'a' }, []), {
+  assert.deepEqual(flipTarget({ held: undefined, trayCard: undefined, tactic: 'a' }), {
     kind: 'tactic',
     id: 'a',
   })
 })
 
 test('flipTarget: a falsy id other than null stops the chain, as ?? does', () => {
-  assert.equal(flipTarget({ ...none, held: '', tactic: 'a' }, [{ kind: 'token', id: 'b' }]), '')
-  assert.equal(flipTarget({ ...none, held: 0, tactic: 'a' }, []), 0)
-  assert.equal(flipTarget({ ...none, trayCard: '', tactic: 'a' }, []), '')
-  assert.equal(flipTarget({ ...none, tactic: '' }, [{ kind: 'token', id: 'b' }]), '')
+  assert.equal(flipTarget({ ...none, held: '', tactic: 'a' }), '')
+  assert.equal(flipTarget({ ...none, held: 0, tactic: 'a' }), 0)
+  assert.equal(flipTarget({ ...none, trayCard: '', tactic: 'a' }), '')
+  assert.equal(flipTarget({ ...none, tactic: '' }), '')
 })

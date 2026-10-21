@@ -44,7 +44,7 @@ import { ThreatChoose } from './setup/ThreatChoose.jsx'
 import { useAutoOpen } from './setup/useAutoOpen.js'
 import { useTokenDrag } from './drag/useTokenDrag.js'
 import { cancelActiveDrag, isDragActive } from './drag/pointerDrag.js'
-import { characterOnBoard, isConstructId, modelCharacterId } from './characters/models.js'
+import { characterOnBoard } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
 import {
@@ -449,17 +449,15 @@ export default function App({
     resetView(controlsRef.current, wheelCameraRef.current, startView(isGuest))
   }
 
-  // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), the
-  // card of the character under the pointer (its model or its tray card), or the tactic card under
-  // the pointer. With nothing under the pointer, it flips the token or character selected last (the
-  // card of a character). A token without a back does not flip (handleTokenFlip).
+  // F, as in TTS: flips only what is under the pointer: a crisis token (also one that a character holds),
+  // the card of the character whose tray card is, or a Team Tactic card. Nothing under the pointer, or a
+  // model, loose token or terrain: nothing; a selected piece does not flip. A token without a back does
+  // not flip (handleTokenFlip).
   function handleFlipKey() {
-    const piece = flipTarget(hoveredNow(), store.getState().selection)
+    const piece = flipTarget(hoveredNow())
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
-    // A character piece is a model; a second model has its own id (characters/models.js)
-    // A construct has no card to flip
-    else if (piece?.kind === 'character' && !isConstructId(piece.id))
-      handleCharacterFlip(modelCharacterId(piece.id))
+    // The tray card id is a character id; a construct has no tray card
+    else if (piece?.kind === 'character') handleCharacterFlip(piece.id)
     else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
   }
 
