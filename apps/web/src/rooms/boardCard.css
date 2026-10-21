@@ -5,14 +5,18 @@
   container-type: inline-size;
   overflow: hidden;
   user-select: none;
-}
-
-.board-card-back {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  aspect-ratio: 4 / 7;
+  border-radius: 4cqw;
+  /* Colors sampled from a map card: near white on top, soft green at the bottom. */
+  background: linear-gradient(
+    180deg,
+    #fafafa 0%,
+    #f0f0ef 22%,
+    #e5e4d0 50%,
+    #d2dab8 72%,
+    #c5d1a2 86%,
+    #97c05e 100%
+  );
 }
 
 .board-card-title {
@@ -22,10 +26,10 @@
   right: 6%;
   max-height: 13%;
   overflow: hidden;
-  font: 400 8.6cqw/1 var(--font-title, 'Bangers', cursive);
-  letter-spacing: 0.02em;
+  font: 800 8.6cqw/1 var(--font-label, 'Barlow Condensed', sans-serif);
+  letter-spacing: 0.01em;
   text-transform: uppercase;
-  color: #1c1c1c;
+  color: #111;
   overflow-wrap: anywhere;
 }
 
@@ -38,7 +42,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font: 400 5.6cqw/1.2 var(--font-label, 'Barlow Condensed', sans-serif);
-  color: #2a2a2a;
+  color: #3a3a3a;
 }
 
 .board-card-view {
@@ -51,4 +55,8 @@
   border: 0.6cqw solid #4aa11f;
   border-radius: 1.4cqw;
   object-fit: cover;
+}
+
+.board-card-view-empty {
+  background: rgba(151, 192, 94, 0.25);
 }
