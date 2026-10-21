@@ -19,3 +19,5 @@ export const mapCard = (id) => `maps/${id}.webp`
 // The back of a map card. The new room dialog shows it for Random map. The maps of the app have the same
 // back in the mod.
 export const MAP_CARD_BACK = 'maps/back.webp'
+// The blank front of a map card, green: the background of the card of a custom board (BoardCard)
+export const MAP_CARD_FRONT = 'maps/front.webp'

@@ -1,33 +1,24 @@
-/* The board card: the places and sizes are those of the map cards (800 x 1400 px), in percent of the card and in cqw
-   (1cqw = 8 px of that card). */
+/* The board card: the places and sizes are those of the map cards (800 x 1400 px, measured on a-hulk-cornered),
+   in percent of the card and in cqw (1cqw = 8 px of that card). The background is set in BoardCard.jsx. */
 .board-card {
   position: relative;
   container-type: inline-size;
   overflow: hidden;
   user-select: none;
   aspect-ratio: 4 / 7;
-  border-radius: 4cqw;
-  /* Colors sampled from a map card: near white on top, soft green at the bottom. */
-  background: linear-gradient(
-    180deg,
-    #fafafa 0%,
-    #f0f0ef 22%,
-    #e5e4d0 50%,
-    #d2dab8 72%,
-    #c5d1a2 86%,
-    #97c05e 100%
-  );
+  /* The map card images have their corners cut in the file (about 35 px of 800) */
+  border-radius: 4.4cqw;
+  background-size: 100% 100%;
 }
 
 .board-card-title {
   position: absolute;
-  top: 3%;
-  left: 8.5%;
-  right: 6%;
-  max-height: 13%;
+  top: 4.8%;
+  left: 22.9%;
+  right: 5%;
+  max-height: 11%;
   overflow: hidden;
-  font: 800 8.6cqw/1 var(--font-label, 'Barlow Condensed', sans-serif);
-  letter-spacing: 0.01em;
+  font: 800 8.9cqw/1 var(--font-label, 'Barlow Condensed', sans-serif);
   text-transform: uppercase;
   color: #111;
   overflow-wrap: anywhere;
@@ -35,21 +26,21 @@
 
 .board-card-author {
   position: absolute;
-  top: 17.5%;
-  left: 8.5%;
-  right: 6%;
+  top: 16.4%;
+  left: 8.75%;
+  right: 5%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font: 400 5.6cqw/1.2 var(--font-label, 'Barlow Condensed', sans-serif);
-  color: #3a3a3a;
+  font: 300 5.75cqw/1.2 var(--font-label, 'Barlow Condensed', sans-serif);
+  color: #2a2a2a;
 }
 
 .board-card-view {
   position: absolute;
-  left: 17%;
+  left: 17.1%;
   bottom: 2.3%;
-  width: 66%;
+  width: 66.2%;
   aspect-ratio: 1;
   box-sizing: border-box;
   border: 0.6cqw solid #4aa11f;
@@ -58,5 +49,5 @@
 }
 
 .board-card-view-empty {
-  background: rgba(151, 192, 94, 0.25);
+  background: rgba(74, 161, 31, 0.15);
 }

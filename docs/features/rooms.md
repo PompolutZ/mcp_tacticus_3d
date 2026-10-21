@@ -47,7 +47,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 - **Messages:** a message at the top of the lobby (a room link that is not found, a failed load) shows as a yellow comic box.
 - **Your rooms:** the title "Your rooms" with a badge "1 battle in progress" or "N battles in progress" (the number of listed rooms, hidden with no rooms). Then one list with a tile for each single player room and each multiplayer room, the last changed room first, and the **+** tile at the end. With login off, the list has only single player rooms and makes no API call.
 - **Room tile:** an article, not clickable. **Enter the fight →** is the only way into a room. The tile shows:
-  - for a room on the custom board, the card of the room copy (`RoomBoardCard`: name, "by <author>", top view) instead of the map card; the title is the board name;
+  - for a room on the custom board, the card of the room copy (`RoomBoardCard`: name, "Creator: <author>", top view) instead of the map card; the title is the board name;
   - a yellow badge "Room" with the code. The badge has a copy icon button, the **Copy link** of `docs/features/auth.md` ("Lobby and room UI");
   - the map card (alt text: the map name), the tag "Versus" or "Solo", the map name and "Last change" with the time. A random multiplayer room shows the card back and "Random map" until the guest joins;
   - the two seats as plates (`SeatPlate.jsx`) with "VS" between them, and the roster link "Roster ›" under a plate;
