@@ -3,7 +3,9 @@ import { useTableStore } from '../table/TableStoreContext.jsx'
 import { selectedId as selectedPieceId } from '../selection.js'
 import { tableMat } from '../rooms/table.js'
 import BuilderPanel from './BuilderPanel.jsx'
-import { exportBoardText } from './builder.js'
+import { exportBoard, exportBoardText } from './builder.js'
+import { getBoard, saveBoard } from '../api/board.js'
+import { useUser } from '../auth/useUser.js'
 import { useBuilderKeys } from './useBuilderKeys.js'
 import { MAPS } from './maps/index.js'
 
@@ -28,6 +30,7 @@ export default function SandboxBuilder({
   const [boardName, setBoardName] = useState('')
   const [message, setMessage] = useState('')
   const shownMat = tableMat(mapId, mat)
+  const loggedIn = useUser().status === 'in'
 
   const target = keysOn && terrain.some((p) => p.id === selected) ? selected : null
   useBuilderKeys({
@@ -36,15 +39,18 @@ export default function SandboxBuilder({
     onRemove: () => onRemove(target),
   })
 
+  // The board state of the export file and of the account
+  const boardState = () => ({
+    id: boardId,
+    name: boardName,
+    mat: shownMat.name,
+    matRotation: shownMat.rotation,
+    placements: terrain,
+  })
+
   function exportFile() {
     if (!shownMat) return
-    const text = exportBoardText({
-      id: boardId,
-      name: boardName,
-      mat: shownMat.name,
-      matRotation: shownMat.rotation,
-      placements: terrain,
-    })
+    const text = exportBoardText(boardState())
     const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
     const a = document.createElement('a')
     a.href = url
@@ -61,8 +67,7 @@ export default function SandboxBuilder({
     setMessage('')
   }
 
-  async function importFile(file) {
-    const result = edits.importText(await file.text())
+  function showImported(result) {
     if (result.error) {
       setMessage(result.error)
       return
@@ -70,6 +75,36 @@ export default function SandboxBuilder({
     setMessage('')
     setBoardId(result.board.id)
     setBoardName(result.board.name)
+  }
+
+  async function importFile(file) {
+    showImported(edits.importText(await file.text()))
+  }
+
+  async function saveToAccount() {
+    if (!shownMat) return
+    try {
+      await saveBoard(exportBoard(boardState()))
+      setMessage('Saved to your account.')
+    } catch (error) {
+      setMessage(`Save failed: ${error.message}`)
+    }
+  }
+
+  // The same path as Import: validateBoard and applyBoard
+  async function loadFromAccount() {
+    let data
+    try {
+      data = await getBoard()
+    } catch (error) {
+      setMessage(`Load failed: ${error.message}`)
+      return
+    }
+    if (!data) {
+      setMessage('No board saved in your account.')
+      return
+    }
+    showImported(edits.importData(data))
   }
 
   return (
@@ -87,6 +122,8 @@ export default function SandboxBuilder({
         onClear={edits.clear}
         onAdd={edits.add}
         onImport={importFile}
+        onSave={loggedIn ? saveToAccount : undefined}
+        onLoad={loggedIn ? loadFromAccount : undefined}
         message={message}
         canExport={Boolean(shownMat)}
       />

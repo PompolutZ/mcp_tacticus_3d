@@ -1,7 +1,7 @@
 import { MATS, PIECES_BY_SIZE } from './catalog.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { toCustomPiece } from '../rooms/table.js'
-import { exportMapText, mapToState } from './exportMap.js'
+import { exportMap, exportMapText, mapToState } from './exportMap.js'
 import { movedPosition, restY, turnedRotation } from './placementMove.js'
 
 // The edit actions of the map builder (docs/features/map-builder.md). Pure functions on a plain list of
@@ -75,6 +75,11 @@ export function clearPlacements() {
 // A map of MAPS -> the board state { id, name, mat, matRotation, placements, ttsMap, note, skipped }
 export function loadMapState(map, newId) {
   return mapToState(map, newId)
+}
+
+// The board state -> the map object (the JSON of the export file, also what is saved to the account)
+export function exportBoard(state) {
+  return exportMap(state)
 }
 
 // The board state -> the map JSON text (terrain/exportMap.js)

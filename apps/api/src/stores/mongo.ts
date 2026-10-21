@@ -7,6 +7,7 @@ import {
   newRoom,
   newUserId,
   userExpiry,
+  type BoardDoc,
   type ErrorReport,
   type MessageDoc,
   type RoomDoc,
@@ -45,6 +46,7 @@ export function createMongoStore({
   const usersCol = db.collection<UserDoc>('users')
   const roomsCol = db.collection<RoomRow>('rooms')
   const messagesCol = db.collection<MessageDoc>('messages')
+  const boardsCol = db.collection<BoardDoc>('customBoards')
   const errorsCol = db.collection<ErrorReport>('errors')
 
   // A capped collection: Mongo deletes the oldest reports when it is full. It must be created
@@ -224,6 +226,20 @@ export function createMongoStore({
       async deleteUser(userId) {
         await ready()
         await messagesCol.deleteMany({ 'user.id': userId })
+      },
+    },
+    boards: {
+      async get(userId) {
+        await ready()
+        return boardsCol.findOne({ _id: userId })
+      },
+      async put(userId, board, now) {
+        await ready()
+        await boardsCol.replaceOne({ _id: userId }, { board, updatedAt: now }, { upsert: true })
+      },
+      async delete(userId) {
+        await ready()
+        await boardsCol.deleteOne({ _id: userId })
       },
     },
     errors: {

@@ -17,7 +17,7 @@ import { loadPieceBox } from './pieceBox.js'
 // ones of builder.js; a map piece becomes a custom piece when it is moved or turned. App calls it always (hooks), the
 // writes happen only from the Build panel and the keys of Build mode.
 // table: the table (net/doc.js). mapId: the map of the table. setTerrain: the list setter. setSelection: the selection.
-// Returns { move, turn, add, clear, pickMat, importText }.
+// Returns { move, turn, add, clear, pickMat, importText, importData }.
 export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
   const deselect = () => setSelection((prev) => prev.filter((p) => p.kind !== 'terrain'))
 
@@ -57,14 +57,8 @@ export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
     if (mat) table.game.setField('mat', { name: mat.name, rotation: mat.rotation })
   }
 
-  // The text of a map file. Returns { board } (written) or { error } (nothing changed).
-  function importText(text) {
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch {
-      return { error: 'The file is not JSON.' }
-    }
+  // A parsed map (a file, or the board of the account). Returns { board } (written) or { error } (nothing changed).
+  function importData(data) {
     const result = validateBoard(data)
     if (result.error) return result
     const { board } = result
@@ -77,5 +71,16 @@ export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
     return result
   }
 
-  return { move, turn, add, clear, pickMat, importText }
+  // The text of a map file
+  function importText(text) {
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      return { error: 'The file is not JSON.' }
+    }
+    return importData(data)
+  }
+
+  return { move, turn, add, clear, pickMat, importText, importData }
 }

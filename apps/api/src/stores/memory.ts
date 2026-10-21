@@ -6,6 +6,7 @@ import {
   newRoom,
   newUserId,
   userExpiry,
+  type BoardDoc,
   type ErrorReport,
   type MessageDoc,
   type RoomDoc,
@@ -24,6 +25,7 @@ export function createMemoryStore(): Store {
   const rooms = new Map<string, RoomDoc>()
   const messages = new Map<string, MessageDoc>()
   const errors: ErrorReport[] = []
+  const boards = new Map<string, BoardDoc>()
   return {
     users: {
       async upsertDiscord(profile, now) {
@@ -145,6 +147,18 @@ export function createMemoryStore(): Store {
       },
       async deleteUser(userId) {
         for (const [id, m] of messages) if (m.user.id === userId) messages.delete(id)
+      },
+    },
+    boards: {
+      async get(userId) {
+        const doc = boards.get(userId)
+        return doc ? structuredClone(doc) : null
+      },
+      async put(userId, board, now) {
+        boards.set(userId, { _id: userId, board: structuredClone(board), updatedAt: now })
+      },
+      async delete(userId) {
+        boards.delete(userId)
       },
     },
     errors: {

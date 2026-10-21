@@ -8,7 +8,8 @@ import { SORTED_MATS, pieceGroups } from './builder.js'
 // Sandbox (state in the table document) use the same panel.
 // mapId, mapName, onMapId, onMapName: the `id` and `name` fields of the export. matName: the shown mat.
 // pieceCount: placed pieces. onLoadMap(id), onExport(), onPickMat(name), onClear(), onAdd(piece).
-// onImport(file): the Import button, a .json file in the map format; without it there is no button. message: a line
+// onImport(file): the Import button, a .json file in the map format; without it there is no button. onSave(), onLoad():
+// the account buttons; without them there are none. message: a line
 // under the buttons (a refused file). canExport: false when there is nothing to export (no mat).
 export default function BuilderPanel({
   mapId,
@@ -23,6 +24,8 @@ export default function BuilderPanel({
   onClear,
   onAdd,
   onImport,
+  onSave,
+  onLoad,
   message = '',
   canExport = true,
 }) {
@@ -82,6 +85,16 @@ export default function BuilderPanel({
             }}
           />
         </label>
+      )}
+      {onSave && (
+        <button type="button" className="terrain-row" disabled={!canExport} onClick={onSave}>
+          Save to account
+        </button>
+      )}
+      {onLoad && (
+        <button type="button" className="terrain-row" onClick={onLoad}>
+          Load from account
+        </button>
       )}
       {message && (
         <p className="terrain-message" role="alert">

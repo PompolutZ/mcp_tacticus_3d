@@ -165,8 +165,41 @@ export const ERRORS_KEEP = 200
 // The Mongo collection is capped at this size.
 export const ERRORS_MAX_BYTES = 10 * 1024 * 1024
 
+// The Sandbox board of a user: the map JSON format of the web app (docs/features/map-builder.md).
+export interface Board {
+  id?: string
+  name?: string
+  mat: string
+  matRotation: number
+  placements: BoardPlacement[]
+}
+
+export interface BoardPlacement {
+  piece: string
+  position: number[]
+  rotation: number[]
+  scale: number | number[]
+  size?: number
+  tint?: number[]
+}
+
+// One record per user, _id is the user id.
+export interface BoardDoc {
+  _id: string
+  board: Board
+  updatedAt: Date
+}
+
+export interface BoardsStore {
+  get(userId: string): Promise<BoardDoc | null>
+  // Replaces the board of the user.
+  put(userId: string, board: Board, now: Date): Promise<void>
+  delete(userId: string): Promise<void>
+}
+
 export interface Store {
   users: UsersStore
+  boards: BoardsStore
   rooms: RoomsStore
   messages: MessagesStore
   errors: ErrorsStore

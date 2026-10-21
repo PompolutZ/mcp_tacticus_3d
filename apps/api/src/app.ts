@@ -4,6 +4,7 @@ import type { Config } from './config'
 import { notFound, onError } from './middleware/errors'
 import { log } from './middleware/log'
 import { authRoutes } from './routes/auth'
+import { boardRoutes } from './routes/board'
 import { errorRoutes } from './routes/errors'
 import { healthRoutes } from './routes/health'
 import { meRoutes } from './routes/me'
@@ -27,6 +28,7 @@ export function createApp(deps: Deps) {
   app.route('/', errorRoutes(deps))
   app.route('/', authRoutes(deps))
   app.route('/', meRoutes(deps))
+  app.route('/', boardRoutes(deps))
   app.route('/', roomRoutes(deps))
   app.route('/', tableRoutes(deps))
   // One cache per app, so the seats of a room are read once in 30 s.

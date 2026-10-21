@@ -181,7 +181,9 @@ How it works:
 |---|---|---|
 | `POST /auth/discord` | no | `{ code, redirectUri }`. Login flow steps 5 and 6. Answers 200 `{ token, user }`, 400 bad body, 401 Discord rejected the code, 502 Discord failed, 503 Discord not configured (local only) |
 | `GET /me` | yes | Answers 200 `{ user, token? }`, with a new token when the old one is more than 1 day old. 401: no token, bad token, or the user is gone |
-| `DELETE /me` | yes | Deletes the user, the room that the user hosts, with its table, and the user's signaling messages. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
+| `GET /me/board` | yes | The saved Sandbox board (`docs/features/map-builder.md`). 200 `{ board, updatedAt }`, 404 when none |
+| `PUT /me/board` | yes | Replaces the board. Body: the map JSON format, at most 300 placements, 128 KB. 204. 400, 413 |
+| `DELETE /me` | yes | Deletes the user, the room that the user hosts, with its table, the user's signaling messages and the saved Sandbox board. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
 | `GET /rooms` | yes | `{ rooms }`: the rooms where the user has a seat, the last changed first, at most 100, with both players' names and avatars. No table. 401 |
 | `POST /rooms` | yes | `{ mapId, roster, table }` or `{ maps, roster, table }`: exactly one of `mapId` and `maps`. `maps` is 1 to 50 map ids, each like `mapId`, for a random room. The room then has `mapId` null. The creator takes the `host` seat. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
 | `GET /rooms/{code}` | no | 200 `{ room }`: map, rosters, players' names and avatars, free seats. No table. 404 (also for an old record) |
@@ -239,7 +241,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 | Report unauthorized access to users (as the law requires) and to Discord (5c) | By hand, if it happens |
 | Keep developer credentials secret. No credentials in open source projects (2) | The client secret only in `apps/api/.env` and `infra/.env` (git ignores both) and in SSM. The terms list the Application ID as a credential too, so the client id comes from a Netlify env var at build time, not from a file in git |
 
-- **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, the room that the user hosts with its table, and the user's signaling messages. The user's seat in other rooms stays, and the room shows "Deleted player". The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
+- **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, the room that the user hosts with its table, the user's signaling messages and the saved board. The user's seat in other rooms stays, and the room shows "Deleted player". The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
 - **Retention:** a user with no login and no app start for 12 months is deleted by the TTL index (`expiresAt`). A room with no change for 12 months is deleted the same way, with its table. The seat rules in [Data](#data) handle rooms of deleted users.
 - **Region:** Discord EU data that goes to a country outside the EEA with no adequacy decision falls under the standard contract clauses of section 11. The Lambda and the Atlas cluster are both in `eu-central-1` (backend doc), so the data stays in the EEA.
 - Scope `identify` only. No email, no guilds, no friends list.
@@ -332,7 +334,7 @@ apps/web/src/
   rosters/RoomRosterPopup.jsx  the roster popup of a tile and of the join page
 apps/api/src/
   auth/            token (sign and verify the session token), discord (the Discord client)
-  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (messages)
+  routes/          auth (Discord code exchange), devAuth (local only), me, board (/me/board), rooms (seat rules), table (merge), signal (messages)
   rooms/           code (room code), table (Yjs checks and merge), read (room read, 404, host-gone cleanup), seats (the seat cache)
   middleware/      user: checks the session token with hono/jwt and reads the user. session: the token only. validate: body check
   stores/          users and rooms: memory and MongoDB. Rooms need `yjs`
