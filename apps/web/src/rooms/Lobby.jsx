@@ -17,6 +17,29 @@ import { Burst } from './Burst.jsx'
 import { COLOR_NAME } from '../sideColors.js'
 import { TEAMS } from '../setup/setup.js'
 
+const COFFEE_URL = 'https://buymeacoffee.com/olehlutsenl'
+
+// The cup, in the Like Coffee link and the footer link. steam: the two steam lines above the cup.
+function CoffeeCup({ size, steam }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z" fill={steam ? 'var(--paper)' : 'none'} />
+      <path d="M16 11h2a3 3 0 0 1 0 6h-2.5" />
+      {steam && <path d="M8 2.5c-1 1.2 1 2.3 0 3.5M12 2.5c-1 1.2 1 2.3 0 3.5" />}
+    </svg>
+  )
+}
+
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
 // The start page (docs/features/rooms.md, "Lobby"): the single player and the multiplayer rooms in one list,
@@ -299,10 +322,29 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
           Wham!
         </span>
       </section>
+      <div className="lobby-coffee-row">
+        <a className="pop lobby-coffee" href={COFFEE_URL} target="_blank" rel="noopener">
+          <Burst size={46} color="var(--yellow)">
+            <span style={{ color: 'var(--ink)', display: 'flex' }}>
+              <CoffeeCup size={26} steam />
+            </span>
+          </Burst>
+          <span className="lobby-coffee-text">
+            <span className="lobby-coffee-label">Even heroes need fuel</span>
+            <span className="lobby-coffee-title">Like Coffee!</span>
+          </span>
+        </a>
+      </div>
       <footer className="lobby-footer">
         <div className="lobby-footer-row">
           <span>Hero Table 3D · a fan-made tabletop</span>
-          <a href="/privacy.html">Privacy</a>
+          <span className="lobby-footer-links">
+            <a className="lobby-fuel" href={COFFEE_URL} target="_blank" rel="noopener">
+              <CoffeeCup size={18} />
+              Fuel the next issue
+            </a>
+            <a href="/privacy.html">Privacy</a>
+          </span>
         </div>
         <p className="lobby-disclaimer">
           This site is not endorsed by nor affiliated with Marvel or Atomic Mass Games in any way.

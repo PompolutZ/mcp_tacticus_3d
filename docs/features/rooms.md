@@ -44,7 +44,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 ## Lobby
 
 - **Hero:** the top of the page (`LobbyHero.jsx`). The title "Assemble at the table!" with two buttons: **New room!** opens the new room dialog, the same as the **+** tile, and **Open sandbox** opens the Sandbox. The panels wrap on a narrow screen.
-- **Join by code:** a box "Got a room code?" with a field and **Join!**. The box also takes a room link. The code may have lower case, spaces and no hyphen (`rooms/roomCode.js`, `parseRoomCode`). A valid code opens `#room=<code>`, and the room page logic decides the rest (room, join page, or the lobby with a message, see "Pages"). A text that is not a code shows an error under the field and opens nothing.
+- **Join by code:** a box "Got a room code?" with a field and **Join!**. The field is wide enough to show the whole code. The box also takes a room link. The code may have lower case, spaces and no hyphen (`rooms/roomCode.js`, `parseRoomCode`). A valid code opens `#room=<code>`, and the room page logic decides the rest (room, join page, or the lobby with a message, see "Pages"). A text that is not a code shows an error under the field and opens nothing.
 - **Messages:** a message at the top of the lobby (a room link that is not found, a failed load) shows as a yellow comic box.
 - **Your rooms:** the title "Your rooms" with a badge "1 battle in progress" or "N battles in progress" (the number of listed rooms, hidden with no rooms). Then one list with a tile for each single player room and each multiplayer room, the last changed room first, and the **+** tile at the end. With login off, the list has only single player rooms and makes no API call.
 - **Room tile:** an article, not clickable. **Enter the fight →** is the only way into a room. The tile shows:
@@ -57,7 +57,8 @@ The URL hash selects the page. So the browser back button works, and a reload st
 - **Roster link:** shows that roster of the room in the roster popup (`docs/features/roster.md`). A link shows only when the room has that roster (aria-label: "James roster", "Blue roster", "Roster 1"). The popup title, color, room code and seat come from the link. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card.
 - **+ tile:** a red halftone button "Start a new room!" with "Solo or versus" and the corner tag "To be continued…". It opens the new room dialog.
 - **Sandbox section:** a photo of a table (`src/assets/lobby/sandbox.webp`) with a dot layer, a speech bubble "The sandbox!" with **Open sandbox**, and the decoration "Wham!" (hidden on a narrow screen). It opens the Sandbox.
-- **Footer:** a line "Hero Table 3D · a fan-made tabletop", the **Privacy** link and the Marvel / Atomic Mass Games disclaimer.
+- **Like Coffee:** above the footer, on the right, a slightly tilted link button with a coffee cup in a burst, the small red line "Even heroes need fuel" and the title "Like Coffee!". It opens the Buy Me a Coffee page of the author in a new tab.
+- **Footer:** a line "Hero Table 3D · a fan-made tabletop", a yellow link with a small cup "Fuel the next issue" (the same page, new tab), the **Privacy** link and the Marvel / Atomic Mass Games disclaimer.
 
 ## New room
 

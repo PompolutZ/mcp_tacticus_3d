@@ -262,8 +262,8 @@
 }
 
 .lobby-join {
-  flex: 1 1 340px;
-  min-width: 0;
+  flex: 1 1 400px;
+  min-width: min(100%, 360px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -325,9 +325,12 @@
 }
 
 .comic .lobby-join-input {
-  flex: 1;
-  min-width: 0;
+  /* Room for all 9 characters of XXXX-XXXX (9ch + letter spacing + padding + border) */
+  flex: 1 0 auto;
+  min-width: calc(9ch + 9 * 0.08em + 30px);
   height: 50px;
+  padding: 0 12px;
+  border-width: 3px;
   font: 600 18px var(--font-code);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -763,6 +766,58 @@
 
 .lobby-footer a {
   color: var(--yellow);
+}
+
+.lobby-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 22px;
+}
+
+.lobby-fuel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The Like Coffee link above the footer */
+.lobby-coffee-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 28px;
+}
+
+.comic .lobby-coffee {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 16px 0 6px;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  transform: rotate(1.5deg);
+}
+
+.lobby-coffee-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.lobby-coffee-label {
+  font: italic 700 12px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.lobby-coffee-title {
+  font: 400 24px var(--font-title);
+  letter-spacing: 0.04em;
 }
 
 .lobby-disclaimer {

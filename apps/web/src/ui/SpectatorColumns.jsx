@@ -11,6 +11,7 @@ import { playerName } from '../setup/names.js'
 import { affiliationName } from '../scoreboard/affiliations.js'
 import { characterToken } from '../tokens/files.js'
 import { affiliationTokenKey } from '../tokens/affiliationTokens.js'
+import { Burst } from '../rooms/Burst.jsx'
 import { OnToken } from '../characters/TrayPopup.jsx'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import { useSideColors } from '../table/useSideColors.jsx'
@@ -70,31 +71,52 @@ function Row({ character, held, off, ko }) {
   const grunt = Boolean(character.host)
   const stamina = characterStamina(character.key, character.side)
   const tokens = Object.entries(character.tokens ?? {})
+  const injured = character.side === 'injured' && !ko
+  const tag = ko ? 'Knocked out' : injured ? 'Injured' : null
   return (
     <li
       className={[
         'streamer-row',
-        off && 'streamer-row--off',
-        character.side === 'injured' && 'streamer-row--injured',
+        off && !ko && 'streamer-row--off',
+        ko && 'streamer-row--ko',
+        injured && 'streamer-row--injured',
       ]
         .filter(Boolean)
         .join(' ')}
     >
       <div className="streamer-main">
         <div className="streamer-top">
-          <img
-            className="streamer-portrait"
-            src={assetUrl(characterPortrait(character.key))}
-            alt=""
-            title={name}
-            loading="lazy"
-            draggable={false}
-          />
-          {tokens.length > 0 && (
-            <div className="streamer-tokens">
-              {tokens.map(([key, count]) => (
-                <OnToken key={key} tokenKey={key} count={count} />
-              ))}
+          <span className="streamer-portrait-wrap">
+            <img
+              className="streamer-portrait"
+              src={assetUrl(characterPortrait(character.key))}
+              alt=""
+              title={name}
+              loading="lazy"
+              draggable={false}
+            />
+            {ko && (
+              <span className="streamer-ko-burst" aria-hidden="true">
+                <Burst size={38} fontSize={14}>
+                  KO!
+                </Burst>
+              </span>
+            )}
+          </span>
+          {(tag || tokens.length > 0) && (
+            <div className="streamer-side">
+              {tag && (
+                <span className={`streamer-state streamer-state--${ko ? 'ko' : 'injured'}`}>
+                  {tag}
+                </span>
+              )}
+              {tokens.length > 0 && (
+                <div className="streamer-tokens">
+                  {tokens.map(([key, count]) => (
+                    <OnToken key={key} tokenKey={key} count={count} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -126,7 +148,6 @@ function Row({ character, held, off, ko }) {
           </div>
         </div>
       </div>
-      {ko && <span className="streamer-ko">KO</span>}
     </li>
   )
 }

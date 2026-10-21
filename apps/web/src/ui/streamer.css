@@ -120,7 +120,68 @@
 
 /* Injured side: pale red instead of the paper (docs/features/spectator-view.md). */
 .streamer-row--injured {
-  background: #ffd9d6;
+  background: #f9d6d3;
+}
+
+/* KO: beige with a faint hatch, grey faded portrait, faded bars */
+.streamer-row--ko {
+  background-color: #d9d2bf;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(11, 11, 15, 0.08) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+.streamer-row--ko .streamer-portrait {
+  opacity: 0.75;
+  filter: grayscale(1) contrast(0.8) brightness(1.1);
+}
+
+.streamer-row--ko .streamer-bars {
+  opacity: 0.45;
+}
+
+.streamer-ko-burst {
+  position: absolute;
+  right: calc(-13px * var(--s));
+  bottom: calc(-10px * var(--s));
+  display: block;
+  width: calc(38px * var(--s));
+  height: calc(38px * var(--s));
+  transform: rotate(-14deg);
+  pointer-events: none;
+}
+
+/* Burst.jsx has a size in px; scale the whole burst with the column */
+.streamer-ko-burst .burst-wrap {
+  transform: scale(var(--s));
+  transform-origin: 0 0;
+}
+
+/* The small skewed tag beside the portrait: Injured (red) or Knocked out (black) */
+.streamer-state {
+  align-self: flex-start;
+  padding: 0 calc(8px * var(--s));
+  font: 400 calc(14px * var(--s)) / 1.25 var(--font-title);
+  letter-spacing: 0.06em;
+  color: #fff;
+  border: 2px solid var(--ink);
+  transform: skewX(-10deg);
+}
+
+.streamer-state--injured {
+  background: var(--red);
+}
+
+.streamer-state--ko {
+  background: var(--ink);
+}
+
+.streamer-portrait-wrap {
+  position: relative;
+  flex: none;
+  display: block;
 }
 
 .streamer-portrait {
@@ -144,6 +205,14 @@
   display: flex;
   align-items: center;
   gap: calc(6px * var(--s));
+}
+
+.streamer-side {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--s));
+  flex: 1;
+  min-width: 0;
 }
 
 .streamer-lower {
@@ -236,21 +305,4 @@
   font-size: calc(10px * var(--s));
   line-height: calc(14px * var(--s));
   border-radius: calc(7px * var(--s));
-}
-
-.streamer-ko {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 400 calc(30px * var(--s)) var(--font-title);
-  letter-spacing: 0.1em;
-  color: #fff;
-  text-shadow:
-    -2px -2px 0 var(--ink),
-    2px -2px 0 var(--ink),
-    -2px 2px 0 var(--ink),
-    2px 2px 0 var(--ink);
-  pointer-events: none;
 }

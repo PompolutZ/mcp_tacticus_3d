@@ -69,7 +69,10 @@ function JoinBox({ onOpenRoom }) {
         <label htmlFor={id} className="lobby-join-title">
           Got a room code?
         </label>
-        <div className="lobby-join-text">Type the code your friend shared and jump in.</div>
+        <div className="lobby-join-text">
+          Type the code your friend shared or paste the link you have received from them and jump
+          in.
+        </div>
         <div className="lobby-join-row">
           <input
             id={id}
