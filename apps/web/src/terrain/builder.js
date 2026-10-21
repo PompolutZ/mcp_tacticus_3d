@@ -2,7 +2,7 @@ import { MATS, PIECES_BY_SIZE } from './catalog.js'
 import { MAPS } from './maps/index.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { toCustomPiece } from './storedPiece.js'
-import { exportMap, exportMapText } from './exportMap.js'
+import { MAP_ID_MAX, MAP_ID_PATTERN, exportMap, exportMapText } from './exportMap.js'
 import { movedPosition, restY, turnedRotation } from './placementMove.js'
 
 // The edit actions of the map builder (docs/features/map-builder.md). Pure functions on a plain list of
@@ -161,7 +161,7 @@ const isVec3 = (v) => Array.isArray(v) && v.length === 3 && v.every(isNum)
 
 // The check of an imported map file (the map JSON format, docs/features/maps.md). data: the parsed JSON.
 // Returns { board: { id, name, author, mat, matRotation, placements } } with the placements cleaned to the stored fields
-// (no id yet), or { error } in words for the player. Pure, so a bad file is refused before anything changes.
+// (no id yet), or { error } in words for the player. id: the file id when it matches MAP_ID_PATTERN and MAP_ID_MAX, else ''. Pure, so a bad file is refused before anything changes.
 export function validateBoard(data) {
   const fail = (error) => ({ error })
   if (!data || typeof data !== 'object' || Array.isArray(data))
@@ -191,7 +191,12 @@ export function validateBoard(data) {
   }
   return {
     board: {
-      id: typeof data.id === 'string' ? data.id : '',
+      // The id is the file name: one that is not kebab-case or is too long for the api is dropped, and the id is
+      // made from the name
+      id:
+        typeof data.id === 'string' && data.id.length <= MAP_ID_MAX && MAP_ID_PATTERN.test(data.id)
+          ? data.id
+          : '',
       name: typeof data.name === 'string' ? data.name : '',
       author: typeof data.author === 'string' ? data.author : '',
       mat: mat.name,

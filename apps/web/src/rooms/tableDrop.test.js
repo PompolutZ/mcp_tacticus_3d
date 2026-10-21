@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { droppedY, tableMat, withPlacements } from './table.js'
 import { toCustomPiece } from '../terrain/storedPiece.js'
 import { MAPS } from '../terrain/maps/index.js'
+import { TERRAIN_PIECES } from '../terrain/pieces.js'
 
 const mapId = Object.keys(MAPS)[0]
 const base = MAPS[mapId].placements[0].position
@@ -24,7 +25,7 @@ test('droppedY: position y minus the fall, to 3 decimals', () => {
 
 const custom = {
   id: 'c',
-  piece: 'crate',
+  piece: Object.keys(TERRAIN_PIECES)[0],
   position: [1, 2, 3],
   rotation: [0, 90, 0],
   scale: 1,
@@ -43,6 +44,16 @@ test('withPlacements: custom pieces, with and without a map piece', () => {
 test('withPlacements: no map keeps custom pieces and drops map pieces', () => {
   assert.deepEqual(withPlacements(null, [{ id: 'a', index: 0, locked: true }, custom]), [custom])
   assert.deepEqual(withPlacements(null, []), [])
+})
+
+test('withPlacements: a custom piece with a key that TERRAIN_PIECES does not have is left out', () => {
+  const stored = [
+    { ...custom, id: 'x', piece: 'no-such-piece' },
+    custom,
+    { ...custom, id: 'p', piece: 'toString' },
+  ]
+  assert.deepEqual(withPlacements(mapId, stored), [custom])
+  assert.deepEqual(withPlacements(null, stored), [custom])
 })
 
 test('withPlacements: y of a custom piece replaces its height; unchanged pieces keep their object', () => {

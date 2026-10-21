@@ -7,6 +7,7 @@ import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
 import { newSetup } from '../setup/setup.js'
 import { boardPieces, newIdSuffix } from '../terrain/builder.js'
 import { isCustomPiece } from '../terrain/storedPiece.js'
+import { TERRAIN_PIECES } from '../terrain/pieces.js'
 
 // The board record of the table (game.board, docs/features/map-builder.md, "Name and id"): the name field, the
 // author and the id of the board in the Build panel, so a Build toggle or a reload keeps them.
@@ -42,11 +43,17 @@ export function mapTerrain(mapId) {
 const placed = new WeakMap()
 
 // The terrain of the document with the placements. A map piece whose index the map data no longer has, or
-// that has no map (mapId null), is left out. A piece with `y` gets it as the height of its position.
+// that has no map (mapId null), is left out. So is a custom piece whose key TERRAIN_PIECES does not have (a peer
+// on another build, or bad data): every reader of the terrain looks the key up. A piece with `y` gets it as the
+// height of its position.
 export function withPlacements(mapId, terrain) {
   const placements = MAPS[mapId]?.placements
   return terrain
-    .filter((piece) => (isCustomPiece(piece) ? true : Boolean(placements?.[piece.index])))
+    .filter((piece) =>
+      isCustomPiece(piece)
+        ? Object.hasOwn(TERRAIN_PIECES, piece.piece)
+        : Boolean(placements?.[piece.index]),
+    )
     .map((piece) => {
       if (isCustomPiece(piece) && piece.y === undefined) return piece
       if (!placed.has(piece)) {

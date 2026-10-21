@@ -10,7 +10,7 @@ import { syncOverChannel } from '../net/syncChannel.js'
 import { sumTraffic, trafficLine } from '../net/traffic.js'
 import { hasLocalChanges } from './serverTable.js'
 import { multiplayerDocName, roomDocName } from './store.js'
-import { fillMap, startTable } from './table.js'
+import { CUSTOM_MAP_ID, fillMap, startTable } from './table.js'
 
 // Traffic: read every 60 s, logged every 10 min (docs/features/peer-to-peer.md, "Traffic per game")
 const TRAFFIC_READ_MS = 60_000
@@ -220,6 +220,13 @@ export function openTableSession({
         return
       }
       if (action === 'fill' || (action === 'migrate' && !migrate(table, schema))) {
+        // The room record of a multiplayer room has no copy of the board (only the server table has it), so a
+        // fill there would give a table with no mat and no terrain (docs/features/map-builder.md, "Board in a new room")
+        if (room?.mapId === CUSTOM_MAP_ID && !room.board) {
+          shutdown()
+          onExit('The board of this room can not be rebuilt.')
+          return
+        }
         const rosters = room?.rosters ?? { host: null, guest: null }
         fillTable(table, { ...startTable(room?.mapId ?? START_MAP, room?.board), rosters })
       }

@@ -16,9 +16,9 @@ import {
   turnPlacement,
 } from './builder.js'
 import { MATS } from './catalog.js'
-import { MAP_ID_PATTERN, exportMap } from './exportMap.js'
+import { MAP_ID_MAX, MAP_ID_PATTERN, exportMap } from './exportMap.js'
 import { isCustomPiece } from './storedPiece.js'
-import { withPlacements } from '../rooms/table.js'
+import { newBoard, withPlacements } from '../rooms/table.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { MAPS } from './maps/index.js'
 import { IMPORT_ROTATION, restY, toThreeTransform } from './placementMove.js'
@@ -189,11 +189,12 @@ test('boardIdFromName: slug, hyphen runs, trimmed, cut, suffix kept', () => {
   assert.equal(boardIdFromName('One', 'ab12'), boardIdFromName('One', 'ab12'))
 })
 
-test('ids from boardIdFromName and newIdSuffix match MAP_ID_PATTERN', () => {
+test('ids from boardIdFromName and newIdSuffix match MAP_ID_PATTERN and fit MAP_ID_MAX', () => {
   for (const name of ['x', 'Hello World', '123', '---', 'Ab_Cd', 'z'.repeat(100)]) {
     const suffix = newIdSuffix()
     assert.match(suffix, /^[a-z0-9]{4}$/)
     assert.match(boardIdFromName(name, suffix), MAP_ID_PATTERN)
+    assert.ok(boardIdFromName(name, suffix).length <= MAP_ID_MAX)
   }
 })
 
@@ -201,6 +202,24 @@ test('validateBoard keeps a string author, else empty', () => {
   const base = { mat: MATS[0].name, placements: [] }
   assert.equal(validateBoard({ ...base, author: 'Al' }).board.author, 'Al')
   assert.equal(validateBoard({ ...base, author: 5 }).board.author, '')
+})
+
+test('validateBoard keeps a kebab-case id; any other id is dropped, so the id is made from the name', () => {
+  const base = { mat: MATS[0].name, placements: [] }
+  assert.equal(validateBoard({ ...base, id: 'my-map-k3x9' }).board.id, 'my-map-k3x9')
+  for (const id of ['My Map', '../x', 'a--b', '-a', 'a-', '', 5, null])
+    assert.equal(validateBoard({ ...base, id }).board.id, '', JSON.stringify(id))
+})
+
+test('validateBoard drops a kebab-case id longer than MAP_ID_MAX; the id is then made from the name', () => {
+  const id = `${'a'.repeat(MAP_ID_MAX - 1)}-b`
+  const { board } = validateBoard({ mat: MATS[0].name, placements: [], name: 'Long One', id })
+  assert.equal(board.id, '')
+  const record = newBoard('k', board)
+  assert.equal(record.id, null)
+  assert.equal(boardIdFromName(record.name, record.suffix), `long-one-${record.suffix}`)
+  const fits = `${'a'.repeat(MAP_ID_MAX - 2)}-b`
+  assert.equal(validateBoard({ mat: MATS[0].name, placements: [], id: fits }).board.id, fits)
 })
 
 test('exportMap writes author after name, only when set', () => {

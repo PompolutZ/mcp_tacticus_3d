@@ -2,7 +2,10 @@
 // script uses mapJsonText too, so there is one writer of the map files.
 
 const round = (v, digits) => Number(v.toFixed(digits))
+// A map or board id: kebab-case, at most MAP_ID_MAX chars, it is the file name. The api checks a saved board id with
+// a copy (BOARD_ID_PATTERN and BOARD_ID_MAX in apps/api/src/routes/board.ts).
 export const MAP_ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/
+export const MAP_ID_MAX = 80
 
 // The JSON file content of a map: 2 spaces, trailing newline.
 export function mapJsonText(map) {

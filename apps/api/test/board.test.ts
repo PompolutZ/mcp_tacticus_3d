@@ -112,6 +112,16 @@ describe('/me/board', () => {
     expect(await store.boards.get(a.id)).toBeNull()
   })
 
+  it('PUT refuses an id that is not kebab-case with 400, accepts a kebab-case id', async () => {
+    const { app, store } = makeApp()
+    const a = await addUser(store, 'a')
+    for (const id of ['My Board', '../x', 'a--b', '-a', 'a-', '', 'a'.repeat(81)]) {
+      expect((await put(app, a.headers, { ...board, id })).status).toBe(400)
+    }
+    expect(await store.boards.get(a.id)).toBeNull()
+    expect((await put(app, a.headers, { ...board, id: 'my-board-k3x9' })).status).toBe(204)
+  })
+
   it('PUT refuses more than 300 placements, accepts 300', async () => {
     const { app, store } = makeApp()
     const a = await addUser(store, 'a')

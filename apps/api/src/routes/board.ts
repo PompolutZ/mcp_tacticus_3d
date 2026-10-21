@@ -12,6 +12,10 @@ const MAX_IMAGE = 150 * 1024
 const MAX_BODY = 128 * 1024 + Math.ceil(MAX_IMAGE / 3) * 4
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/
 const MAX_PLACEMENTS = 300
+// The board id is the file name: kebab-case, at most 80 chars (MAP_ID_PATTERN and MAP_ID_MAX in
+// apps/web/src/terrain/exportMap.js on the web)
+const BOARD_ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/
+const BOARD_ID_MAX = 80
 
 const text = (max: number) => z.string().check(z.maxLength(max))
 const num = z.number()
@@ -28,7 +32,7 @@ const placementSchema = z.object({
 })
 
 const boardSchema = z.object({
-  id: z.optional(text(80)),
+  id: z.optional(z.string().check(z.maxLength(BOARD_ID_MAX), z.regex(BOARD_ID_PATTERN))),
   name: z.optional(text(80)),
   mat: z.string().check(z.minLength(1), z.maxLength(80)),
   matRotation: num,

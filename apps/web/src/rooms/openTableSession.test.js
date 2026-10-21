@@ -5,6 +5,7 @@ import { SCHEMA, createTable, tableSchema } from '../net/doc.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { startTableBytes } from './startTable.js'
 import { openTableSession } from './openTableSession.js'
+import { CUSTOM_MAP_ID } from './table.js'
 
 // Sessions of a test, closed after it: the awareness of a room has a timer that keeps Node alive
 const sessions = []
@@ -180,6 +181,20 @@ test('a newer table exits and writes nothing', async () => {
   assert.deepEqual(t.events, [
     'exit:This table was saved by a newer version of the app. Reload the page to update.',
   ])
+})
+
+test('a room on the custom board with no copy of the board exits and fills nothing', async () => {
+  const doc = new Y.Doc()
+  let updates = 0
+  doc.on('update', () => updates++)
+  const t = setup({
+    room: { id: 'r1', multiplayer: false, mapId: CUSTOM_MAP_ID },
+    over: { openTableDoc: async () => ({ doc, storageFailed: false }) },
+  })
+  await settle()
+  assert.deepEqual(t.events, ['exit:The board of this room can not be rebuilt.'])
+  assert.equal(t.calls.length, 0)
+  assert.equal(updates, 0)
 })
 
 test('writer gone deletes the copy and exits once', async () => {

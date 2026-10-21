@@ -134,7 +134,7 @@ How it works:
 - three.js counts loaded files for the whole page life. The loading screen shows the files since it mounted.
 - The Sandbox uses the same screen, with the files of its start map.
 
-If the table cannot open (opening the document or filling the table throws), the session closes what it opened, reports the error (`reportError('promise', error)`), and leaves for the lobby with "Could not open the table. Try again." The other exits to the lobby are: the server has no table for the player (404, 403, other), the table is of a newer version, and the host deleted the room. One function ends the last one, for both ways to learn it.
+If the table cannot open (opening the document or filling the table throws), the session closes what it opened, reports the error (`reportError('promise', error)`), and leaves for the lobby with "Could not open the table. Try again." The other exits to the lobby are: the server has no table for the player (404, 403, other), the table is of a newer version, a room on the custom board needs the start table but has no copy of the board (`map-builder.md`, "Board in a new room"), and the host deleted the room. One function ends the last one, for both ways to learn it.
 
 Character trays, crisis cards, tokens and tactic cards are not in the list. They are small, and each has its own Suspense, so each shows when its image is in.
 
