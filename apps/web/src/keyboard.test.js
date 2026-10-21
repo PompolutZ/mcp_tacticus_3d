@@ -284,3 +284,13 @@ test('R: lower floor during a model drag, Lift otherwise', () => {
   // A tool or token drag still blocks every key
   assert.equal(act(r, { toolDrag: {}, modelDrag: true }), null)
 })
+
+test("Build mode: Q / E and Delete are the builder's, only while it is on", () => {
+  for (const code of ['KeyQ', 'KeyE', 'Delete', 'Backspace']) {
+    assert.ok(act(key(code, { code })), `${code} acts outside Build mode`)
+    assert.equal(act(key(code, { code }), { building: true }), null, `${code} in Build mode`)
+  }
+  // The other keys work as always
+  assert.equal(act(key('KeyL', { code: 'KeyL' }), { building: true }).action, 'lock')
+  assert.equal(act(key('KeyW', { code: 'KeyW' }), { building: true }).action, 'pan')
+})

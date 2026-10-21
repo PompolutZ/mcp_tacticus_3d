@@ -53,6 +53,7 @@ const ACTION_NAMES = [
   // The table
   'onTurnMat',
   'onMapChange',
+  'onBuildClick',
   'onCrisisChange',
   'onRosterLoad',
   'onRosterRemove',

@@ -20,6 +20,8 @@ import ToolRack from '../tabletools/ToolRack.jsx'
 import ToolDragGhost from '../tabletools/ToolDragGhost.jsx'
 import { heldTokensByCharacter } from '../game/heldTokens.js'
 import Terrain from '../terrain/Terrain.jsx'
+import { useTerrainDrag } from '../terrain/useTerrainDrag.js'
+import { unlockedView } from '../terrain/builder.js'
 import CrisisCard from '../crisis/CrisisCard.jsx'
 import ToolPoint from '../tabletools/ToolPoint.jsx'
 import WorldRef from './WorldRef.jsx'
@@ -110,7 +112,7 @@ const OVERLAP_INTERVAL = 100
 
 // The handlers (onPieceHover, onTokenMove, onCardOpen, onToolStore and the others named below) are not props. Scene and its
 // leaves call them from the actions of the store (table/tableStore.js, ACTION_NAMES), which App registers after each render.
-// mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
+// build: null, or { onDrop(id, dx, dz) } in Build mode (terrain/useTerrainDrag.js). mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
 // for the Delete key. apiRef: the ref App makes (sceneApi); Scene sets its current to the calls App makes
 // into Scene, see sceneApi.js.
@@ -201,6 +203,7 @@ function Scene(props) {
     tableButtons,
     toolRack,
     terrain = NO_LIST,
+    build = null,
     characters = NO_LIST,
     tools = NO_TOOLS_RECORD,
     toolReturn = false,
@@ -548,6 +551,13 @@ function Scene(props) {
     (id, obj) => (obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)),
     [terrainObjects.current],
   )
+  // Build mode (docs/features/map-builder.md): every terrain piece acts unlocked, in this view only (the document
+  // keeps the locks), and a press on a piece drags it. build: { onDrop(id, dx, dz) } or null.
+  const terrainDrag = useTerrainDrag({
+    onDrop: (id, dx, dz) => build?.onDrop(id, dx, dz),
+    onSelect: (id) => actions.dragSelect('terrain', id),
+  })
+  const shownTerrain = useMemo(() => (build ? unlockedView(terrain) : terrain), [build, terrain])
   // Why Scene commits (DebugPanel, "Scene reasons")
   useRenderReason('Scene', {
     ...Object.fromEntries(Object.entries(props).map(([k, v]) => [`prop:${k}`, v])),
@@ -740,8 +750,10 @@ function Scene(props) {
               and its colliders are created at the new pose. A new map also mounts it again. */}
             <Suspense key={`${mapId}-${matTurns}`} fallback={null}>
               <Terrain
-                placements={terrain}
+                placements={shownTerrain}
                 terrainUnder={terrainUnder}
+                groupRef={build ? terrainDrag.groupRef : undefined}
+                onPointerDown={build ? terrainDrag.onPointerDown : undefined}
                 onSelect={onTerrainSelect}
                 onHover={actions.onTerrainHover}
                 objectRef={onTerrainObject}

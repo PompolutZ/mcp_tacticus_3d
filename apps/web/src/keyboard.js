@@ -16,7 +16,7 @@ export function isEditing(target) {
 // What a key press does. e: the keydown event. s: the app state now, read at the key press:
 // { tokenDrag, toolDrag (a token or tool is dragged), modelDrag (a model is dragged), drag (any pointer drag is in progress: Esc cancels it), popup (a card, tray, roster or settings popup is open), rosterOpen, diceMenu,
 // libraryOpen, logOpen, diceTray (side of the own dice tray under the pointer, or null), overPiece,
-// bindings (the bindings in use, input/bindings.js; the defaults when missing) }.
+// building (Build mode is on: Q / E and Delete are the builder's), bindings (the bindings in use, input/bindings.js; the defaults when missing) }.
 // Returns { action, id, preventDefault?, ...arguments } or null (the key does nothing). id: the
 // action of the binding. The binding that fits comes from match (input/bindings.js). Then, in this
 // order: the card peek always works; during a token or tool drag only cancel and the camera keys (pan, turn) work; in a popup only cancel and the
@@ -55,6 +55,9 @@ export function keyAction(e, s) {
     // nothing changes on the table behind it.
     if (found.binding.when !== 'popup' || (def.action === 'cardStep' && !s.rosterOpen)) return null
   } else if (isEditing(e.target)) return null
+  // Build mode (docs/features/map-builder.md): Q / E and Delete act on the selected terrain piece
+  // (terrain/useBuilderKeys.js), not on a character, tool or hovered piece
+  if (s.building && (def.action === 'rotate' || def.action === 'delete')) return null
   if (e.repeat && !def.repeats) return null
   const extra = { action: def.action }
   if (def.dir) extra.dir = def.dir

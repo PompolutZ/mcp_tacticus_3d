@@ -1,4 +1,6 @@
 import { MATS, PIECES_BY_SIZE } from './catalog.js'
+import { TERRAIN_PIECES } from './pieces.js'
+import { toCustomPiece } from '../rooms/table.js'
 import { exportMapText, mapToState } from './exportMap.js'
 import { movedPosition, restY, turnedRotation } from './placementMove.js'
 
@@ -78,4 +80,94 @@ export function loadMapState(map, newId) {
 // The board state -> the map JSON text (terrain/exportMap.js)
 export function exportBoardText(state) {
   return exportMapText(state)
+}
+
+// --- The Sandbox: the board in the table document (docs/features/map-builder.md, "Build mode") ---
+
+// A placement as the document stores a custom piece: only the stored fields, no undefined. A piece added in
+// Build mode is locked: Build mode shows every piece unlocked (unlockedView), and the lock is back after it.
+export function storedCustom(placement, locked = true) {
+  const { id, piece, position, rotation, scale, size, tint, rev } = placement
+  const out = { id, piece, position, rotation, scale, locked }
+  if (size !== undefined) out.size = size
+  if (tint !== undefined) out.tint = tint
+  if (rev !== undefined) out.rev = rev
+  return out
+}
+
+// The stored list after fn(list, id) changed the piece `id` (move, turn: the functions above). A map piece
+// becomes a custom piece first (toCustomPiece), and so does a custom piece with a fallen height `y`, which
+// goes into its position. The id stays, so are the lock and the rest of the list. fn gets a one-piece list.
+export function editStoredPiece(mapId, stored, id, fn) {
+  return stored.map((piece) => {
+    if (piece.id !== id) return piece
+    const custom = toCustomPiece(mapId, piece)
+    if (!custom) return piece
+    const { y, ...rest } = custom
+    const base =
+      y === undefined ? rest : { ...rest, position: [rest.position[0], y, rest.position[2]] }
+    return storedCustom(fn([base], id)[0], base.locked)
+  })
+}
+
+// Build mode shows every piece unlocked, with no write to the document. A locked piece gets an unlocked copy;
+// the copy is kept per piece object, so an unchanged piece keeps the same placed object (Terrain does not
+// place its body again, rooms/table.js, withPlacements).
+const unlocked = new WeakMap()
+export function unlockedView(placements) {
+  return placements.map((p) => {
+    if (!p.locked) return p
+    if (!unlocked.has(p)) unlocked.set(p, { ...p, locked: false })
+    return unlocked.get(p)
+  })
+}
+
+const MAX_PLACEMENTS = 300
+const isNum = (v) => typeof v === 'number' && Number.isFinite(v)
+const isVec3 = (v) => Array.isArray(v) && v.length === 3 && v.every(isNum)
+
+// The check of an imported map file (the map JSON format, docs/features/maps.md). data: the parsed JSON.
+// Returns { board: { id, name, mat, matRotation, placements } } with the placements cleaned to the stored fields
+// (no id yet), or { error } in words for the player. Pure, so a bad file is refused before anything changes.
+export function validateBoard(data) {
+  const fail = (error) => ({ error })
+  if (!data || typeof data !== 'object' || Array.isArray(data))
+    return fail('The file is not a map.')
+  const mat = MATS.find((m) => m.name === data.mat)
+  if (typeof data.mat !== 'string') return fail('The file has no mat.')
+  if (!mat) return fail(`Unknown mat: ${data.mat}.`)
+  if (data.matRotation !== undefined && !isNum(data.matRotation))
+    return fail('The mat rotation is not a number.')
+  if (!Array.isArray(data.placements)) return fail('The file has no list of placements.')
+  if (data.placements.length > MAX_PLACEMENTS) return fail(`More than ${MAX_PLACEMENTS} pieces.`)
+  const placements = []
+  for (const [i, p] of data.placements.entries()) {
+    const at = `Piece ${i + 1}`
+    if (!p || typeof p !== 'object') return fail(`${at} is not an object.`)
+    if (typeof p.piece !== 'string' || !Object.hasOwn(TERRAIN_PIECES, p.piece))
+      return fail(`${at}: unknown piece ${JSON.stringify(p.piece)}.`)
+    if (!isVec3(p.position)) return fail(`${at}: bad position.`)
+    if (!isVec3(p.rotation)) return fail(`${at}: bad rotation.`)
+    if (!isNum(p.scale) && !isVec3(p.scale)) return fail(`${at}: bad scale.`)
+    if (p.size !== undefined && ![1, 2, 3, 4, 5].includes(p.size)) return fail(`${at}: bad size.`)
+    if (p.tint !== undefined && !isVec3(p.tint)) return fail(`${at}: bad tint.`)
+    const out = { piece: p.piece, position: p.position, rotation: p.rotation, scale: p.scale }
+    if (p.size !== undefined) out.size = p.size
+    if (p.tint !== undefined) out.tint = p.tint
+    placements.push(out)
+  }
+  return {
+    board: {
+      id: typeof data.id === 'string' ? data.id : '',
+      name: typeof data.name === 'string' ? data.name : '',
+      mat: mat.name,
+      matRotation: data.matRotation ?? mat.rotation,
+      placements,
+    },
+  }
+}
+
+// The stored custom pieces of a checked board, each with a new id (newId()), locked
+export function boardPieces(board, newId) {
+  return board.placements.map((p) => storedCustom({ ...p, id: newId() }))
 }

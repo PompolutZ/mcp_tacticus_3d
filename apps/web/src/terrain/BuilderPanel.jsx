@@ -8,6 +8,8 @@ import { SORTED_MATS, pieceGroups } from './builder.js'
 // Sandbox (state in the table document) use the same panel.
 // mapId, mapName, onMapId, onMapName: the `id` and `name` fields of the export. matName: the shown mat.
 // pieceCount: placed pieces. onLoadMap(id), onExport(), onPickMat(name), onClear(), onAdd(piece).
+// onImport(file): the Import button, a .json file in the map format; without it there is no button. message: a line
+// under the buttons (a refused file). canExport: false when there is nothing to export (no mat).
 export default function BuilderPanel({
   mapId,
   mapName,
@@ -20,6 +22,9 @@ export default function BuilderPanel({
   onPickMat,
   onClear,
   onAdd,
+  onImport,
+  message = '',
+  canExport = true,
 }) {
   const [filter, setFilter] = useState('')
   const groups = useMemo(() => pieceGroups(filter), [filter])
@@ -58,11 +63,31 @@ export default function BuilderPanel({
       <button
         type="button"
         className="terrain-row"
-        disabled={!MAP_ID_PATTERN.test(mapId)}
+        disabled={!canExport || !MAP_ID_PATTERN.test(mapId)}
         onClick={onExport}
       >
         Export
       </button>
+      {onImport && (
+        <label className="terrain-row terrain-import">
+          Import
+          <input
+            type="file"
+            accept=".json,application/json"
+            hidden
+            onChange={(e) => {
+              const [file] = e.target.files
+              e.target.value = ''
+              if (file) onImport(file)
+            }}
+          />
+        </label>
+      )}
+      {message && (
+        <p className="terrain-message" role="alert">
+          {message}
+        </p>
+      )}
       <h2 className="terrain-heading">Mats</h2>
       <ul className="terrain-list terrain-mats">
         {SORTED_MATS.map((m) => (

@@ -61,7 +61,9 @@ import { useGameSetup } from './setup/useGameSetup.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
 import { useHudTop } from './useHudTop.js'
 import { DebugPanel } from './debug/DebugPanel.jsx'
-import { withPlacements } from './rooms/table.js'
+import { mapChoice, tableMat, withPlacements } from './rooms/table.js'
+import SandboxBuilder from './terrain/SandboxBuilder.jsx'
+import { useBuilderEdits } from './terrain/useBuilderEdits.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
 import { useTableTools } from './tabletools/useTableTools.js'
@@ -153,7 +155,7 @@ export default function App({
   const [spectator, setSpectator] = useState(false)
   // Scene reads matTurns itself
   const setMatTurns = (next) => table.game.setField('matTurns', next)
-  const [mapId, setMapId] = useYField(table.game, 'mapId')
+  const [mapId] = useYField(table.game, 'mapId')
   // The mat of a custom board, or null for the mat of the map (tableMat in rooms/table.js)
   const [mat] = useYField(table.game, 'mat')
   // The terrain pieces on the mat, see mapTerrain in rooms/table.js. A new map replaces them. The document
@@ -412,7 +414,6 @@ export default function App({
     writeLog,
     sceneApi,
     setMatTurns,
-    setMapId,
     setTerrain,
     setSelection,
     setLooseTokens,
@@ -420,6 +421,14 @@ export default function App({
     setTacticCards,
     showHudMessage,
   })
+  // Build mode of the Sandbox (terrain/SandboxBuilder.jsx). A view flag: the terrain locks are not written.
+  const [buildOn, setBuildOn] = useState(false)
+  const builder = useBuilderEdits({ table, mapId, setTerrain, setSelection })
+  const buildScene = useMemo(
+    () => (buildOn ? { onDrop: builder.move } : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- builder.move reads mapId only
+    [buildOn, mapId],
+  )
   const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it
   const rackShown = toolsOnTable('rack')
@@ -743,6 +752,7 @@ export default function App({
       logOpen,
       diceTray: hoveredNow().diceTray,
       overPiece: !!hoveredNow().piece,
+      building: buildOn,
       bindings,
     }),
     actions: {
@@ -836,6 +846,7 @@ export default function App({
     onToolDragStart: startToolDrag,
     onTurnMat: handleTurnMat,
     onMapChange: handleMapChange,
+    onBuildClick: () => setBuildOn((prev) => !prev),
     onCrisisChange: handleCrisisChange,
     onRosterLoad: handleRosterLoad,
     onRosterRemove: handleRosterRemove,
@@ -903,6 +914,7 @@ export default function App({
                   tableButtons={tableButtons}
                   toolRack={toolRack}
                   terrain={terrain}
+                  build={buildScene}
                   characters={characters}
                   tools={tools}
                   toolReturn={rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)}
@@ -970,7 +982,8 @@ export default function App({
             side={room?.side ?? null}
             players={room?.players ?? null}
             connection={connection}
-            mapId={mapId}
+            mapChoice={mapChoice(mapId, tableMat(mapId, mat), terrain.length)}
+            buildOn={buildOn}
             activeRange={activeRange}
             activeMove={activeMove}
             angleOn={angleOn}
@@ -982,6 +995,17 @@ export default function App({
             setupOpen={setupOpen}
           />
         </div>
+        {buildOn && !room && (
+          <SandboxBuilder
+            mapId={mapId}
+            mat={mat}
+            terrain={terrain}
+            edits={builder}
+            onRemove={handleTerrainRemove}
+            onLoadMap={handleMapChange}
+            keysOn={!popupOpen}
+          />
+        )}
         <TokenPanel
           tokens={tokens}
           onFlip={handleTokenFlip}

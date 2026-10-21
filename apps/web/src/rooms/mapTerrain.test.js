@@ -3,7 +3,16 @@ import assert from 'node:assert/strict'
 import { MAPS } from '../terrain/maps/index.js'
 import * as Y from 'yjs'
 import { createTable, fillTable } from '../net/doc.js'
-import { fillMap, mapTerrain, startTable } from './table.js'
+import { MATS } from '../terrain/catalog.js'
+import {
+  applyEmptyMat,
+  applyMap,
+  fillMap,
+  mapChoice,
+  mapTerrain,
+  startTable,
+  tableMat,
+} from './table.js'
 
 test('mapTerrain ids are mapId:index and the same on every call', () => {
   const mapId = Object.keys(MAPS)[0]
@@ -67,4 +76,34 @@ test('two fills of the same map merge into one set of pieces', () => {
 test('startTable has game.mat null', () => {
   assert.equal(startTable(Object.keys(MAPS)[0]).mat, null)
   assert.equal(startTable(null).mat, null)
+})
+
+test('Empty mat writes the mat and an empty terrain in one change; a map brings the mat back', () => {
+  const mapId = Object.keys(MAPS)[0]
+  const table = openTable(emptyTableBytes())
+  applyMap(table, mapId)
+  assert.ok(table.terrain.read().length > 0)
+  let changes = 0
+  table.doc.on('update', () => changes++)
+  const mat = MATS[MATS.length - 1]
+  applyEmptyMat(table, mat)
+  assert.equal(changes, 1)
+  assert.equal(table.game.get('mapId'), null)
+  assert.deepEqual(table.game.get('mat'), { name: mat.name, rotation: mat.rotation })
+  assert.deepEqual(table.terrain.read(), [])
+  assert.deepEqual(tableMat(null, table.game.get('mat')), {
+    name: mat.name,
+    rotation: mat.rotation,
+  })
+  applyMap(table, mapId)
+  assert.equal(table.game.get('mat'), null)
+  assert.equal(table.game.get('mapId'), mapId)
+})
+
+test('the Map select shows the map, a custom board or the empty mat', () => {
+  const mat = { name: MATS[0].name, rotation: 0 }
+  assert.equal(mapChoice('m', null, 3), 'm')
+  assert.equal(mapChoice(null, mat, 0), `mat:${mat.name}`)
+  assert.equal(mapChoice(null, mat, 2), 'custom')
+  assert.equal(mapChoice(null, null, 0), '')
 })

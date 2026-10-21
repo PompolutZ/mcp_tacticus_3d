@@ -73,6 +73,39 @@ export function tableMat(mapId, mat) {
   return map ? { name: map.mat, rotation: map.matRotation } : null
 }
 
+// The Sandbox Map select (docs/features/map-builder.md, "Empty mat"): the writes of each choice, in one change.
+// A map: its id and terrain, and the mat of the map (game.mat null). An empty mat: no map, game.mat from the
+// catalog row { name, rotation }, no terrain. A board (the file import): no map, the given mat and pieces.
+export function applyMap(table, mapId) {
+  table.transact(() => {
+    table.game.setField('mapId', mapId)
+    table.game.setField('mat', null)
+    table.terrain.set(mapTerrain(mapId))
+  })
+}
+
+export function applyBoard(table, mat, terrain) {
+  table.transact(() => {
+    table.game.setField('mapId', null)
+    table.game.setField('mat', { name: mat.name, rotation: mat.rotation })
+    table.terrain.set(terrain)
+  })
+}
+
+export function applyEmptyMat(table, mat) {
+  applyBoard(table, mat, [])
+}
+
+// The value of the Map select for the table: the map id, 'custom' (no map, but pieces: a built or imported
+// board), 'mat:<name>' (an empty mat) or '' (nothing).
+export const CUSTOM_BOARD = 'custom'
+export const MAT_PREFIX = 'mat:'
+export function mapChoice(mapId, mat, pieceCount) {
+  if (mapId != null) return mapId
+  if (pieceCount > 0) return CUSTOM_BOARD
+  return mat ? `${MAT_PREFIX}${mat.name}` : ''
+}
+
 // The map fill of a random multiplayer room (docs/features/rooms.md, "Room"): when the table has no map
 // and the room has one, writes game.mapId and the terrain of that map in one change. Returns true when it
 // wrote. The terrain ids are fixed, so two browsers that fill the same map merge into one set of pieces.

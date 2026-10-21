@@ -1,5 +1,7 @@
+import { MAPS } from '../terrain/maps/index.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
-import { droppedY, mapTerrain } from '../rooms/table.js'
+import { MAT_PREFIX, applyEmptyMat, applyMap, droppedY } from '../rooms/table.js'
+import { MATS } from '../terrain/catalog.js'
 import { deselectPiece } from '../selection.js'
 import { cardPiles, firstFreeSlot, nearestFreeSlot, tacticTrayAt } from '../tactics/layout.js'
 import { getTactic } from '../tactics/cards.js'
@@ -16,7 +18,6 @@ export function useTablePieces({
   writeLog,
   sceneApi,
   setMatTurns,
-  setMapId,
   setTerrain,
   setSelection,
   setLooseTokens,
@@ -29,13 +30,18 @@ export function useTablePieces({
     setMatTurns((prev) => (prev + direction + 4) % 4)
   }
 
-  // A new map brings its own terrain, all locked. The selected terrain piece is gone. One change of the
-  // document, so no render shows the new map with the old terrain.
-  function handleMapChange(id) {
-    table.transact(() => {
-      setMapId(id)
-      setTerrain(mapTerrain(id))
-    })
+  // A new map brings its own terrain, all locked, and its own mat. The selected terrain piece is gone. One change of
+  // the document, so no render shows the new map with the old terrain. A value 'mat:<name>' is an "Empty mat" row of
+  // the Sandbox Map select: no map, that mat, no terrain (docs/features/map-builder.md).
+  function handleMapChange(value) {
+    if (value.startsWith(MAT_PREFIX)) {
+      const mat = MATS.find((m) => m.name === value.slice(MAT_PREFIX.length))
+      if (!mat) return
+      applyEmptyMat(table, mat)
+    } else {
+      if (!MAPS[value]) return
+      applyMap(table, value)
+    }
     setSelection((prev) => prev.filter((p) => p.kind !== 'terrain'))
   }
 

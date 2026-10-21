@@ -38,6 +38,7 @@ const TERRAIN_FIELDS = [
   'scale',
   'size',
   'tint',
+  'rev',
 ]
 const LISTS = ['terrain', 'characters', 'tokens', 'tactics', 'looseTokens', 'tokenPiles']
 

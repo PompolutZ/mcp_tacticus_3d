@@ -3,6 +3,8 @@ import { COLOR_NAME } from '../sideColors.js'
 import { useSideColors } from '../table/useSideColors.jsx'
 import { TEAMS } from '../setup/setup.js'
 import { MAPS } from '../terrain/maps/index.js'
+import { SORTED_MATS } from '../terrain/builder.js'
+import { CUSTOM_BOARD, MAT_PREFIX } from '../rooms/table.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from '../rooms/CopyLinkButton.jsx'
 import '../rooms/comicBase.js'
@@ -22,6 +24,7 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
+// mapChoice: the value of the Map select (rooms/table.js, mapChoice). buildOn: Build mode is on.
 // roomCode: the code of the room, or null in the Sandbox. A room has a fixed map and the Blue roster of
 // the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
 // replaces or removes the Red roster of the room (docs/features/rooms.md).
@@ -37,7 +40,8 @@ function Toolbar({
   side = null,
   players = null,
   connection = null,
-  mapId,
+  mapChoice,
+  buildOn = false,
   activeRange,
   activeMove,
   angleOn,
@@ -52,6 +56,7 @@ function Toolbar({
   const {
     onLobby,
     onMapChange,
+    onBuildClick,
     onRangeClick,
     onMoveClick,
     onAngleClick,
@@ -250,15 +255,41 @@ function Toolbar({
                 className="hud-select hud-select--inline"
                 title="Map"
                 aria-label="Map"
-                value={mapId}
+                value={mapChoice}
                 onChange={(e) => onMapChange(e.target.value)}
               >
-                {Object.entries(MAPS).map(([id, map]) => (
-                  <option key={id} value={id}>
-                    {map.name}
+                {mapChoice === '' && <option value="" disabled />}
+                {mapChoice === CUSTOM_BOARD && (
+                  <option value={CUSTOM_BOARD} disabled>
+                    Custom board
                   </option>
-                ))}
+                )}
+                <optgroup label="Maps">
+                  {Object.entries(MAPS).map(([id, map]) => (
+                    <option key={id} value={id}>
+                      {map.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Empty mat">
+                  {SORTED_MATS.map((m) => (
+                    <option key={m.name} value={`${MAT_PREFIX}${m.name}`}>
+                      {m.name}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
+            )}
+            {!roomCode && (
+              <button
+                type="button"
+                className={`hud-chip${buildOn ? ' hud-chip--on' : ''}`}
+                aria-pressed={buildOn}
+                title="Build mode: add, move, turn and remove terrain pieces, export and import a board"
+                onClick={onBuildClick}
+              >
+                Build
+              </button>
             )}
             {matTurnHud && (
               <>

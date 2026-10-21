@@ -104,6 +104,7 @@ A logged-in player who opens the link of a versus room with a free seat sees thi
 ## Sandbox
 
 - The app as before: map picker, both roster fields, the same start map.
+- The map picker has a second group, **Empty mat**: one row per mat. It shows the mat with no map and no terrain. **Build** next to the picker opens the map builder (`map-builder.md`). The Sandbox is the only table with them.
 - Nothing is saved. **← Lobby** asks with a browser confirm first, because the table is lost.
 
 ## Loading

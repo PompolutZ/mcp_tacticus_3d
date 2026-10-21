@@ -27,7 +27,7 @@ export function mapToState(map, newId) {
 
 // The page state { id, name, ttsMap, note, mat, matRotation, placements, skipped } -> the map object, with the
 // field order of the migrate script. Positions have 3 decimals, rotations 2. The page-only fields of a
-// placement (id, rev, locked) are dropped.
+// placement (id, rev, locked, index) are dropped.
 export function exportMap(state) {
   const map = { id: state.id, name: state.name }
   if (state.ttsMap != null) map.ttsMap = state.ttsMap
@@ -44,7 +44,7 @@ export function exportMapText(state) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function exportPlacement({ id, rev, locked, ...p }) {
+function exportPlacement({ id, rev, locked, index, ...p }) {
   return {
     ...p,
     position: p.position.map((v) => round(v, 3)),

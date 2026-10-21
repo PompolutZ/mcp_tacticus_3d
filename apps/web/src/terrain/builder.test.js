@@ -3,13 +3,20 @@ import assert from 'node:assert/strict'
 import { Box3, Vector3 } from 'three'
 import {
   addPlacement,
+  boardPieces,
   clearPlacements,
+  editStoredPiece,
+  unlockedView,
+  validateBoard,
   movePlacement,
   newPlacement,
   pieceGroups,
   removePlacement,
   turnPlacement,
 } from './builder.js'
+import { MATS } from './catalog.js'
+import { TERRAIN_PIECES } from './pieces.js'
+import { MAPS } from './maps/index.js'
 import { IMPORT_ROTATION, restY, toThreeTransform } from './placementMove.js'
 
 // The lowest world y (relative to the mat top) of a box after the placement transform, by brute force
@@ -94,4 +101,78 @@ test('the filter keeps the groups that have a match', () => {
   for (const g of pieceGroups(` ${first.toUpperCase()} `)) {
     assert.ok(g.pieces.every((p) => p.name.toLowerCase().includes(first.toLowerCase())))
   }
+})
+
+const KEY = Object.keys(TERRAIN_PIECES)[0]
+const good = () => ({
+  id: 'x',
+  name: 'X',
+  mat: MATS[0].name,
+  matRotation: 90,
+  placements: [{ piece: KEY, position: [1, 2, 3], rotation: [0, 45, 0], scale: 1.5, size: 2 }],
+})
+
+test('import check: a good file gives the board', () => {
+  const { board, error } = validateBoard(good())
+  assert.equal(error, undefined)
+  assert.equal(board.mat, MATS[0].name)
+  assert.equal(board.matRotation, 90)
+  assert.equal(board.placements.length, 1)
+  const stored = boardPieces(board, () => 'new')
+  assert.equal(stored[0].id, 'new')
+  assert.equal(stored[0].piece, KEY)
+  assert.equal(stored[0].locked, true)
+})
+
+test('import check: an export of a map is a good file', () => {
+  const map = Object.values(MAPS)[0]
+  assert.equal(validateBoard(JSON.parse(JSON.stringify(map))).error, undefined)
+})
+
+test('import check: bad shapes are refused with a message', () => {
+  for (const data of [null, [], 'x', 5]) assert.ok(validateBoard(data).error)
+  const bad = (change) => validateBoard(change(good())).error
+  assert.ok(bad((d) => ({ ...d, placements: 'no' })))
+  assert.ok(bad((d) => ({ ...d, matRotation: 'x' })))
+  assert.ok(bad((d) => ({ ...d, placements: [null] })))
+  assert.ok(bad((d) => ({ ...d, placements: [{ ...d.placements[0], position: [1, 2] }] })))
+  assert.ok(bad((d) => ({ ...d, placements: [{ ...d.placements[0], rotation: [0, NaN, 0] }] })))
+  assert.ok(bad((d) => ({ ...d, placements: [{ ...d.placements[0], scale: 'big' }] })))
+})
+
+test('import check: an unknown piece key or mat is refused', () => {
+  assert.match(
+    validateBoard({ ...good(), placements: [{ ...good().placements[0], piece: 'no-such' }] }).error,
+    /unknown piece/,
+  )
+  assert.ok(
+    validateBoard({ ...good(), placements: [{ ...good().placements[0], piece: 'toString' }] })
+      .error,
+  )
+  assert.match(validateBoard({ ...good(), mat: 'No such mat' }).error, /Unknown mat/)
+  assert.ok(validateBoard({ ...good(), mat: undefined }).error)
+})
+
+test('a move of a map piece makes a custom piece with the same id and lock; the rest stays', () => {
+  const mapId = Object.keys(MAPS)[0]
+  const other = { id: 'b', index: 1, locked: true }
+  const stored = [{ id: 'a', index: 0, locked: true, y: 0.5 }, other]
+  const out = editStoredPiece(mapId, stored, 'a', (l) => movePlacement(l, 'a', 2, 0))
+  const base = MAPS[mapId].placements[0].position
+  assert.equal(out[0].id, 'a')
+  assert.equal(out[0].locked, true)
+  assert.equal(out[0].index, undefined)
+  assert.equal(out[0].y, undefined)
+  assert.deepEqual(out[0].position, [base[0] + 2, 0.5, base[2]])
+  assert.equal(out[1], other)
+})
+
+test('Build mode unlocks the view only: the stored pieces keep their lock', () => {
+  const locked = { ...newPlacement(PIECE, 'a', MIDDLE), locked: true }
+  const open = { ...newPlacement(PIECE, 'b', MIDDLE), locked: false }
+  const view = unlockedView([locked, open])
+  assert.equal(view[0].locked, false)
+  assert.equal(view[1], open)
+  assert.equal(locked.locked, true)
+  assert.equal(unlockedView([locked])[0], view[0])
 })

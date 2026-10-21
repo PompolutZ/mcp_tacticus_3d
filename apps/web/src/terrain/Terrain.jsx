@@ -8,7 +8,7 @@ import {
   RigidBody,
   TrimeshCollider,
 } from '@react-three/rapier'
-import { useEffect, useMemo, useRef, useState, memo } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState, memo } from 'react'
 import * as THREE from 'three'
 import { colliderNode, primitiveCollider, transformVertices } from './bundleColliders.js'
 import { bundleColliderMeshes, pieceUrls } from './urls.js'
@@ -387,18 +387,24 @@ function Terrain({
   const storeSelectedId = useTableStore((s) => selectedPieceId(s.selection, 'terrain'))
   const shownId = selectedId ?? storeSelectedId
   const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
+  // Each piece has its own Suspense: a piece that is added in Build mode loads its files without hiding the pieces
+  // that are placed
   return placements.map((placement) => (
-    <TerrainPiece
+    <Suspense
       key={`${placement.id}:${placement.rev ?? 0}:${placement.position[1]}`}
-      placement={placement}
-      showLabel={showLabels || hoverLabelId === placement.id}
-      selected={shownId === placement.id}
-      onSelect={() => onSelect?.(placement.id)}
-      onHover={(over) => onHover?.(placement.id, over)}
-      objectRef={(obj) => objectRef?.(placement.id, obj)}
-      groupRef={(group) => groupRef?.(placement.id, group)}
-      onPointerDown={onPointerDown && ((e) => onPointerDown(placement.id, e))}
-    />
+      fallback={null}
+    >
+      <TerrainPiece
+        placement={placement}
+        showLabel={showLabels || hoverLabelId === placement.id}
+        selected={shownId === placement.id}
+        onSelect={() => onSelect?.(placement.id)}
+        onHover={(over) => onHover?.(placement.id, over)}
+        objectRef={(obj) => objectRef?.(placement.id, obj)}
+        groupRef={(group) => groupRef?.(placement.id, group)}
+        onPointerDown={onPointerDown && ((e) => onPointerDown(placement.id, e))}
+      />
+    </Suspense>
   ))
 }
 
