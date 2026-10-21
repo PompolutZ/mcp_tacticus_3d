@@ -16,7 +16,7 @@ A new piece stands with the bottom of its mesh on the mat top. The piece is a mo
 
 ## Drag
 
-The drag plane is the horizontal plane through the point where the press grabbed the piece. The grabbed point stays under the pointer, also when the piece is grabbed on its side or top and the camera looks at an angle. A plane at the mat top would not do this: the move on that plane is not the move under the pointer. The height of the piece does not change, and the piece does not climb on other pieces. A drag moves the piece on the table only; the drop writes the position and mounts the piece again with its fixed body. Esc puts the piece back.
+The drag plane is the horizontal plane through the point where the press grabbed the piece. The grabbed point stays under the pointer, also when the piece is grabbed on its side or top and the camera looks at an angle. A plane at the mat top would not do this: the move on that plane is not the move under the pointer. The height of the piece does not change, and the piece does not climb on other pieces. A drag moves the piece on the table only; the drop writes the position and mounts the piece again with its fixed body. The move is taken in the frame of the mat group, so it follows the pointer when the mat is turned. Only one terrain drag runs at a time. Esc puts the piece back.
 
 ## Board in the document
 
