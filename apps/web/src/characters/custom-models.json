@@ -2,6 +2,9 @@
   "adam-warlock": {
     "characters/adam-warlock/model.glb": "pnpm --filter web photos-to-glb \"<Adam Warlock 3rd photos>\" --base small --texture 1024 --tone strong"
   },
+  "baron-zemo": {
+    "characters/baron-zemo/model.glb": "pnpm --filter web photos-to-glb \"<Baron Zemo photos>\" --base small --texture 1024 --tone medium --triangles 60000 && pnpm --filter web turn-model baron-zemo 90"
+  },
   "bastion": {
     "characters/bastion/model.glb": "pnpm --filter web photos-to-glb \"<Bastion 2nd photos>\" --base small --texture 1024 --tone medium"
   },
@@ -13,6 +16,9 @@
   },
   "hawkeye": {
     "characters/hawkeye/model.glb": "pnpm --filter web photos-to-glb \"<Hawkeye photos>\" --base small --texture 1024 --tone medium --triangles 60000"
+  },
+  "hulk": {
+    "characters/hulk/model.glb": "pnpm --filter web photos-to-glb \"<Hulk photos>\" --base large --texture 1024 --tone medium --triangles 60000"
   },
   "lockjaw": {
     "characters/lockjaw/model.glb": "pnpm --filter web photos-to-glb \"<Lockjaw photos>\" --base medium --texture 1024 --tone medium --triangles 60000"

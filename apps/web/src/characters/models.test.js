@@ -149,8 +149,8 @@ test('a TTS model keeps its rotation, also when a scan of another character exis
   const tts = {
     figure: 'model',
     rotation: 90,
-    character: { key: 'hulk' },
-    file: characterModel('hulk'),
+    character: { key: 'iron-man' },
+    file: characterModel('iron-man'),
   }
   assert.ok(Math.abs(modelFigureYaw(tts) - Math.PI / 2) < 1e-9)
   // The transform file of a scanned character is a TTS file
