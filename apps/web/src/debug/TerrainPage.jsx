@@ -1,7 +1,7 @@
-import { Suspense, startTransition, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, useThree } from '@react-three/fiber'
+import { Suspense, startTransition, useCallback, useEffect, useRef, useState } from 'react'
+import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { Physics, useRapier } from '@react-three/rapier'
+import { Physics } from '@react-three/rapier'
 import { KeyboardCamera } from '../scene/KeyboardCamera.jsx'
 import { CameraHover } from '../scene/CameraHover.jsx'
 import { WheelCamera } from '../scene/WheelCamera.jsx'
@@ -14,12 +14,22 @@ import { canvasEvents } from '../scene/canvasEvents.js'
 import { CAMERA_MOUSE_BUTTONS, MAX_POLAR_ANGLE, startView } from '../camera.js'
 import { defaultBindings } from '../input/bindings.js'
 import { WORLD_GRAVITY } from '../physics.js'
-import { startPointerDrag } from '../drag/pointerDrag.js'
-import { tablePoint } from '../drag/tablePoint.js'
-import { movedPosition, turnedRotation } from '../terrain/placementMove.js'
-import { MATS, PIECES_BY_SIZE } from '../terrain/catalog.js'
-import { MAPS, TTS_MAT_TOP } from '../terrain/maps/index.js'
-import { MAP_ID_PATTERN, exportMapText, mapToState } from '../terrain/exportMap.js'
+import BuilderPanel from '../terrain/BuilderPanel.jsx'
+import { useTerrainDrag } from '../terrain/useTerrainDrag.js'
+import { useBuilderKeys } from '../terrain/useBuilderKeys.js'
+import { loadPieceBox } from '../terrain/pieceBox.js'
+import {
+  SORTED_MATS,
+  addPlacement,
+  clearPlacements,
+  exportBoardText,
+  loadMapState,
+  movePlacement,
+  newPlacement,
+  removePlacement,
+  turnPlacement,
+} from '../terrain/builder.js'
+import { MAPS } from '../terrain/maps/index.js'
 
 // Dev-only page (#terrain, see Root.jsx): the mats and the terrain pieces of all maps. A click on a mat shows it,
 // a click on a piece adds it at the mat center. See docs/features/maps.md, "Terrain page". It is not in the
@@ -38,82 +48,20 @@ const wheelState = () => ({
   bindings: BINDINGS,
 })
 
-const GROUPS = [
-  { key: '1', title: 'Size 1' },
-  { key: '2', title: 'Size 2' },
-  { key: '3', title: 'Size 3' },
-  { key: '4', title: 'Size 4' },
-  { key: '5', title: 'Size 5' },
-  { key: 'none', title: 'No size' },
-]
-const SORTED_MATS = [...MATS].sort((a, b) => a.name.localeCompare(b.name))
-
 // The held camera keys of KeyboardCamera: W A S D pan, the arrows turn (input/bindings.js)
 const PAN_KEYS = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }
 const TURN_KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
 
-// The ground of a drag is the plane of the mat top, not the colliders: the piece itself and the pieces
-// under it would give a point on their tops. A world with no hit makes tablePoint use the table plane
-// (y 0 in Three coords, which is the mat top).
-const NO_HIT_WORLD = { castRay: () => null }
-
-// The terrain of the page, with the drag of a placed piece. Inside Physics (needs Rapier for tablePoint).
-// A drag moves only the placement group (the body is fixed and does not follow). The drop writes the
-// new TTS position and bumps rev, so the piece remounts with its body.
-function EditableTerrain({ placements, setPlacements, selectedId, setSelectedId }) {
-  const { camera, gl } = useThree()
-  const controls = useThree((state) => state.controls)
-  const { rapier } = useRapier()
-  const groups = useRef(new Map())
-
-  const groundPoint = (clientX, clientY) =>
-    tablePoint({ camera, canvas: gl.domElement, world: NO_HIT_WORLD, rapier }, clientX, clientY)
-
-  function handlePointerDown(id, e) {
-    const group = groups.current.get(id)
-    const start = groundPoint(e.clientX, e.clientY)
-    if (!group || !start) return
-    // The piece keeps its place under the pointer: the move is the pointer move from the press
-    const origin = group.position.clone()
-    let move = { dx: 0, dz: 0 }
-    startPointerDrag(e, {
-      controls,
-      canvas: gl.domElement,
-      onStart: () => setSelectedId(id),
-      onMove: (ev) => {
-        const point = groundPoint(ev.clientX, ev.clientY)
-        if (!point) return false
-        move = { dx: point.x - start.x, dz: point.z - start.z }
-        group.position.set(origin.x + move.dx, origin.y, origin.z + move.dz)
-        return false
-      },
-      onEnd: () => {
-        startTransition(() =>
-          setPlacements((list) =>
-            list.map((p) =>
-              p.id === id
-                ? {
-                    ...p,
-                    position: movedPosition(p.position, move.dx, move.dz),
-                    rev: (p.rev ?? 0) + 1,
-                  }
-                : p,
-            ),
-          ),
-        )
-      },
-      // A cancel puts the group back
-      onCancel: () => group.position.copy(origin),
-    })
-  }
-
+// The terrain of the page, with the drag of a placed piece. Inside the Canvas (the drag reads the camera).
+function EditableTerrain({ placements, onDrop, selectedId, setSelectedId }) {
+  const drag = useTerrainDrag({ onDrop, onSelect: setSelectedId })
   return (
     <Terrain
       placements={placements}
       selectedId={selectedId}
       onSelect={setSelectedId}
-      onPointerDown={handlePointerDown}
-      groupRef={(id, group) => (group ? groups.current.set(id, group) : groups.current.delete(id))}
+      onPointerDown={drag.onPointerDown}
+      groupRef={drag.groupRef}
     />
   )
 }
@@ -122,7 +70,6 @@ export default function TerrainPage() {
   // The scene parts read the look and the settings from a store of the table; the page has the defaults
   const [store] = useState(() => createTableStore({}))
   const [matName, setMatName] = useState(SORTED_MATS[0].name)
-  const [filter, setFilter] = useState('')
   // [{ id, piece, size, position, rotation, scale, tint, locked }], relative to the mat center (TTS coords)
   const [placements, setPlacements] = useState([])
   const [selectedId, setSelectedId] = useState(null)
@@ -134,7 +81,6 @@ export default function TerrainPage() {
   const heldPan = useRef(new Map())
   const heldTurn = useRef(new Map())
   const mat = SORTED_MATS.find((m) => m.name === matName)
-  const idValid = MAP_ID_PATTERN.test(mapId)
 
   // The camera keys. Not while a field has the focus.
   useEffect(() => {
@@ -166,64 +112,38 @@ export default function TerrainPage() {
     }
   }, [])
 
-  // Q / E turn the selected piece by 15° (Q counter-clockwise seen from above), Delete or Backspace removes it.
-  // Not while a field has the focus, and not with a modifier (Ctrl+Q, Cmd+Backspace are the browser's).
-  useEffect(() => {
-    function onKey(e) {
-      if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return
-      if (!selectedId) return
-      const dir = e.code === 'KeyQ' ? 1 : e.code === 'KeyE' ? -1 : 0
-      if (dir) {
-        e.preventDefault()
-        startTransition(() =>
-          setPlacements((list) =>
-            list.map((p) =>
-              p.id === selectedId
-                ? { ...p, rotation: turnedRotation(p.rotation, dir), rev: (p.rev ?? 0) + 1 }
-                : p,
-            ),
-          ),
-        )
-      } else if (e.code === 'Delete' || e.code === 'Backspace') {
-        e.preventDefault()
-        setPlacements((list) => list.filter((p) => p.id !== selectedId))
-        setSelectedId(null)
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+  // startTransition: a turn mounts the piece again, and the pieces that are placed stay on screen meanwhile
+  const turnSelected = useCallback(
+    (dir) => startTransition(() => setPlacements((list) => turnPlacement(list, selectedId, dir))),
+    [selectedId],
+  )
+  const removeSelected = useCallback(() => {
+    setPlacements((list) => removePlacement(list, selectedId))
+    setSelectedId(null)
   }, [selectedId])
+  useBuilderKeys({ selectedId, onTurn: turnSelected, onRemove: removeSelected })
+
+  const drop = (id, dx, dz) =>
+    startTransition(() => setPlacements((list) => movePlacement(list, id, dx, dz)))
 
   function clearPieces() {
-    setPlacements([])
+    setPlacements(clearPlacements())
     setSelectedId(null)
   }
 
-  const groups = useMemo(() => {
-    const needle = filter.trim().toLowerCase()
-    return GROUPS.map((g) => ({
-      ...g,
-      pieces: PIECES_BY_SIZE[g.key].filter((p) => p.name.toLowerCase().includes(needle)),
-    })).filter((g) => g.pieces.length > 0)
-  }, [filter])
-
-  // startTransition: a new piece loads its files, and the pieces that are placed stay on screen meanwhile
-  function addPiece(p) {
+  // The box comes first (the files load async), then the piece is placed with its bottom on the mat.
+  // startTransition: the new piece loads its files, and the pieces that are placed stay on screen meanwhile
+  async function addPiece(p) {
     const id = crypto.randomUUID()
+    let box
+    try {
+      box = await loadPieceBox(p.key)
+    } catch (error) {
+      console.error('terrain piece box', p.key, error)
+      return
+    }
     startTransition(() => {
-      setPlacements((list) => [
-        ...list,
-        {
-          id,
-          piece: p.key,
-          size: p.size,
-          position: [0, TTS_MAT_TOP, 0],
-          rotation: [0, 0, 0],
-          scale: p.scale,
-          tint: p.tint,
-          locked: false,
-        },
-      ])
+      setPlacements((list) => addPlacement(list, newPlacement(p, id, box)))
       setSelectedId(id)
     })
   }
@@ -240,7 +160,7 @@ export default function TerrainPage() {
   function loadMap(id) {
     const map = MAPS[id]
     if (!map) return
-    const state = mapToState(map, () => crypto.randomUUID())
+    const state = loadMapState(map, () => crypto.randomUUID())
     startTransition(() => {
       setMatName(state.mat)
       setMatRotation(state.matRotation)
@@ -254,7 +174,7 @@ export default function TerrainPage() {
 
   // Downloads <id>.json, the file format of the maps (src/terrain/exportMap.js)
   function exportFile() {
-    const text = exportMapText({
+    const text = exportBoardText({
       ...meta,
       id: mapId,
       name: mapName,
@@ -273,90 +193,19 @@ export default function TerrainPage() {
   return (
     <TableStoreProvider store={store}>
       <div className="terrain-page">
-        <aside className="terrain-panel">
-          <h2 className="terrain-heading">Map</h2>
-          <select
-            className="chip terrain-select"
-            value=""
-            aria-label="Load map"
-            onChange={(e) => loadMap(e.target.value)}
-          >
-            <option value="">Load map...</option>
-            {Object.values(MAPS).map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            className="chip chip--text terrain-filter"
-            placeholder="id (kebab-case)"
-            aria-label="Map id"
-            value={mapId}
-            onChange={(e) => setMapId(e.target.value)}
-          />
-          <input
-            type="text"
-            className="chip chip--text terrain-filter"
-            placeholder="Name"
-            aria-label="Map name"
-            value={mapName}
-            onChange={(e) => setMapName(e.target.value)}
-          />
-          <button type="button" className="terrain-row" disabled={!idValid} onClick={exportFile}>
-            Export
-          </button>
-          <h2 className="terrain-heading">Mats</h2>
-          <ul className="terrain-list terrain-mats">
-            {SORTED_MATS.map((m) => (
-              <li key={m.name}>
-                <button
-                  type="button"
-                  className={m.name === matName ? 'terrain-row terrain-row--active' : 'terrain-row'}
-                  onClick={() => pickMat(m.name)}
-                >
-                  {m.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <h2 className="terrain-heading">Pieces</h2>
-          <button
-            type="button"
-            className="terrain-row"
-            disabled={placements.length === 0}
-            onClick={clearPieces}
-          >
-            Clear ({placements.length})
-          </button>
-          <input
-            type="search"
-            className="chip chip--text terrain-filter"
-            placeholder="Filter by name"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-          <div className="terrain-pieces">
-            {groups.map((g) => (
-              <section key={g.key}>
-                <h3 className="terrain-group">
-                  {g.title} <span className="terrain-count">{g.pieces.length}</span>
-                </h3>
-                <ul className="terrain-list">
-                  {g.pieces.map((p) => (
-                    <li key={p.key}>
-                      <button type="button" className="terrain-row" onClick={() => addPiece(p)}>
-                        {p.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-            {groups.length === 0 && <p className="terrain-empty">No piece</p>}
-          </div>
-        </aside>
+        <BuilderPanel
+          mapId={mapId}
+          mapName={mapName}
+          onMapId={setMapId}
+          onMapName={setMapName}
+          matName={matName}
+          pieceCount={placements.length}
+          onLoadMap={loadMap}
+          onExport={exportFile}
+          onPickMat={pickMat}
+          onClear={clearPieces}
+          onAdd={addPiece}
+        />
         <div className="terrain-canvas">
           <div className="scene-root">
             <Canvas
@@ -377,7 +226,7 @@ export default function TerrainPage() {
                     <Mat mat={mat.name} rotation={matRotation} />
                     <EditableTerrain
                       placements={placements}
-                      setPlacements={setPlacements}
+                      onDrop={drop}
                       selectedId={selectedId}
                       setSelectedId={setSelectedId}
                     />

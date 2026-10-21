@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState, memo } from 'react'
 import * as THREE from 'three'
 import { colliderNode, primitiveCollider, transformVertices } from './bundleColliders.js'
 import { bundleColliderMeshes, pieceUrls } from './urls.js'
-import { toThreeTransform } from './placementMove.js'
+import { IMPORT_ROTATION, toThreeTransform } from './placementMove.js'
 import { terrainLabel } from './label.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { FRICTION } from '../physics.js'
@@ -31,9 +31,6 @@ const WHITE = [1, 1, 1]
 // The same limit as R3F uses for a click on the empty table (onPointerMissed in App.jsx).
 const CLICK_SLOP = 2
 
-// TTS mirrors X when it imports an OBJ. Combined with the Z mirror above,
-// this is a 180° turn around Y, so each mesh gets that turn.
-const IMPORT_ROTATION = [0, Math.PI, 0]
 // Distance in inches between the top of a piece and its label
 const LABEL_GAP = 0.3
 // The label must not take the pointer from the piece. Without an <Html transform>, drei ignores its

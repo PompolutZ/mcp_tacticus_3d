@@ -1,0 +1,112 @@
+import { useMemo, useState } from 'react'
+import { MAPS } from './maps/index.js'
+import { MAP_ID_PATTERN } from './exportMap.js'
+import { SORTED_MATS, pieceGroups } from './builder.js'
+
+// The side panel of the map builder (docs/features/map-builder.md). It owns no board data, only the piece filter:
+// the board comes in by props and every change goes out by a callback, so the dev page (state in React) and the
+// Sandbox (state in the table document) use the same panel.
+// mapId, mapName, onMapId, onMapName: the `id` and `name` fields of the export. matName: the shown mat.
+// pieceCount: placed pieces. onLoadMap(id), onExport(), onPickMat(name), onClear(), onAdd(piece).
+export default function BuilderPanel({
+  mapId,
+  mapName,
+  onMapId,
+  onMapName,
+  matName,
+  pieceCount,
+  onLoadMap,
+  onExport,
+  onPickMat,
+  onClear,
+  onAdd,
+}) {
+  const [filter, setFilter] = useState('')
+  const groups = useMemo(() => pieceGroups(filter), [filter])
+  return (
+    <aside className="terrain-panel">
+      <h2 className="terrain-heading">Map</h2>
+      <select
+        className="chip terrain-select"
+        value=""
+        aria-label="Load map"
+        onChange={(e) => onLoadMap(e.target.value)}
+      >
+        <option value="">Load map...</option>
+        {Object.values(MAPS).map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.name}
+          </option>
+        ))}
+      </select>
+      <input
+        type="text"
+        className="chip chip--text terrain-filter"
+        placeholder="id (kebab-case)"
+        aria-label="Map id"
+        value={mapId}
+        onChange={(e) => onMapId(e.target.value)}
+      />
+      <input
+        type="text"
+        className="chip chip--text terrain-filter"
+        placeholder="Name"
+        aria-label="Map name"
+        value={mapName}
+        onChange={(e) => onMapName(e.target.value)}
+      />
+      <button
+        type="button"
+        className="terrain-row"
+        disabled={!MAP_ID_PATTERN.test(mapId)}
+        onClick={onExport}
+      >
+        Export
+      </button>
+      <h2 className="terrain-heading">Mats</h2>
+      <ul className="terrain-list terrain-mats">
+        {SORTED_MATS.map((m) => (
+          <li key={m.name}>
+            <button
+              type="button"
+              className={m.name === matName ? 'terrain-row terrain-row--active' : 'terrain-row'}
+              onClick={() => onPickMat(m.name)}
+            >
+              {m.name}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <h2 className="terrain-heading">Pieces</h2>
+      <button type="button" className="terrain-row" disabled={pieceCount === 0} onClick={onClear}>
+        Clear ({pieceCount})
+      </button>
+      <input
+        type="search"
+        className="chip chip--text terrain-filter"
+        placeholder="Filter by name"
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+      />
+      <div className="terrain-pieces">
+        {groups.map((g) => (
+          <section key={g.key}>
+            <h3 className="terrain-group">
+              {g.title} <span className="terrain-count">{g.pieces.length}</span>
+            </h3>
+            <ul className="terrain-list">
+              {g.pieces.map((p) => (
+                <li key={p.key}>
+                  <button type="button" className="terrain-row" onClick={() => onAdd(p)}>
+                    {p.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+        {groups.length === 0 && <p className="terrain-empty">No piece</p>}
+      </div>
+    </aside>
+  )
+}
