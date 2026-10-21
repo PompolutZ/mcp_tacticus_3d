@@ -2,7 +2,8 @@
 // Each file comes from the helper of the component that loads it, so Preload.jsx loads the same input
 // and the component then gets the file from the cache.
 
-import { matUrl, pieceUrls } from '../terrain/urls.js'
+import { matImageUrl, pieceUrls } from '../terrain/urls.js'
+import { tableMat } from './table.js'
 import { modelUrls } from '../characters/modelUrls.js'
 import { characterModels } from '../characters/models.js'
 import { characterByCode } from '../characters/characters.js'
@@ -29,12 +30,13 @@ function rosterCharacters(roster) {
 
 // { gltf: [url], textures: [url | [url]] } for Preload.jsx. A list of URLs is one input: a standee
 // loads its 2 images together, and the loader caches them under that list.
-// terrain and characters: the App state at the start of the table. rosters: { host, guest }.
-export function tableFiles({ mapId, terrain, characters, rosters }) {
+// mat: game.mat (tableMat). terrain and characters: the App state at the start of the table. rosters: { host, guest }.
+export function tableFiles({ mapId, mat, terrain, characters, rosters }) {
   const gltf = new Set()
   const textures = new Map()
   const addTexture = (input) => textures.set(JSON.stringify(input), input)
-  if (mapId != null) addTexture(matUrl(mapId))
+  const tableMatNow = tableMat(mapId, mat)
+  if (tableMatNow) addTexture(matImageUrl(tableMatNow.name))
   for (const key of new Set(terrain.map((p) => p.piece))) {
     const urls = pieceUrls(key)
     gltf.add(urls.mesh)

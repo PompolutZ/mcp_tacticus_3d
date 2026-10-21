@@ -154,6 +154,8 @@ export default function App({
   // Scene reads matTurns itself
   const setMatTurns = (next) => table.game.setField('matTurns', next)
   const [mapId, setMapId] = useYField(table.game, 'mapId')
+  // The mat of a custom board, or null for the mat of the map (tableMat in rooms/table.js)
+  const [mat] = useYField(table.game, 'mat')
   // The terrain pieces on the mat, see mapTerrain in rooms/table.js. A new map replaces them. The document
   // stores each piece's index in the map data and its lock. setTerrain writes only these.
   const [storedTerrain, setTerrain] = useYList(table.terrain)
@@ -424,7 +426,7 @@ export default function App({
   const versionMismatch = Boolean(connection?.versionMismatch)
   const schemaMismatch = Boolean(connection?.schemaMismatch)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
-  const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
+  const [preloadFiles] = useState(() => tableFiles({ mapId, mat, terrain, characters, rosters }))
   // The scene and the preloaded files are in, so the loading screen hides (Preload.jsx, Ready)
   const [ready, setReady] = useState(false)
 

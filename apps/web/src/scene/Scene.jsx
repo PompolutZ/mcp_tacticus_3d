@@ -44,7 +44,6 @@ import ScoreBoard from '../scoreboard/ScoreBoard.jsx'
 import PriorityMarker from '../game/PriorityMarker.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface } from './SceneShared.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
-import { MAPS } from '../terrain/maps/index.js'
 import { characterGiveSources, characterName, characterSize } from '../characters/characters.js'
 import {
   characterModels,
@@ -71,7 +70,7 @@ import {
 import { MAT_SIZE, TABLE_WALLS } from '../table.js'
 import { rangeLength } from '../tabletools/toolTips.js'
 import { selectPiece, toolSelects } from '../selection.js'
-import { poseOf } from '../rooms/table.js'
+import { poseOf, tableMat } from '../rooms/table.js'
 import {
   TEAMS,
   otherTeam,
@@ -242,6 +241,8 @@ function Scene(props) {
   // The own dice tray under the pointer, for the number keys (dice/useDiceTrayPointer.js)
   useDiceTrayPointer(playedSides, actions.onDiceTrayHover)
   const [matTurns] = useYField(table.game, 'matTurns')
+  const [gameMat] = useYField(table.game, 'mat')
+  const mat = tableMat(mapId, gameMat)
   const [tacticCards] = useYList(table.tactics)
   const startPose = table.poses.get
   const onModelRest = table.poses.setField
@@ -730,9 +731,9 @@ function Scene(props) {
           <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
             {/* mapId null: a random room waits for its map. The mat and the terrain load here, in their own
               Suspense, when the map comes. */}
-            {mapId != null && (
+            {mat && (
               <Suspense fallback={null}>
-                <Mat mat={MAPS[mapId].mat} rotation={MAPS[mapId].matRotation} />
+                <Mat mat={mat.name} rotation={mat.rotation} />
               </Suspense>
             )}
             {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,

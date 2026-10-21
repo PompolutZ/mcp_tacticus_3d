@@ -19,6 +19,7 @@ export const OLDEST_MIGRATED = 2
 // The fields of the game record, besides schema
 const GAME_FIELDS = [
   'mapId',
+  'mat',
   'matTurns',
   'deployLine',
   'crisis',
@@ -26,6 +27,17 @@ const GAME_FIELDS = [
   'affiliations',
   'priority',
   'lastActivated',
+]
+const TERRAIN_FIELDS = [
+  'index',
+  'locked',
+  'y',
+  'piece',
+  'position',
+  'rotation',
+  'scale',
+  'size',
+  'tint',
 ]
 const LISTS = ['terrain', 'characters', 'tokens', 'tactics', 'looseTokens', 'tokenPiles']
 
@@ -42,8 +54,9 @@ export function createTable(doc = new Y.Doc()) {
     game: createRecord(doc.getMap('game'), { depth: 1 }),
     rosters: createRecord(doc.getMap('rosters')),
     setup: createRecord(doc.getMap('setup'), { depth: 1 }),
-    // Only the place in the map data and the lock. App adds the placement (rooms/table.js).
-    terrain: createList(doc.getMap('terrain'), { fields: ['index', 'locked', 'y'] }),
+    // A map piece: the place in the map data and the lock. A custom piece: the full placement. App adds the
+    // placement of a map piece (rooms/table.js).
+    terrain: createList(doc.getMap('terrain'), { fields: TERRAIN_FIELDS }),
     characters: createList(doc.getMap('characters')),
     // Model id → rest pose. Written when a body falls asleep, read when a model mounts.
     poses: createRecord(doc.getMap('poses')),

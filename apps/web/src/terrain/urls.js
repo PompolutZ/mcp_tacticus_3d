@@ -1,19 +1,13 @@
 import { assetUrl } from '../assets/index.js'
 import { bundleColliders, matImage, pieceCollider, pieceMesh, pieceTexture } from './files.js'
 import { TERRAIN_PIECES } from './pieces.js'
-import { MAPS } from './maps/index.js'
 
 // Asset URLs of terrain files. Apart from files.js, because the migrate scripts load that in Node and
 // assetUrl needs Vite.
 
-// The mat image of a mat name
+// The mat image of a mat name. rooms/preload.js loads it before a table shows (docs/features/rooms.md, "Loading").
 export function matImageUrl(mat) {
   return assetUrl(matImage(mat))
-}
-
-// The mat image of a map. rooms/preload.js loads it before a table shows (docs/features/rooms.md, "Loading").
-export function matUrl(mapId) {
-  return matImageUrl(MAPS[mapId].mat)
 }
 
 // The files of a terrain piece, as TerrainPiece loads them: mesh, texture (null for a bundle or scan piece,

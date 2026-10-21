@@ -292,10 +292,10 @@ Each name is a top-level `Y.Map` of the `Y.Doc`.
 
 | Name | Kind | Content |
 |---|---|---|
-| `game` | record, depth 1 | `schema`, `mapId`, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations`, `priority`, `lastActivated` |
+| `game` | record, depth 1 | `schema`, `mapId`, `mat { name, rotation }` or null, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations`, `priority`, `lastActivated` |
 | `rosters` | record | `host` and `guest`: `null` or `{ code }` (`docs/features/roster.md`, "State") |
 | `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/features/setup-game.md`) |
-| `terrain` | list | the pieces on the mat: `index` in the map data, `locked` |
+| `terrain` | list | the pieces on the mat: a map piece (`index` in the map data, `locked`) or a custom piece (the full placement, `locked`) |
 | `characters` | list | the fields of `newCharacter` in `src/characters/newCharacter.js`: key, figure, base, rotation, side (healthy or injured), damage, power, tokens |
 | `poses` | record | model id → `{ x, y, z, qx, qy, qz, qw }`, the rest pose of a body, written when the body falls asleep |
 | `tokens` | list | crisis tokens: the fields from `buildMatTokens` (`src/crisis/matTokens.js`), with place, `up`, control, damage |
@@ -328,7 +328,7 @@ How the data is stored:
 - **Order.** Each entity of a list has a hidden `order` number. The store sorts by `order`, then by id, and App does not see `order`. The order is the tray row of `characters` and the stack of `tactics`. With equal numbers from two players, the id decides, the same in both browsers.
 - **Record.** A `Y.Map` of fields. With depth 0, each value is one plain value. With depth 1, a value that is a plain object becomes a nested `Y.Map` of its fields. `game` and `setup` have depth 1, so each player's squad and Ready in `setup` (`setup.squads.host`, `setup.ready.guest`) merge. `rosters` and `poses` have depth 0. `tools` has depth 1, so each side's entries merge. A score marker position stays one value.
 - **Poses by model id.** A character with a second form has two models (`characters/models.js`), so `poses` is a record by model id, not a field of the character. A removed character deletes the poses of its models.
-- **Terrain.** `terrain` stores only `index` and `locked`. App adds the placement from the map data (`withPlacements`), so a fix of the map data reaches old rooms.
+- **Terrain.** A map piece stores only `index` and `locked`. App adds the placement from the map data (`withPlacements`), so a fix of the map data reaches old rooms. A custom piece stores its full placement and works with no map. `game.mat` gives the mat when it is set, else the mat of the map (`tableMat`).
 - **Schema.** `game.schema` is `SCHEMA` (2). A table opens by its schema:
   - empty: the start table is written.
   - equal: it opens.

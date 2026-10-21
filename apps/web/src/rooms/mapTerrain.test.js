@@ -63,3 +63,8 @@ test('two fills of the same map merge into one set of pieces', () => {
     assert.equal(table.terrain.read().length, MAPS[mapId].placements.length)
   }
 })
+
+test('startTable has game.mat null', () => {
+  assert.equal(startTable(Object.keys(MAPS)[0]).mat, null)
+  assert.equal(startTable(null).mat, null)
+})

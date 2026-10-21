@@ -20,30 +20,57 @@ export function mapTerrain(mapId) {
   }))
 }
 
-// Stored piece { id, index, locked, y? } → the piece with its placement. y: the height of the piece after
-// what stood under it was deleted (droppedY); without it the piece stands at the height of the map. The document stores only the index
+// The two kinds of stored terrain piece (docs/features/map-builder.md, "Board in the document"):
+// a map piece { id, index, locked, y? }, the place in the map data, and a custom piece
+// { id, piece, position, rotation, scale, size?, tint?, locked, y? }, a full placement. A map piece that the
+// builder moves or turns becomes a custom piece. The stored piece has `piece` only when it is custom.
+export const isCustomPiece = (stored) => stored.piece !== undefined
+
+// The custom piece of a stored map piece, with the same id, lock and placement (the `y` of a fallen piece
+// is in the position). mapId: the map of the table. A custom piece comes back as it is. null when the map
+// data has no such placement.
+export function toCustomPiece(mapId, stored) {
+  if (isCustomPiece(stored)) return stored
+  const placement = MAPS[mapId]?.placements[stored.index]
+  if (!placement) return null
+  const position =
+    stored.y === undefined
+      ? placement.position
+      : [placement.position[0], stored.y, placement.position[2]]
+  return { ...placement, position: [...position], id: stored.id, locked: stored.locked }
+}
+
+// Stored piece → the piece with its placement. y: the height of the piece after what stood under it was
+// deleted (droppedY); without it the piece stands at the height of the map. A map piece stores only the index
 // (net/doc.js), so a fix of the map data reaches old tables. The snapshot of the document keeps an unchanged
 // piece as the same object, so the cache gives it the same placed object, and Terrain.jsx does not place
 // its body again.
 const placed = new WeakMap()
 
-// The terrain of the document with the placements of the map. A piece whose index the map data no longer
-// has is left out. A piece with `y` gets it as the height of its position.
+// The terrain of the document with the placements. A map piece whose index the map data no longer has, or
+// that has no map (mapId null), is left out. A piece with `y` gets it as the height of its position.
 export function withPlacements(mapId, terrain) {
-  if (mapId == null) return []
-  const placements = MAPS[mapId].placements
+  const placements = MAPS[mapId]?.placements
   return terrain
-    .filter(({ index }) => placements[index])
+    .filter((piece) => (isCustomPiece(piece) ? true : Boolean(placements?.[piece.index])))
     .map((piece) => {
+      if (isCustomPiece(piece) && piece.y === undefined) return piece
       if (!placed.has(piece)) {
         const { y, ...rest } = piece
-        const placement = placements[piece.index]
-        const position =
-          y === undefined ? placement.position : [placement.position[0], y, placement.position[2]]
-        placed.set(piece, { ...placement, ...rest, position })
+        const base = isCustomPiece(piece) ? piece : placements[piece.index]
+        const position = y === undefined ? base.position : [base.position[0], y, base.position[2]]
+        placed.set(piece, { ...base, ...rest, position })
       }
       return placed.get(piece)
     })
+}
+
+// The mat of a table, { name, rotation }, or null when it has none (no map, no mat). mat: game.mat,
+// { name, rotation } or null. null means the mat of the map (docs/features/map-builder.md).
+export function tableMat(mapId, mat) {
+  if (mat) return mat
+  const map = MAPS[mapId]
+  return map ? { name: map.mat, rotation: map.matRotation } : null
 }
 
 // The map fill of a random multiplayer room (docs/features/rooms.md, "Room"): when the table has no map
@@ -69,6 +96,8 @@ export function droppedY(position, delta) {
 export function startTable(mapId) {
   return {
     mapId,
+    // { name, rotation } or null: the mat of the map (tableMat)
+    mat: null,
     matTurns: 0,
     deployLine: false,
     crisis: { secure: null, extract: null },

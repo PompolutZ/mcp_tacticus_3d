@@ -24,7 +24,7 @@ const STATE = {
   lastActivated: null,
   rosters: { host: { code: 'B' }, guest: null },
   setup: { deck: null, ready: { host: false, guest: false } },
-  terrain: [{ id: 't1', index: 0, locked: true, piece: 'crate' }],
+  terrain: [{ id: 't1', index: 0, locked: true }],
   characters: [{ id: 'c1', key: 'cap', tokens: {} }],
   poses: { c1: { x: 1, y: 0, z: 2, qx: 0, qy: 0, qz: 0, qw: 1 } },
   tokens: [{ id: 'k1', x: 0, z: 0, heldBy: null }],
@@ -199,4 +199,26 @@ test('MIGRATIONS has a step for every schema below SCHEMA, from OLDEST_MIGRATED'
   for (let n = OLDEST_MIGRATED; n < SCHEMA; n++) {
     assert.equal(typeof MIGRATIONS[n], 'function', `no migration from schema ${n}`)
   }
+})
+
+test('a custom terrain piece and game.mat round-trip through the document', () => {
+  const custom = {
+    id: 'c-1',
+    piece: 'crate',
+    position: [1, 2, 3],
+    rotation: [0, 45, 0],
+    scale: 1.5,
+    size: 2,
+    tint: '#ff0000',
+    locked: false,
+  }
+  const mat = { name: 'battle-for-asgard', rotation: 180 }
+  const a = createTable()
+  fillTable(a, { ...STATE, mat, terrain: [{ id: 't1', index: 0, locked: true }, custom] })
+  const b = createTable()
+  Y.applyUpdate(b.doc, encodeTable(a))
+  assert.deepEqual(b.terrain.read(), [{ id: 't1', index: 0, locked: true }, custom])
+  assert.deepEqual(b.game.get('mat'), mat)
+  b.game.setField('mat', null)
+  assert.equal(b.game.get('mat'), null)
 })
