@@ -1,6 +1,6 @@
 import { MATS, PIECES_BY_SIZE } from './catalog.js'
 import { TERRAIN_PIECES } from './pieces.js'
-import { toCustomPiece } from '../rooms/table.js'
+import { toCustomPiece } from './storedPiece.js'
 import { exportMap, exportMapText } from './exportMap.js'
 import { movedPosition, restY, turnedRotation } from './placementMove.js'
 

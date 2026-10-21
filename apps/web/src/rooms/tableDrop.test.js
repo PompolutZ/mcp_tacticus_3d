@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { droppedY, tableMat, toCustomPiece, withPlacements } from './table.js'
+import { droppedY, tableMat, withPlacements } from './table.js'
+import { toCustomPiece } from '../terrain/storedPiece.js'
 import { MAPS } from '../terrain/maps/index.js'
 
 const mapId = Object.keys(MAPS)[0]

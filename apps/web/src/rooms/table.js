@@ -6,6 +6,7 @@ import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
 import { newSetup } from '../setup/setup.js'
 import { boardPieces } from '../terrain/builder.js'
+import { isCustomPiece } from '../terrain/storedPiece.js'
 
 // Terrain pieces of a map, as tracked in App state (the id is fixed per piece, so two browsers that fill the
 // same map write the same keys and the pieces merge, docs/features/rooms.md, "Room"): the placements of terrain/maps/<id>.json with an id and
@@ -19,26 +20,6 @@ export function mapTerrain(mapId) {
     id: `${mapId}:${index}`,
     locked: true,
   }))
-}
-
-// The two kinds of stored terrain piece (docs/features/map-builder.md, "Board in the document"):
-// a map piece { id, index, locked, y? }, the place in the map data, and a custom piece
-// { id, piece, position, rotation, scale, size?, tint?, locked, y? }, a full placement. A map piece that the
-// builder moves or turns becomes a custom piece. The stored piece has `piece` only when it is custom.
-export const isCustomPiece = (stored) => stored.piece !== undefined
-
-// The custom piece of a stored map piece, with the same id, lock and placement (the `y` of a fallen piece
-// is in the position). mapId: the map of the table. A custom piece comes back as it is. null when the map
-// data has no such placement.
-export function toCustomPiece(mapId, stored) {
-  if (isCustomPiece(stored)) return stored
-  const placement = MAPS[mapId]?.placements[stored.index]
-  if (!placement) return null
-  const position =
-    stored.y === undefined
-      ? placement.position
-      : [placement.position[0], stored.y, placement.position[2]]
-  return { ...placement, position: [...position], id: stored.id, locked: stored.locked }
 }
 
 // Stored piece → the piece with its placement. y: the height of the piece after what stood under it was
