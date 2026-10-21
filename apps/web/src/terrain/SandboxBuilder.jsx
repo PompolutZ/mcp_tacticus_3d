@@ -3,7 +3,7 @@ import { useTableStore } from '../table/TableStoreContext.jsx'
 import { selectedId as selectedPieceId } from '../selection.js'
 import { tableMat } from '../rooms/table.js'
 import BuilderPanel from './BuilderPanel.jsx'
-import { boardIdFromName, exportBoard, exportBoardText, newIdSuffix } from './builder.js'
+import { boardIdFromName, exportBoard, exportBoardText } from './builder.js'
 import { getBoard, saveBoard } from '../api/board.js'
 import { useUser } from '../auth/useUser.js'
 import { useBuilderKeys } from './useBuilderKeys.js'
@@ -12,13 +12,14 @@ import { MAPS } from './maps/index.js'
 // The Build mode panel of the Sandbox (docs/features/map-builder.md): BuilderPanel on the table document, and the keys
 // of Build mode (Q / E turn the selected piece, Delete removes it). App mounts it only while Build mode is on, so the
 // keys are the builder's only then.
-// mapId, mat (game.mat): the board. terrain: the pieces with placements. edits: useBuilderEdits. onRemove(id): the
+// mapId, mat (game.mat), board (game.board): the board. terrain: the pieces with placements. edits: useBuilderEdits. onRemove(id): the
 // Delete of the game (handleTerrainRemove: the pieces above drop down, the log has an Undo). onLoadMap(id): the Map
 // select of the Sandbox. keysOn: false while a popup is open. sceneApi: the ref of Scene (scene/sceneApi.js), for the
 // top view image that Save to account sends.
 export default function SandboxBuilder({
   mapId,
   mat,
+  board,
   terrain,
   edits,
   onRemove,
@@ -27,18 +28,17 @@ export default function SandboxBuilder({
   keysOn,
 }) {
   const selected = useTableStore((s) => selectedPieceId(s.selection, 'terrain'))
-  // The name field. The id is made from the name and a suffix that stays for the board (builder.js,
-  // boardIdFromName). fixedId: the id of a loaded map or an imported file, which stays as it is.
-  const [boardName, setBoardName] = useState('')
-  const [suffix] = useState(() => newIdSuffix())
-  const [fixedId, setFixedId] = useState(null)
-  const [importedAuthor, setImportedAuthor] = useState('')
+  // The name field, the author and the id are in the document (game.board), so they outlive this panel. The id is
+  // made from the name and the suffix of the record (builder.js, boardIdFromName). board.id: the id of a loaded map
+  // or an imported file, which stays as it is. A table from before the record has none: the first name writes it.
+  const boardName = board?.name ?? ''
+  const importedAuthor = board?.author ?? ''
   const [message, setMessage] = useState('')
   const shownMat = tableMat(mapId, mat)
   // status: off, loading, out, error, in. Only 'in' has a user, so only then the account buttons show.
   const { status, user } = useUser()
   const loggedIn = status === 'in' && Boolean(user)
-  const boardId = fixedId ?? boardIdFromName(boardName, suffix)
+  const boardId = board ? (board.id ?? boardIdFromName(boardName, board.suffix)) : ''
 
   const target = keysOn && terrain.some((p) => p.id === selected) ? selected : null
   useBuilderKeys({
@@ -71,9 +71,6 @@ export default function SandboxBuilder({
   function loadMap(id) {
     if (!MAPS[id]) return
     onLoadMap(id)
-    setFixedId(id)
-    setImportedAuthor(MAPS[id].author ?? '')
-    setBoardName(MAPS[id].name)
     setMessage('')
   }
 
@@ -83,9 +80,6 @@ export default function SandboxBuilder({
       return
     }
     setMessage('')
-    setFixedId(result.board.id || null)
-    setImportedAuthor(result.board.author)
-    setBoardName(result.board.name)
   }
 
   async function importFile(file) {
@@ -129,7 +123,7 @@ export default function SandboxBuilder({
     <div className="comic build-panel">
       <BuilderPanel
         mapName={boardName}
-        onMapName={setBoardName}
+        onMapName={edits.rename}
         matName={shownMat?.name ?? ''}
         pieceCount={terrain.length}
         onLoadMap={loadMap}

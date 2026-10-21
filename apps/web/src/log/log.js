@@ -105,12 +105,14 @@ const owner = (side, ctx) => (isYou(side, ctx) ? 'Your' : `${playerName(side, ct
 const gainsText = (gains) => gains.map((g) => `${g.name} ${g.from} → ${g.to}`).join(', ')
 
 // True when the Undo button shows on a log entry: a terrain delete whose piece is not on the table, on the
-// same map. After an undo, or a map change, it is gone. terrain: the terrain of the table (ids), mapId: now.
-export function canUndo(entry, terrain, mapId) {
+// same board. After an undo, or a map or board change, it is gone. terrain: the terrain of the table (ids),
+// boardKey: game.board.key now, mapId: now. An entry from before the board record has no boardKey, so it
+// compares the mapId.
+export function canUndo(entry, terrain, boardKey, mapId) {
+  const sameBoard =
+    entry.boardKey === undefined ? entry.mapId === mapId : entry.boardKey === boardKey
   return (
-    entry.kind === 'terrainDeleted' &&
-    entry.mapId === mapId &&
-    !terrain.some((p) => p.id === entry.piece.id)
+    entry.kind === 'terrainDeleted' && sameBoard && !terrain.some((p) => p.id === entry.piece.id)
   )
 }
 

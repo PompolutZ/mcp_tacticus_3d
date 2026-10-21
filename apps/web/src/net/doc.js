@@ -20,6 +20,7 @@ export const OLDEST_MIGRATED = 2
 const GAME_FIELDS = [
   'mapId',
   'mat',
+  'board',
   'matTurns',
   'deployLine',
   'crisis',

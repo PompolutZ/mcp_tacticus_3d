@@ -245,14 +245,19 @@ test('Undo shows only while the piece is off the table, on the same map', () => 
   const entry = logEntry('terrainDeleted', 'host', {
     piece: { id: 'm:3', index: 3, locked: false },
     pieceKey: 'crystals',
+    boardKey: 'm',
     mapId: 'm',
     terrain: [],
     models: [],
   })
-  assert.equal(canUndo(entry, [{ id: 'm:1' }], 'm'), true)
-  assert.equal(canUndo(entry, [{ id: 'm:1' }, { id: 'm:3' }], 'm'), false)
-  assert.equal(canUndo(entry, [], 'other'), false)
-  assert.equal(canUndo(logEntry('deleted', 'host'), [], 'm'), false)
+  assert.equal(canUndo(entry, [{ id: 'm:1' }], 'm', 'm'), true)
+  assert.equal(canUndo(entry, [{ id: 'm:1' }, { id: 'm:3' }], 'm', 'm'), false)
+  assert.equal(canUndo(entry, [], 'other', 'other'), false)
+  assert.equal(canUndo(logEntry('deleted', 'host'), [], 'm', 'm'), false)
+  // An entry from before the board record compares the mapId
+  const old = { ...entry, boardKey: undefined }
+  assert.equal(canUndo(old, [], null, 'm'), true)
+  assert.equal(canUndo(old, [], 'm', 'other'), false)
 })
 
 test('terrain delete and undo text', () => {

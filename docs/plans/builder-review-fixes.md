@@ -32,7 +32,7 @@ Change:
 - Tests: rename keeps the suffix; Build off/on keeps name and id (the record survives, a pure test on the table); `canUndo` is false after `applyBoard` or `applyEmptyMat` on a table where `mapId` stays null.
 - Docs: `map-builder.md` ("Name and id": the record is in the document, not the panel state). `game-log.md` (or the Undo section that exists): the board key. `peer-to-peer.md` "Yjs document": the new field.
 
-**Result:**
+**Result:** `game.board` added (`net/doc.js`). `newBoard`, `renameBoard` and the writes in `applyMap`, `applyBoard`, `fillMap`, `startTable` are in `rooms/table.js`. `SandboxBuilder` reads `board` from props; the name goes through `edits.rename` (`useBuilderEdits`). The log entry stores `boardKey`; `canUndo(entry, terrain, boardKey, mapId)` compares it, and falls back to `mapId` for an entry without one. Differences from the plan: `startTable` gives `board` null for `mapId` null (the guest's `fillMap` writes it); a room board record gets key `'custom'` with the name, author and id of the room board. A table with no `board` gets one at the first rename (key: `mapId`, else a random id). `applyBoard` key is `crypto.randomUUID()`. Tests: rename keeps suffix and survives a reopen of the document, map and import write the record, `canUndo` false after `applyBoard` and `applyEmptyMat` with `mapId` null.
 
 ### 2. Export after Load map keeps the map data (review item 3)
 

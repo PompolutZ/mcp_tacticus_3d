@@ -1,5 +1,5 @@
 import { startTransition } from 'react'
-import { applyBoard } from '../rooms/table.js'
+import { applyBoard, renameBoard } from '../rooms/table.js'
 import { selectPiece } from '../selection.js'
 import { MATS } from './catalog.js'
 import {
@@ -17,7 +17,7 @@ import { loadPieceBox } from './pieceBox.js'
 // ones of builder.js; a map piece becomes a custom piece when it is moved or turned. App calls it always (hooks), the
 // writes happen only from the Build panel and the keys of Build mode.
 // table: the table (net/doc.js). mapId: the map of the table. setTerrain: the list setter. setSelection: the selection.
-// Returns { move, turn, add, clear, pickMat, importText, importData }.
+// Returns { move, turn, add, clear, rename, pickMat, importText, importData }.
 export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
   const deselect = () => setSelection((prev) => prev.filter((p) => p.kind !== 'terrain'))
 
@@ -51,6 +51,9 @@ export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
     deselect()
   }
 
+  // The name field of the board record (renameBoard in rooms/table.js)
+  const rename = (name) => renameBoard(table, name)
+
   // The mat changes, the pieces stay
   const pickMat = (name) => {
     const mat = MATS.find((m) => m.name === name)
@@ -66,6 +69,7 @@ export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
       table,
       { name: board.mat, rotation: board.matRotation },
       boardPieces(board, () => crypto.randomUUID()),
+      board,
     )
     deselect()
     return result
@@ -82,5 +86,5 @@ export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
     return importData(data)
   }
 
-  return { move, turn, add, clear, pickMat, importText, importData }
+  return { move, turn, add, clear, rename, pickMat, importText, importData }
 }

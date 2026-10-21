@@ -292,7 +292,7 @@ Each name is a top-level `Y.Map` of the `Y.Doc`.
 
 | Name | Kind | Content |
 |---|---|---|
-| `game` | record, depth 1 | `schema`, `mapId`, `mat { name, rotation }` or null, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations`, `priority`, `lastActivated` |
+| `game` | record, depth 1 | `schema`, `mapId`, `mat { name, rotation }` or null, `board { key, name, author, id, suffix }` or null (the board record of the Build panel, `map-builder.md`, "Name and id"; an old document has none, which is a valid state, so `SCHEMA` did not change), `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations`, `priority`, `lastActivated` |
 | `rosters` | record | `host` and `guest`: `null` or `{ code }` (`docs/features/roster.md`, "State") |
 | `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/features/setup-game.md`) |
 | `terrain` | list | the pieces on the mat: a map piece (`index` in the map data, `locked`) or a custom piece (the full placement, `locked`) |

@@ -5,14 +5,15 @@ import { droppedY } from '../rooms/table.js'
 const round = (v) => Math.round(v * 1e4) / 1e4
 
 // The data of a `terrainDeleted` log entry (log/log.js). piece: the stored piece that left the table
-// ({ id, index, locked, y? }), pieceKey: its key in TERRAIN_PIECES (the name in the text), placed: the terrain with placements before the delete (withPlacements), fall: the result of planFall.
+// ({ id, index, locked, y? }), boardKey: game.board.key, pieceKey: its key in TERRAIN_PIECES (the name in the text), placed: the terrain with placements before the delete (withPlacements), fall: the result of planFall.
 // terrain: [{ id, from, to }], the height of each piece that fell before and after (inches, as `y`).
 // models: [{ id, delta, pose, lifted? }], the fall of each model and its pose after it. lifted: the model was
 // lifted (R) at the delete, its lift place went down and the model did not move; pose is that place.
-export function deleteEntryData(piece, mapId, placed, fall) {
+export function deleteEntryData(piece, boardKey, mapId, placed, fall) {
   return {
     piece,
     pieceKey: placed.find((p) => p.id === piece.id)?.piece,
+    boardKey,
     mapId,
     terrain: Object.entries(fall.terrain).flatMap(([id, delta]) => {
       const was = placed.find((p) => p.id === id)

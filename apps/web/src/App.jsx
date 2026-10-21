@@ -158,6 +158,9 @@ export default function App({
   const [mapId] = useYField(table.game, 'mapId')
   // The mat of a custom board, or null for the mat of the map (tableMat in rooms/table.js)
   const [mat] = useYField(table.game, 'mat')
+  // The name, author and id of the board, and its key for the log Undo (newBoard in rooms/table.js). null in an old table.
+  const [board] = useYField(table.game, 'board')
+  const boardKey = board?.key ?? null
   // The terrain pieces on the mat, see mapTerrain in rooms/table.js. A new map replaces them. The document
   // stores each piece's index in the map data and its lock. setTerrain writes only these.
   const [storedTerrain, setTerrain] = useYList(table.terrain)
@@ -411,6 +414,7 @@ export default function App({
     table,
     terrain,
     mapId,
+    boardKey,
     writeLog,
     sceneApi,
     setMatTurns,
@@ -999,6 +1003,7 @@ export default function App({
           <SandboxBuilder
             mapId={mapId}
             mat={mat}
+            board={board}
             terrain={terrain}
             edits={builder}
             sceneApi={sceneApi}
@@ -1021,6 +1026,7 @@ export default function App({
           rolls={rolls}
           log={log}
           terrain={terrain}
+          boardKey={boardKey}
           mapId={mapId}
           onUndo={handleTerrainUndo}
         />

@@ -5,16 +5,19 @@ import * as Y from 'yjs'
 import { createTable, fillTable } from '../net/doc.js'
 import { MATS } from '../terrain/catalog.js'
 import {
+  applyBoard,
   applyEmptyMat,
   applyMap,
   fillMap,
   isPlayableMap,
   mapChoice,
   mapTerrain,
+  renameBoard,
   startTable,
   tableMat,
   withPlacements,
 } from './table.js'
+import { canUndo } from '../log/log.js'
 import { mapFace } from '../terrain/mapFace.js'
 
 test('mapTerrain ids are mapId:index and the same on every call', () => {
@@ -122,4 +125,48 @@ test("readers tolerate mapId 'custom': no map data, fillMap writes nothing, the 
   fillTable(table, { ...startTable('custom'), rosters: { host: null, guest: null } })
   assert.equal(fillMap(table, Object.keys(MAPS)[0]), false)
   assert.equal(table.game.get('mapId'), 'custom')
+})
+
+test('a rename keeps the suffix, and the board record outlives the panel', () => {
+  const table = openTable(emptyTableBytes())
+  renameBoard(table, 'First')
+  const { suffix, key } = table.game.get('board')
+  renameBoard(table, 'Second')
+  assert.deepEqual(table.game.get('board'), { key, name: 'Second', author: '', id: null, suffix })
+  // A reload or a Build toggle reads the same record from the document
+  const again = openTable(Y.encodeStateAsUpdate(table.doc))
+  assert.equal(again.game.get('board').name, 'Second')
+  assert.equal(again.game.get('board').suffix, suffix)
+})
+
+test('a loaded map and an import write the board record with the fixed id', () => {
+  const mapId = Object.keys(MAPS)[0]
+  const table = openTable(emptyTableBytes())
+  applyMap(table, mapId)
+  assert.equal(table.game.get('board').key, mapId)
+  assert.equal(table.game.get('board').id, mapId)
+  assert.equal(table.game.get('board').name, MAPS[mapId].name)
+  const mat = { name: MATS[0].name, rotation: 0 }
+  applyBoard(table, mat, [], { name: 'Mine', author: 'Me', id: 'mine-ab12' })
+  const board = table.game.get('board')
+  assert.deepEqual([board.name, board.author, board.id], ['Mine', 'Me', 'mine-ab12'])
+})
+
+test('Undo is off after another board replaces the table, though mapId stays null', () => {
+  const table = openTable(emptyTableBytes())
+  const mat = { name: MATS[0].name, rotation: 0 }
+  applyBoard(table, mat, [], { name: 'A' })
+  const entry = {
+    kind: 'terrainDeleted',
+    piece: { id: 'x:1' },
+    boardKey: table.game.get('board').key,
+    mapId: null,
+  }
+  const same = () => canUndo(entry, [], table.game.get('board').key, table.game.get('mapId'))
+  assert.equal(same(), true)
+  applyBoard(table, mat, [], { name: 'B' })
+  assert.equal(same(), false)
+  applyBoard(table, mat, [], { name: 'A' })
+  applyEmptyMat(table, mat)
+  assert.equal(same(), false)
 })

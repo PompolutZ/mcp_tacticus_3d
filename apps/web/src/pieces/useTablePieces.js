@@ -15,6 +15,7 @@ export function useTablePieces({
   table,
   terrain,
   mapId,
+  boardKey,
   writeLog,
   sceneApi,
   setMatTurns,
@@ -66,7 +67,7 @@ export function useTablePieces({
     const piece = table.terrain.read().find((p) => p.id === id)
     table.transact(() => {
       const fall = sceneApi.current?.planFall(id) ?? { terrain: {}, models: {} }
-      if (piece) writeLog('terrainDeleted', deleteEntryData(piece, mapId, terrain, fall))
+      if (piece) writeLog('terrainDeleted', deleteEntryData(piece, boardKey, mapId, terrain, fall))
       setTerrain((prev) =>
         prev
           .filter((p) => p.id !== id)
@@ -84,7 +85,7 @@ export function useTablePieces({
   // height, a model goes back up if it is still where it fell and this browser can claim it
   // (Scene, raiseModels; a lifted one raises its lift place). What moved onto the spot since is not moved.
   function handleTerrainUndo(entry) {
-    if (!canUndo(entry, terrain, mapId)) return
+    if (!canUndo(entry, terrain, boardKey, mapId)) return
     table.transact(() => {
       const plan = undoPlan(entry, table.terrain.read(), terrain)
       sceneApi.current?.raiseModels(entry.models, table.poses.read())

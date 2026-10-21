@@ -18,7 +18,7 @@ const stored = [{ id: 'b', index: 1, locked: true, y: 3 }]
 const fall = { terrain: { b: 2 }, models: { m1: { delta: 1.5, pose } } }
 
 function entry() {
-  return deleteEntryData(storedPiece, 'map', placed, fall)
+  return deleteEntryData(storedPiece, 'map', 'map', placed, fall)
 }
 
 test('the entry keeps the piece, the map and the falls', () => {
@@ -71,7 +71,7 @@ const liftedModels = [{ id: 'm1', delta: 1.5, pose, lifted: true }]
 
 test('the entry marks a model that was lifted', () => {
   const lifted = { terrain: {}, models: { m1: { delta: 1.5, pose, lifted: true } } }
-  assert.deepEqual(deleteEntryData(storedPiece, 'map', placed, lifted).models, liftedModels)
+  assert.deepEqual(deleteEntryData(storedPiece, 'map', 'map', placed, lifted).models, liftedModels)
 })
 
 test('a lifted model that was lowered rises, even if turned in the lift', () => {

@@ -78,7 +78,7 @@ function DiceEntry({ entry }) {
 }
 
 // An entry of the `log` list: the text is made here, for the viewer (log/log.js)
-// undo: { terrain, mapId, onUndo }, or null. A terrain delete shows the Undo button (canUndo). The click does
+// undo: { terrain, boardKey, mapId, onUndo }, or null. A terrain delete shows the Undo button (canUndo). The click does
 // not reach the bubble, so it does not open the log.
 function LogEntry({ entry, ctx, undo }) {
   const color = useSideColor(entrySide(entry))
@@ -87,7 +87,7 @@ function LogEntry({ entry, ctx, undo }) {
     <div className={`log-entry${color ? ` log-entry--${color}` : ''}`} title={text}>
       <span className="log-time">{time(entry.at)}</span>
       <span>{text}</span>
-      {undo && canUndo(entry, undo.terrain, undo.mapId) && (
+      {undo && canUndo(entry, undo.terrain, undo.boardKey, undo.mapId) && (
         <button
           type="button"
           className="comic-button comic-button--small log-undo"
@@ -140,10 +140,10 @@ function useTail(ref, visible) {
 // and the game `log`, both oldest first as stored, merged by time with the newest first.
 // Closed: no bubble, until an entry is added. Then the bubble shows that entry for BUBBLE_SHOW_MS (log/bubble.js);
 // a click opens the log. Open: the last BUBBLE_ENTRIES entries, newest first, scrolling. The names of the
-// entries come from the store of the table (nameCtx). terrain, mapId, onUndo: the Undo button of a terrain
+// entries come from the store of the table (nameCtx). terrain, boardKey, mapId, onUndo: the Undo button of a terrain
 // delete (log.js, canUndo); without onUndo no entry has it.
-export function LogPanel({ open, onOpen, onClose, rolls, log, terrain, mapId, onUndo }) {
-  const undo = onUndo ? { terrain, mapId, onUndo } : null
+export function LogPanel({ open, onOpen, onClose, rolls, log, terrain, boardKey, mapId, onUndo }) {
+  const undo = onUndo ? { terrain, boardKey, mapId, onUndo } : null
   const ctx = useTableStore((s) => s.nameCtx)
   const items = mergeLog(rolls, log)
   // The keys of the entries the bubble has seen (null before the first look), and the entry it flashes

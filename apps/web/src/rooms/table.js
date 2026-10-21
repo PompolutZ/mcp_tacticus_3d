@@ -5,8 +5,20 @@ import { MAPS } from '../terrain/maps/index.js'
 import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
 import { newSetup } from '../setup/setup.js'
-import { boardPieces } from '../terrain/builder.js'
+import { boardPieces, newIdSuffix } from '../terrain/builder.js'
 import { isCustomPiece } from '../terrain/storedPiece.js'
+
+// The board record of the table (game.board, docs/features/map-builder.md, "Name and id"): the name field, the
+// author and the id of the board in the Build panel, so a Build toggle or a reload keeps them.
+// key: which board the table shows, for the Undo of the log (log/log.js, canUndo): a map id, 'custom', or a random
+// id for a built or imported board. id: the fixed id of a loaded map or an imported file, else null (made from the
+// name and suffix, builder.js, boardIdFromName). suffix: made once for the record.
+export function newBoard(key, { name = '', author = '', id = null } = {}) {
+  return { key, name, author, id: id || null, suffix: newIdSuffix() }
+}
+
+const mapBoard = (mapId) =>
+  newBoard(mapId, { name: MAPS[mapId].name, author: MAPS[mapId].author, id: mapId })
 
 // Terrain pieces of a map, as tracked in App state (the id is fixed per piece, so two browsers that fill the
 // same map write the same keys and the pieces merge, docs/features/rooms.md, "Room"): the placements of terrain/maps/<id>.json with an id and
@@ -62,14 +74,23 @@ export function applyMap(table, mapId) {
   table.transact(() => {
     table.game.setField('mapId', mapId)
     table.game.setField('mat', null)
+    table.game.setField('board', mapBoard(mapId))
     table.terrain.set(mapTerrain(mapId))
   })
 }
 
-export function applyBoard(table, mat, terrain) {
+// The name field. A table from before the record has none: the first name writes it, on the key of the table.
+export function renameBoard(table, name) {
+  const board = table.game.get('board') ?? newBoard(table.game.get('mapId') ?? crypto.randomUUID())
+  table.game.setField('board', { ...board, name })
+}
+
+// info: { name, author, id } of the import (a file or the account), else an unnamed board
+export function applyBoard(table, mat, terrain, info) {
   table.transact(() => {
     table.game.setField('mapId', null)
     table.game.setField('mat', { name: mat.name, rotation: mat.rotation })
+    table.game.setField('board', newBoard(crypto.randomUUID(), info))
     table.terrain.set(terrain)
   })
 }
@@ -100,6 +121,7 @@ export function fillMap(table, mapId) {
   if (table.game.get('mapId') != null || !mapId || !MAPS[mapId]) return false
   table.transact(() => {
     table.game.setField('mapId', mapId)
+    table.game.setField('board', mapBoard(mapId))
     table.terrain.set(mapTerrain(mapId))
   })
   return true
@@ -126,6 +148,12 @@ export function startTable(mapId, board = null) {
     mapId,
     // { name, rotation } or null: the mat of the map (tableMat)
     mat: board ? { name: board.mat, rotation: board.matRotation } : null,
+    // null: no map yet (a random room, fillMap writes it) or no saved board
+    board: board
+      ? newBoard(CUSTOM_MAP_ID, board)
+      : mapId == null || mapId === CUSTOM_MAP_ID
+        ? null
+        : mapBoard(mapId),
     matTurns: 0,
     deployLine: false,
     crisis: { secure: null, extract: null },
