@@ -6,8 +6,9 @@
   overflow: hidden;
   user-select: none;
   aspect-ratio: 4 / 7;
-  /* The map card images have their corners cut in the file (about 35 px of 800) */
-  border-radius: 4.4cqw;
+  /* The map card images have their corners cut in the file (35 px of 800 x 1400). Percent, not cqw: cqw on this
+     element resolves against an ancestor container, not itself. */
+  border-radius: 4.4% / 2.5%;
   background-size: 100% 100%;
 }
 
