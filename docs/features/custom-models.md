@@ -45,6 +45,8 @@ The output goes to `model-candidates/`, where the `#models` page shows it. See [
 | `--stand` | off | The figure stands on a stand that is clearly wider than its base. The script cuts the stand off. Use it with `--base`. See [Stand](#stand). |
 | `--tone <level>` | none | `light`, `medium` or `strong`: makes the color texture darker and more saturated. See [Tone](#tone). |
 | `--height <mm>` | none | Height of the real object in mm. Measure the real object. The app uses inches (1 unit = 1"), so the script converts it. |
+| `--width <mm>` | none | Width of the real object in mm: the widest side of the scan (x or z) gets this width. For a piece whose footprint is known better than its height (the scan can have a wrong height to width ratio). Not with `--height`. |
+| `--size <1-5>` | none | The scan is a terrain piece of this Size. It needs `--height` or `--width`, and does not go with `--base` or `--stand`. The script prints the `pieces.js` line. See [Terrain pieces](#terrain-pieces). |
 | `--triangles <n>` | 30000 | Maximum number of triangles. The migrated figures have about 30k. |
 | `--texture <px>` | 2048 | Maximum texture size: 1024, 2048 or 4096. The migrated characters use 1024. |
 
@@ -154,22 +156,17 @@ pnpm --filter web turn-model model-candidates/hulk.glb -45   # a candidate file
 
 ## Terrain pieces
 
-The script also works for a terrain piece. Leave out `--base` and pass `--height <mm>` with the height of the real piece. The script scales the piece to that height and puts its bottom on the table. The output is the same format as the migrated pieces: one GLB with a WebP texture and Draco compression.
+Status: built for two pieces, the Traffic Light and the Taxi Cab. They are in `pieces.js` and show on the `#terrain` page. No map places them yet.
 
-These parts are missing or different for terrain:
+Leave out `--base` and pass `--size <1-5>` with `--height <mm>` or `--width <mm>`. The script scales the piece to that height or width and puts its bottom on the table. The output is one GLB with the texture inside (WebP, Draco compression). Terrain scans use the figure settings: `--texture 1024 --tone medium --triangles 60000`.
 
-1. **A scanned piece cannot be added to a map yet.** `src/terrain/pieces.js` knows two kinds of pieces (see [Maps](maps.md#pieces)):
-   - An OBJ piece is a mesh and a texture file, with a collider from the mesh. The script writes a GLB, so it does not fit this kind.
-   - A bundle piece (`bundle: true`) is a GLB, so it fits. But a bundle piece gets no collider from its visible mesh. It needs a `colliders` list: shapes written by hand (box, cylinder and so on) or a separate collider GLB. Without colliders, models and dice fall through the piece.
-2. **The front of the piece is random.** Object Capture does not know which side is the front, so the piece can be turned (about 90° in the test). For a figure this matters little. On a map, the placement must match the mat. `turn-model` turns the file, see [Front](#front).
-3. **The center is the center of the bounding box.** This is correct for terrain, because the placements in `maps/<id>.json` are relative to the piece center.
-4. **The camera cannot see some parts.** Undersides, overhangs, the inside of buildings and very thin parts (railings, antennas) come out bad or closed. Many terrain pieces have these parts, for example the Mech Hangar or the Apartments.
-5. **Big pieces need more detail.** The defaults (30k triangles, 2048 texture) are set for a figure. A large building may need `--triangles 60000 --texture 4096`. The photo rules are the same, and the piece must still fill most of each photo.
-
-To support scanned terrain, the app needs:
-
-- colliders for the scan, for example one convex hull or mesh collider made from the scan
-- an entry in `pieces.js` and a placement in a map JSON file
+- **Scale by width or height.** Object Capture scales all axes by one number, so a scan can have a wrong ratio of height to width. Use `--width` when the footprint matters more (the Traffic Light: base 36 mm, the height comes out a bit high). Use `--height` when the photos fill the frame and the height is exact (the Taxi Cab: 50 mm to the top of the roof sign).
+- **Piece kind.** The file goes to `src/assets/terrain/<key>.glb`, and `pieces.js` gets `{ name, scan: true, size }`. A scan piece is drawn like a bundle piece (the GLB materials, tint, footprints) and its collider is the convex hull of the visible mesh (see [Maps](maps.md#pieces)). `size` is the Size of a new piece on the terrain page.
+- **Record.** The command is in `scripts/custom-models.json` under the piece key, with the file `terrain/<key>.glb`, as for a character. The migrate and turn scripts look up character keys only, so a piece key does not disturb them.
+- **The front of the piece is random.** Object Capture does not know which side is the front, so the piece can be turned (about 90° in the test). The placement turn of a map sets it right. `turn-model` with a file path turns the file, see [Front](#front).
+- **The center is the center of the bounding box.** This is correct for terrain, because the placements in `maps/<id>.json` are relative to the piece center.
+- **The camera cannot see some parts.** Undersides, overhangs, the inside of buildings and very thin parts (railings, antennas) come out bad or closed. A convex hull fills holes, so a piece with an arch or a gap is solid there.
+- **Big pieces need more detail.** A large building may need `--triangles 60000 --texture 4096`. The photo rules are the same, and the piece must still fill most of each photo.
 
 ## Use for a character
 

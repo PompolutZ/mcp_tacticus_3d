@@ -16,15 +16,15 @@ export function matUrl(mapId) {
   return matImageUrl(MAPS[mapId].mat)
 }
 
-// The files of a terrain piece, as TerrainPiece loads them: mesh, texture (null for a bundle piece, whose
-// GLB has its materials), collider mesh of an OBJ piece or null, and the one collider GLB of a bundle piece
+// The files of a terrain piece, as TerrainPiece loads them: mesh, texture (null for a bundle or scan piece,
+// whose GLB has its materials), collider mesh of an OBJ piece or null, and the one collider GLB of a bundle piece
 // (null if it has no mesh collider).
 // rooms/preload.js loads the same before a table shows (docs/features/rooms.md, "Loading").
 export function pieceUrls(key) {
   const piece = TERRAIN_PIECES[key]
   return {
     mesh: assetUrl(pieceMesh(key)),
-    texture: piece.bundle ? null : assetUrl(pieceTexture(key)),
+    texture: piece.bundle || piece.scan ? null : assetUrl(pieceTexture(key)),
     collider: piece.collider ? assetUrl(pieceCollider(key)) : null,
     colliders: bundleColliderMeshes(key).length ? assetUrl(bundleColliders(key)) : null,
   }

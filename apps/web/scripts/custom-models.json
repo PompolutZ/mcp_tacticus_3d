@@ -35,8 +35,14 @@
   "star-lord": {
     "characters/star-lord/model.glb": "pnpm --filter web photos-to-glb \"<Star-Lord photos>\" --base small --texture 1024"
   },
+  "taxi-cab": {
+    "terrain/taxi-cab.glb": "pnpm --filter web photos-to-glb \"<Taxi Cab photos>\" --height 50 --size 2 --texture 1024 --tone medium --triangles 60000"
+  },
   "thor-prince-of-asgard": {
     "characters/thor-prince-of-asgard/model.glb": "pnpm --filter web photos-to-glb \"<Thor, Prince of Asgard photos>\" --base small --texture 1024 --tone medium --triangles 60000"
+  },
+  "traffic-light": {
+    "terrain/traffic-light.glb": "pnpm --filter web photos-to-glb \"<Traffic Light photos>\" --width 36 --size 1 --texture 1024 --tone medium --triangles 60000"
   },
   "valkyrie": {
     "characters/valkyrie/model.glb": "pnpm --filter web photos-to-glb \"<Valkyrie photos>\" --base small --texture 1024 --tone medium"

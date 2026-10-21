@@ -148,11 +148,8 @@ function PrimitiveColliders({ colliders, scale }) {
 // objectRef(obj): the visible mesh of the piece, or null on unmount. Scene finds the piece under the
 // pointer with it, for the L key.
 function TerrainPiece(props) {
-  return TERRAIN_PIECES[props.placement.piece].bundle ? (
-    <BundlePiece {...props} />
-  ) : (
-    <ObjPiece {...props} />
-  )
+  const piece = TERRAIN_PIECES[props.placement.piece]
+  return piece.bundle || piece.scan ? <BundlePiece {...props} /> : <ObjPiece {...props} />
 }
 
 // An OBJ piece: one mesh, one texture, one material.
@@ -198,6 +195,8 @@ function ObjPiece(props) {
 
 // A bundle piece: the GLB has its own materials, so the piece keeps them (a copy for each placement)
 // and gets the tint on top. The colliders are the `colliders` entries, not the visible mesh.
+// A scan piece (`scan: true`, docs/features/maps.md, "Pieces") is drawn the same way, but has no `colliders`:
+// its collider is the convex hull of the visible mesh.
 function BundlePiece(props) {
   const { placement } = props
   const piece = TERRAIN_PIECES[placement.piece]
@@ -230,7 +229,7 @@ function BundlePiece(props) {
       {...props}
       raw={raw}
       obj={obj}
-      autoColliders={false}
+      autoColliders={piece.scan ? 'hull' : false}
       shapeColliders={
         <>
           {meshes.map((entry, i) => (
@@ -243,7 +242,7 @@ function BundlePiece(props) {
               scale={placement.scale}
             />
           ))}
-          <PrimitiveColliders colliders={piece.colliders} scale={placement.scale} />
+          <PrimitiveColliders colliders={piece.colliders ?? []} scale={placement.scale} />
         </>
       }
     />

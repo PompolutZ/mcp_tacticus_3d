@@ -8,10 +8,17 @@
 // collider: true when the mod has a separate collider mesh. Otherwise the collider mesh is the visible mesh.
 // bundle: true for a Unity asset bundle piece. Its GLB has its own materials, so there is no texture file,
 //   and convex and collider do not apply. Terrain.jsx draws it with the GLB materials (docs/features/maps.md).
+// scan: true for a piece scanned from photos (scripts/photos-to-glb.mjs, docs/features/custom-models.md,
+//   "Terrain pieces"). Its GLB has its texture inside, so it is drawn like a bundle piece, and its collider is
+//   the convex hull of the visible mesh. It has no convex, collider or colliders.
+// size: the default Size of a piece that no map places (the terrain page puts it in this group, see catalog.js).
+//   Only a scan piece has it now. A placement can have its own size.
 // colliders: the colliders of a bundle piece, one entry each, as the script reads them from the prefab. Shapes:
 //   box, cylinder, capsule, sphere and mesh (`mesh: n` is node n of the one collider GLB, see bundleColliders in files.js). The format is in
 //   scripts/README.md, "Colliders of a bundle". terrain/bundleColliders.js turns the entries into Rapier colliders.
 export const TERRAIN_PIECES = {
+  'traffic-light': { name: 'Traffic Light', scan: true, size: 1 },
+  'taxi-cab': { name: 'Taxi Cab', scan: true, size: 2 },
   'mech-hangar': { name: 'Building', convex: false },
   'cosmic-barricade': { name: 'Cosmic Barricade', convex: true },
   crystals: { name: 'Crystals', convex: false },

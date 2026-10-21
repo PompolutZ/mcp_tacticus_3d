@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { MATS, PIECES_BY_SIZE } from './catalog.js'
 import { MAPS } from './maps/index.js'
+import { TERRAIN_PIECES } from './pieces.js'
 
 const find = (size, key) => PIECES_BY_SIZE[size].find((e) => e.key === key)
 
@@ -13,9 +14,32 @@ test('one mat entry per mat, with the rotation of the first map that uses it', (
   assert.equal(MATS[0].rotation, first.matRotation)
 })
 
-test('pieces per size group', () => {
-  const counts = Object.fromEntries(Object.entries(PIECES_BY_SIZE).map(([k, v]) => [k, v.length]))
-  assert.deepEqual(counts, { 1: 46, 2: 92, 3: 63, 4: 40, 5: 13, none: 7 })
+test('a piece with a size and no placement is in its size group, with scale 1 and no tint', () => {
+  const placed = new Set(Object.values(MAPS).flatMap((m) => m.placements.map((p) => p.piece)))
+  const unplaced = Object.entries(TERRAIN_PIECES).filter(([k, p]) => p.size && !placed.has(k))
+  assert.ok(unplaced.length > 0)
+  for (const [key, piece] of unplaced) {
+    const entry = find(piece.size, key)
+    assert.ok(entry, `${key} is in group ${piece.size}`)
+    assert.equal(entry.size, piece.size)
+    assert.equal(entry.scale, 1)
+    assert.equal(entry.tint, undefined)
+  }
+})
+
+test('a piece with a size is in no other group unless a map places it there', () => {
+  const placed = new Set(Object.values(MAPS).flatMap((m) => m.placements.map((p) => p.piece)))
+  for (const [key, piece] of Object.entries(TERRAIN_PIECES)) {
+    if (!piece.size || placed.has(key)) continue
+    const groups = Object.keys(PIECES_BY_SIZE).filter((g) => find(g, key))
+    assert.deepEqual(groups, [String(piece.size)], key)
+  }
+})
+
+test('every piece of every map is in the group of each size it is placed with', () => {
+  for (const map of Object.values(MAPS)) {
+    for (const p of map.placements) assert.ok(find(p.size ?? 'none', p.piece), p.piece)
+  }
 })
 
 test('each group is sorted by name', () => {

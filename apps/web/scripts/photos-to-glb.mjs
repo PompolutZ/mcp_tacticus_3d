@@ -27,6 +27,11 @@ Options:
   --height <mm>       height of the real object in mm. The app uses inches (1 unit = 1"), so the script
                       converts it. Without it and without --base, the Object Capture size is read as
                       meters. That is correct only for iPhone photos with depth data.
+  --width <mm>        width of the real object in mm: the widest side of the scan (x or z) gets this
+                      width. For a piece whose footprint is known better than its height. Not with --height.
+  --size <1-5>        a terrain piece (docs/features/maps.md, "Pieces"): the Size of the piece. It needs
+                      --height or --width, and does not go with --base or --stand. The script prints the
+                      src/terrain/pieces.js line.
   --triangles <n>     maximum number of triangles (default 30000)
   --texture <px>      maximum texture size: 1024, 2048 or 4096 (default ${TEXTURE_SIZE})
   --tone <level>      light, medium or strong: makes the color texture darker and more saturated.
@@ -46,6 +51,8 @@ const { values: opts, positionals } = parseArgs({
     out: { type: 'string' },
     base: { type: 'string' },
     height: { type: 'string' },
+    width: { type: 'string' },
+    size: { type: 'string' },
     stand: { type: 'boolean', default: false },
     triangles: { type: 'string', default: '30000' },
     texture: { type: 'string', default: String(TEXTURE_SIZE) },
@@ -59,12 +66,24 @@ if (opts.help || positionals.length !== 1) {
 }
 const base = opts.base ?? null
 const heightMm = opts.height === undefined ? null : Number(opts.height)
+const widthMm = opts.width === undefined ? null : Number(opts.width)
+const terrainSize = opts.size === undefined ? null : Number(opts.size)
 const triangles = Number(opts.triangles)
 const textureSize = Number(opts.texture)
 if (base !== null && !BASE_DIAMETER[base])
   throw new Error(`--base must be small, medium or large, not "${opts.base}"`)
 if (heightMm !== null && !(heightMm > 0))
   throw new Error(`--height must be a number of mm, not "${opts.height}"`)
+if (widthMm !== null && !(widthMm > 0))
+  throw new Error(`--width must be a number of mm, not "${opts.width}"`)
+if (widthMm !== null && heightMm !== null)
+  throw new Error('--width and --height do not go together')
+if (terrainSize !== null && ![1, 2, 3, 4, 5].includes(terrainSize))
+  throw new Error(`--size must be 1 to 5, not "${opts.size}"`)
+if (terrainSize !== null && heightMm === null && widthMm === null)
+  throw new Error('--size needs --height or --width')
+if (terrainSize !== null && (base !== null || opts.stand))
+  throw new Error('--size does not go with --base or --stand')
 if (!Number.isInteger(triangles) || triangles <= 0)
   throw new Error(`--triangles must be a positive integer, not "${opts.triangles}"`)
 if (![1024, 2048, 4096].includes(textureSize))
@@ -123,7 +142,9 @@ function buildTool() {
   if (fs.existsSync(TOOL) && fs.statSync(TOOL).mtimeMs >= fs.statSync(SWIFT_SOURCE).mtimeMs) return
   console.log('Compiling object-capture.swift')
   fs.mkdirSync(path.dirname(TOOL), { recursive: true })
-  execFileSync('swiftc', ['-O', SWIFT_SOURCE, '-o', TOOL], { stdio: 'inherit' })
+  execFileSync('swiftc', ['-O', SWIFT_SOURCE, '-o', TOOL], {
+    stdio: 'inherit',
+  })
 }
 
 function reconstruct() {
@@ -164,6 +185,12 @@ async function convert() {
     `Wrote ${shown}: ${count} triangles, ${size.join(' × ')} mm (width × depth × height), ${Math.round(fs.statSync(OUT).size / 1024)} KB`,
   )
   console.log(`Object Capture output: ${WORK_DIR}`)
+  if (terrainSize !== null) {
+    const key = path.basename(OUT, '.glb')
+    console.log(
+      `Add to src/terrain/pieces.js: '${key}': { name: '${key}', scan: true, size: ${terrainSize} },`,
+    )
+  }
 }
 
 // Changes the Object Capture color texture (PNG) in place
@@ -192,9 +219,11 @@ function placeOnTable(doc) {
   const scale =
     heightMm !== null
       ? heightMm / MM_PER_INCH / (max[1] - min[1])
-      : scanBase
-        ? BASE_DIAMETER[base] / scanBase.diameter
-        : INCHES_PER_METER
+      : widthMm !== null
+        ? widthMm / MM_PER_INCH / Math.max(max[0] - min[0], max[2] - min[2])
+        : scanBase
+          ? BASE_DIAMETER[base] / scanBase.diameter
+          : INCHES_PER_METER
   const [cx, cz] = scanBase ? scanBase.center : [(min[0] + max[0]) / 2, (min[2] + max[2]) / 2]
   // Column-major, as glTF matrices are
   const matrix = [

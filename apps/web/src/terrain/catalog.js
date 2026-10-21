@@ -47,6 +47,13 @@ export const PIECES_BY_SIZE = (() => {
       group.get(p.piece).push(p)
     }
   }
+  // A piece with a default size that no map places is in its size group, with scale 1 and no tint
+  for (const [key, piece] of Object.entries(TERRAIN_PIECES)) {
+    const group = piece.size && groups[piece.size]
+    if (group && !MAP_LIST.some((map) => map.placements.some((p) => p.piece === key))) {
+      group.set(key, [{ piece: key, size: piece.size, scale: 1 }])
+    }
+  }
   const out = {}
   for (const [size, group] of Object.entries(groups)) {
     out[size] = [...group.entries()]
