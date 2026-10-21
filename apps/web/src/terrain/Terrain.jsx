@@ -308,6 +308,13 @@ function PieceBody({
     onSelect?.()
   }
 
+  // userData is memoized: a new object makes @react-three/rapier reset the fixed body to the object's current
+  // world pose, which during a drag is the dragged spot (the piece then jumps and the collider moves mid-drag).
+  const userData = useMemo(
+    () => ({ id: placement.id, size: placement.size ?? 0 }),
+    [placement.id, placement.size],
+  )
+
   // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS.
   // userData: the id and Size of the piece, read from a collider through collider.parent() (the Line of Sight
   // length, see tabletools/losLength.js).
@@ -326,7 +333,7 @@ function PieceBody({
         type="fixed"
         colliders={autoColliders}
         friction={FRICTION}
-        userData={{ id: placement.id, size: placement.size ?? 0 }}
+        userData={userData}
       >
         <group scale={placement.scale}>
           <primitive
