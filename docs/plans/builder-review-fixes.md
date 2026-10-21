@@ -43,7 +43,7 @@ Change:
 - A placement note: a map piece keeps `index` when it becomes custom (`toCustomPiece`, `storedCustom`), and export takes the note from `MAPS[mapId].placements[index]`. The user chose this over storing `note` in the document: the map file stays the one source of the note text. `isCustomPiece` checks `piece`, so a custom piece with `index` is still custom. Check every reader of `index` (`withPlacements`, `toCustomPiece`, terrain undo) treats a custom piece with `index` as custom.
 - Test: Load map, move a piece that has a note, export through the same function `SandboxBuilder` uses. The file has `ttsMap`, `skipped` and the note.
 
-**Result:**
+**Result:** `mapExportState(mapId, state)` in `terrain/builder.js` adds `ttsMap`, `note`, `skipped` and the note of each piece with an `index`; `SandboxBuilder.boardState` calls it for Export and Save. `storedCustom` and `toCustomPiece` keep `index`; `TERRAIN_FIELDS` already had it. Readers checked: `isCustomPiece` tests `piece`, so `withPlacements` keeps a custom piece with `index` as custom and the map-index filter skips it; undo stores the whole piece; `exportPlacement` drops `index`. Tests: vibranium-heist, move the piece with the note, export has `ttsMap`, `skipped`, the note; a board with no map has none. `map-builder.md` updated.
 
 ### 3. Top view image shows only the mat and terrain (review item 4)
 

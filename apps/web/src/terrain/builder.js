@@ -1,4 +1,5 @@
 import { MATS, PIECES_BY_SIZE } from './catalog.js'
+import { MAPS } from './maps/index.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { toCustomPiece } from './storedPiece.js'
 import { exportMap, exportMapText } from './exportMap.js'
@@ -83,6 +84,25 @@ export function boardIdFromName(name, suffix) {
   return slug ? `${slug}-${suffix}` : suffix
 }
 
+// The board state of a table with a loaded map (mapId a key of MAPS) with the map data that the builder does not
+// edit: ttsMap, note and skipped of the map, and the note of each piece that has a place in the map data (`index`,
+// a map piece or a custom piece that was one). The note text is not in the document. Any other board: the state
+// as it is.
+export function mapExportState(mapId, state) {
+  const map = MAPS[mapId]
+  if (!map) return state
+  return {
+    ...state,
+    ttsMap: map.ttsMap,
+    note: map.note,
+    skipped: map.skipped,
+    placements: state.placements.map((p) => {
+      const note = map.placements[p.index]?.note
+      return note === undefined ? p : { ...p, note }
+    }),
+  }
+}
+
 // The board state -> the map object (the JSON of the export file, also what is saved to the account)
 export function exportBoard(state) {
   return exportMap(state)
@@ -95,14 +115,16 @@ export function exportBoardText(state) {
 
 // --- The Sandbox: the board in the table document (docs/features/map-builder.md, "Build mode") ---
 
-// A placement as the document stores a custom piece: only the stored fields, no undefined. A piece added in
+// A placement as the document stores a custom piece: only the stored fields, no undefined. index: the place in
+// the map data of a piece that was a map piece. A piece added in
 // Build mode is locked: Build mode shows every piece unlocked (unlockedView), and the lock is back after it.
 export function storedCustom(placement, locked = true) {
-  const { id, piece, position, rotation, scale, size, tint, rev } = placement
+  const { id, piece, position, rotation, scale, size, tint, rev, index } = placement
   const out = { id, piece, position, rotation, scale, locked }
   if (size !== undefined) out.size = size
   if (tint !== undefined) out.tint = tint
   if (rev !== undefined) out.rev = rev
+  if (index !== undefined) out.index = index
   return out
 }
 

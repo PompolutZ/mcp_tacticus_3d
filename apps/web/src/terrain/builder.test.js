@@ -4,6 +4,8 @@ import { Box3, Vector3 } from 'three'
 import {
   boardIdFromName,
   boardPieces,
+  exportBoard,
+  mapExportState,
   newIdSuffix,
   editStoredPiece,
   unlockedView,
@@ -15,6 +17,8 @@ import {
 } from './builder.js'
 import { MATS } from './catalog.js'
 import { MAP_ID_PATTERN, exportMap } from './exportMap.js'
+import { isCustomPiece } from './storedPiece.js'
+import { withPlacements } from '../rooms/table.js'
 import { TERRAIN_PIECES } from './pieces.js'
 import { MAPS } from './maps/index.js'
 import { IMPORT_ROTATION, restY, toThreeTransform } from './placementMove.js'
@@ -156,7 +160,7 @@ test('a move of a map piece makes a custom piece with the same id and lock; the 
   const base = MAPS[mapId].placements[0].position
   assert.equal(out[0].id, 'a')
   assert.equal(out[0].locked, true)
-  assert.equal(out[0].index, undefined)
+  assert.equal(out[0].index, 0)
   assert.equal(out[0].y, undefined)
   assert.deepEqual(out[0].position, [base[0] + 2, 0.5, base[2]])
   assert.equal(out[1], other)
@@ -210,4 +214,49 @@ test('exportMap writes author after name, only when set', () => {
     'placements',
   ])
   assert.equal('author' in exportMap({ ...state, author: '' }), false)
+})
+
+test('export after Load map: a moved piece keeps its note, the file has ttsMap and skipped', () => {
+  const mapId = 'vibranium-heist'
+  const map = MAPS[mapId]
+  const index = map.placements.findIndex((p) => p.note)
+  assert.ok(index >= 0)
+  const id = `${mapId}:${index}`
+  const stored = map.placements.map((_, i) => ({ id: `${mapId}:${i}`, index: i, locked: true }))
+  const moved = editStoredPiece(mapId, stored, id, (l) => movePlacement(l, id, 2, 0))
+  assert.equal(isCustomPiece(moved[index]), true)
+  assert.equal(moved[index].note, undefined)
+  const state = {
+    id: 'x-k3x9',
+    name: 'X',
+    author: '',
+    mat: map.mat,
+    matRotation: map.matRotation,
+    placements: withPlacements(mapId, moved),
+  }
+  const out = exportBoard(mapExportState(mapId, state))
+  assert.equal(out.ttsMap, map.ttsMap)
+  assert.equal(out.note, map.note)
+  assert.deepEqual(out.skipped, map.skipped)
+  assert.equal(out.placements[index].note, map.placements[index].note)
+  assert.equal(out.placements[index].position[0], map.placements[index].position[0] + 2)
+  assert.equal(out.placements[index].index, undefined)
+  assert.equal(
+    out.placements.filter((p) => p.note).length,
+    map.placements.filter((p) => p.note).length,
+  )
+})
+
+test('export of a board with no map has no map fields', () => {
+  const state = {
+    id: 'x-k3x9',
+    name: 'X',
+    author: '',
+    mat: MATS[0].name,
+    matRotation: 0,
+    placements: [newPlacement(PIECE, 'a', MIDDLE)],
+  }
+  assert.equal(mapExportState(null, state), state)
+  const out = exportBoard(mapExportState(null, state))
+  for (const key of ['ttsMap', 'note', 'skipped']) assert.equal(key in out, false)
 })

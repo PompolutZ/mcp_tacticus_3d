@@ -58,14 +58,15 @@ test('withPlacements: y of a custom piece replaces its height; unchanged pieces 
 
 test('toCustomPiece keeps the placement, the lock and the id of a map piece', () => {
   const stored = { id: 'a', index: 0, locked: false }
-  const { index, ...before } = withPlacements(mapId, [stored])[0]
+  const before = withPlacements(mapId, [stored])[0]
   const converted = toCustomPiece(mapId, stored)
   assert.deepEqual(withPlacements(null, [converted]), [before])
-  assert.equal(index, 0)
-  assert.equal(converted.index, undefined)
+  // The index stays, for the note of the placement at export
+  assert.equal(converted.index, 0)
   const fell = { ...stored, y: 0.5 }
-  const { index: _index, ...fellPlaced } = withPlacements(mapId, [fell])[0]
-  assert.deepEqual(withPlacements(null, [toCustomPiece(mapId, fell)]), [fellPlaced])
+  assert.deepEqual(withPlacements(null, [toCustomPiece(mapId, fell)]), [
+    withPlacements(mapId, [fell])[0],
+  ])
   assert.equal(toCustomPiece(mapId, custom), custom)
   assert.equal(toCustomPiece(mapId, { id: 'x', index: 99999, locked: true }), null)
 })

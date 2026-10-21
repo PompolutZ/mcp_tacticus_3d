@@ -3,7 +3,7 @@ import { useTableStore } from '../table/TableStoreContext.jsx'
 import { selectedId as selectedPieceId } from '../selection.js'
 import { tableMat } from '../rooms/table.js'
 import BuilderPanel from './BuilderPanel.jsx'
-import { boardIdFromName, exportBoard, exportBoardText } from './builder.js'
+import { boardIdFromName, exportBoard, exportBoardText, mapExportState } from './builder.js'
 import { getBoard, saveBoard } from '../api/board.js'
 import { useUser } from '../auth/useUser.js'
 import { useBuilderKeys } from './useBuilderKeys.js'
@@ -48,14 +48,15 @@ export default function SandboxBuilder({
   })
 
   // The board state of the export file and of the account
-  const boardState = () => ({
-    id: boardId,
-    name: boardName.trim(),
-    author: (loggedIn ? user.name : '') || importedAuthor,
-    mat: shownMat.name,
-    matRotation: shownMat.rotation,
-    placements: terrain,
-  })
+  const boardState = () =>
+    mapExportState(mapId, {
+      id: boardId,
+      name: boardName.trim(),
+      author: (loggedIn ? user.name : '') || importedAuthor,
+      mat: shownMat.name,
+      matRotation: shownMat.rotation,
+      placements: terrain,
+    })
 
   function exportFile() {
     if (!shownMat || !boardName.trim()) return
