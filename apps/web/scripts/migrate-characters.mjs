@@ -74,6 +74,14 @@ const keys = characterKeys(characters)
 // cToken entries are mod token names (Root, Shock, ...); tokens.json is keyed by the slug
 // that scripts/migrate-tokens.mjs gave each token. Always the live file, not --out: it is migrated
 // separately and does not change with a trial run of this script.
+// Two-sided personal tokens: the mod's Lua (rotation_values cases) spawns one cToken name as a token with a back side.
+// The app has no two-sided tokens: each side is its own token (src/tokens/tokens.json, back sides from
+// scripts/migrate-tokens.mjs, BACK_SIDE_ROWS), and the Give row has both. cToken name -> token keys.
+const TWO_SIDED_TOKENS = {
+  'Leviathan Armor': ['null-field', 'dispersion-field'],
+  Phased: ['phased', 'enhanced-density'],
+}
+
 const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
 const tokensData = readJson(TOKENS_FILE, TOKENS_FILE)
 const affiliationsData = readJson(
@@ -281,7 +289,14 @@ async function migrateCharacter(row, getRipper) {
     else fs.writeFileSync(outputPath(ASSETS, f.file), imageToWebp(source, TEXTURE_SIZE))
     converted++
   }
-  const tokens = tokenKeys(row.cToken, 'cToken', warnings)
+  // gruntTokens: tokens that the character's own card applies but that the mod lists for its grunts (Stagger of
+  // Red Skull, Master of Hydra and Ultron, Metal Tyrant). They are the host's tokens too, after its cToken.
+  const tokens = [
+    ...new Set([
+      ...tokenKeys(row.cToken, 'cToken', warnings),
+      ...tokenKeys(row.gruntTokens, 'gruntTokens', warnings),
+    ]),
+  ]
   manifest[key] = { id: row.ID, sources }
   appData[key] = appEntry(row, key, sources, tokens)
   writeJson(MANIFEST_OUT, manifest)
@@ -302,6 +317,11 @@ async function migrateCharacter(row, getRipper) {
 function tokenKeys(names, field, warnings) {
   const keys = []
   for (const name of (names ?? []).filter(Boolean)) {
+    // Two-sided personal token of the mod: both sides are tokens of the app, see TWO_SIDED_TOKENS
+    if (name in TWO_SIDED_TOKENS) {
+      keys.push(...TWO_SIDED_TOKENS[name])
+      continue
+    }
     const key = tokenSlug(name)
     if (tokensData[key]?.group === 'dice') continue
     // Affiliation tokens (group "affiliation", src/tokens/affiliationTokens.js) are the side's, not the character's

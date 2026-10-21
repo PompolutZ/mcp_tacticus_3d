@@ -41,6 +41,10 @@ const COLLECT_KEYS = [
   'shield',
   'blank',
 ]
+// Fixes for the mod's cleanup flag (key -> flag). The mod misses the flag on the Bloodhound; Jarvis text for Lockjaw
+// says "this round".
+const CLEANUP_FIXES = { 'interdimensional-bloodhound': true }
+
 const MANIFEST_FILE = path.join(import.meta.dirname, 'token-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/tokens')
 const OUT_DIR = opts.out ? path.resolve(opts.out) : null
@@ -56,6 +60,10 @@ const MISC_ROWS = ['1 Power']
 // Misc rows in token/misc/tracker/ that are counters, not tokens for a character. "1 Damage" is here because the
 // card Steal the Future names it: it gets a pile like the tokens of other tactic cards.
 const COUNTER_ROWS = ['1 Power', '1 Damage']
+// Back sides of the two-sided personal tokens (tType "Unused" in the mod). The app has no two-sided tokens: each side
+// is its own token and the player swaps them. The mod's Lua (rotation_values cases) spawns Leviathan Armor as Null
+// Field / Dispersion Field and Phased as Phased / Enhanced Density. Names, matched like tactic token names.
+const BACK_SIDE_ROWS = ['Dispersion Field', 'Enhanced Density']
 
 const { tokens } = loadCrisisDatabase()
 // Names are compared in lower case: a card row says "KickEm" or "Kickem" where the token row has its own spelling
@@ -86,6 +94,7 @@ function selected(row) {
   // The tokens of a Team Tactic card, of any type (Misc, Use Tools, Pile, ...): the app puts a pile of them on the
   // table with the card, see docs/features/team-tactic-cards.md, "Token piles"
   if (tacticTokenNames.has(row.name.toLowerCase())) return true
+  if (BACK_SIDE_ROWS.includes(row.name)) return true
   switch (row.tType) {
     case 'Condition':
       return ['condition', 'dice'].includes(groupPath(row)) // dice: the 6 results, token/dice/
@@ -186,10 +195,6 @@ function tokenSize(row) {
   if (!(row.tSize > 0)) throw new Error(`the Circle token "${row.name}" has no tSize`)
   return row.tSize * 2
 }
-
-// Fixes for the mod's cleanup flag (key -> flag). The mod misses the flag on the Bloodhound; Jarvis text for Lockjaw
-// says "this round".
-const CLEANUP_FIXES = { 'interdimensional-bloodhound': true }
 
 // Entry of src/tokens/tokens.json. size, description, cleanup and collect are left out when the mod row has none (size:
 // when it is the default), the same way as the optional fields of src/crisis/cards.json.

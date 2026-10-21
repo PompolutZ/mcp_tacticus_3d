@@ -1657,6 +1657,8 @@
       "hydra-troopers"
     ],
     "tokens": [
+      "null-field",
+      "dispersion-field",
       "stagger"
     ]
   },
@@ -2367,7 +2369,8 @@
     "figure": "model",
     "rotation": 75,
     "tokens": [
-      "phased"
+      "phased",
+      "enhanced-density"
     ]
   },
   "vulture": {

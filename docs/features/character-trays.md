@@ -291,6 +291,8 @@ Notes:
 
 - A row with `altName` is a second art of the same token, for example "Bleed1" with `altName = "Bleed"`. The second art is the old round design. The first art is the new design: for conditions, a rounded diamond. The script migrates only the first art.
 - The Damage counter icon is the mod's "1 Damage" token. `migrate-crisis.mjs` already migrated it to `src/assets/crisis/markers/damage.webp`. Use that file.
+- A character's Give row is its `cToken` list, then its `gruntTokens` (tokens its own card applies that the mod lists with the grunts, for example Stagger of Red Skull, Master of Hydra and Ultron, Metal Tyrant).
+- Two-sided personal tokens: the mod spawns Leviathan Armor (Red Skull, Master of Hydra) as Null Field with the back Dispersion Field, and Phased (Vision) as Phased with the back Enhanced Density. The back rows have `tType` "Unused". The app has no two-sided tokens: each side is its own token, and the character's Give row has both. The player swaps them by hand. `migrate-tokens.mjs` migrates the back rows (`BACK_SIDE_ROWS`), and `migrate-characters.mjs` maps the mod's name to both keys (`TWO_SIDED_TOKENS`).
 - The script also stores `cleanup: true` from the mod. It marks the tokens that the Cleanup Phase removes. The **Cleanup** button uses it (`CLEANUP_KEYS` in `src/tokens/tokens.js`).
 
 About 90 tokens are migrated. At about 15 KB each, this is about 1.4 MB.
