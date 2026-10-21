@@ -9,6 +9,7 @@ import { readRoom as readRoomOf } from '../rooms/read'
 import { isYjsUpdate } from '../rooms/table'
 import { HostingError, publicRoom, userIdsOf, type RoomInfo, type Store } from '../stores/store'
 import type { Config } from '../config'
+import { webpResponse } from './webp'
 
 const MAX_TABLE = 1024 * 1024
 // The map id of a room on the board of the account (CUSTOM_MAP_ID in rooms/table.js on the web)
@@ -112,10 +113,7 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
     const { room } = await readRoom(c.req.param('code'))
     const image = room.hasImage ? await store.rooms.getImage(room._id) : null
     if (!image) throw err(404, 'No image')
-    return c.body(image as Uint8Array<ArrayBuffer>, 200, {
-      'Content-Type': 'image/webp',
-      'Cache-Control': 'private, no-cache',
-    })
+    return webpResponse(c, image)
   })
 
   app.post('/rooms/:code/join', login, validate(joinSchema), async (c) => {

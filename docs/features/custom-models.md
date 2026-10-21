@@ -137,21 +137,21 @@ What the app does with a model, traced in the code:
 
 - **Body turn at spawn.** A model that spawns on its tray card gets a body turn by team: host 0, guest 180°. `modelSpawnYaw` in `src/characters/models.js` sets it (`Scene.jsx` passes it as the start rotation). With it, both teams face the board: the host sits at +z and the guest at -z (`src/setup/setup.js`).
 - **Figure turn of a TTS model.** The figure (the GLB) is also turned on its body by 180° minus `rotation` of the character in `src/characters/characters.json` (`modelFigureYaw`). This is the TTS `cModelRot`, which the TTS models need because each bundle has its own front.
-- **Figure turn of a scan.** A scan skips `rotation`: `modelFigureYaw` gives it the fixed turn `SCAN_FIGURE_YAW`. `rotation` was set for the TTS mesh, and the turn of a scan is random, so one number per character would only repeat what `turn-model` does. A scan is a file listed in `scripts/custom-models.json` (`isScanFile`, the same list that the scripts read). The second model, transform and constructs of a character are TTS files and keep `rotation`.
+- **Figure turn of a scan.** A scan skips `rotation`: `modelFigureYaw` gives it the fixed turn `SCAN_FIGURE_YAW`. `rotation` was set for the TTS mesh, and the turn of a scan is random, so one number per character would only repeat what `turn-model` does. A scan is a file listed in `src/characters/custom-models.json` (`isScanFile`, the same list that the scripts read). The second model, transform and constructs of a character are TTS files and keep `rotation`.
 - **Front of the model file.** For a scan the front is local +z of the GLB, for host and guest. A TTS model has the front (sin r, 0, cos r) in the x-z plane, with `rotation` r (degrees).
 
 Turn the file so that local +z is the front of the figure. `turn-model` alone sets which way a scan faces. The `#models` page shows the front and the angle, see [Model viewer](model-viewer.md).
 
 ```bash
-pnpm --filter web turn-model gamora 90                       # a character of scripts/custom-models.json
+pnpm --filter web turn-model gamora 90                       # a character of src/characters/custom-models.json
 pnpm --filter web turn-model model-candidates/hulk.glb -45   # a candidate file
 ```
 
 - The angle is in degrees. Positive is counterclockwise, seen from above.
 - The turn is around the vertical line through the origin. With `--base`, that is the base center, so the base stays where the collider is.
 - The script writes the file with Draco, as `photos-to-glb` does, and prints the angle and the new width × depth.
-- A character key must be in `scripts/custom-models.json`. A TTS model would be overwritten by the next migration, so the script stops with an error.
-- For a character, the script saves the sum of its turns in the command of the file in `scripts/custom-models.json`, as `&& pnpm --filter web turn-model <key> <sum>` at the end. A new turn changes the sum. The sum is in -180..180. A sum of 0 removes the part, because the file is then the same as the first command made it.
+- A character key must be in `src/characters/custom-models.json`. A TTS model would be overwritten by the next migration, so the script stops with an error.
+- For a character, the script saves the sum of its turns in the command of the file in `src/characters/custom-models.json`, as `&& pnpm --filter web turn-model <key> <sum>` at the end. A new turn changes the sum. The sum is in -180..180. A sum of 0 removes the part, because the file is then the same as the first command made it.
 - Each turn writes the Draco mesh again, so many turns add a little rounding. Add the angles up and turn once when you can.
 
 ## Terrain pieces
@@ -162,7 +162,7 @@ Leave out `--base` and pass `--size <1-5>` with `--height <mm>` or `--width <mm>
 
 - **Scale by width or height.** Object Capture scales all axes by one number, so a scan can have a wrong ratio of height to width. Use `--width` when the footprint matters more (the Traffic Light: base 36 mm, the height comes out a bit high). Use `--height` when the photos fill the frame and the height is exact (the Taxi Cab: 50 mm to the top of the roof sign).
 - **Piece kind.** The file goes to `src/assets/terrain/<key>.glb`, and `pieces.js` gets `{ name, scan: true, size }`. A scan piece is drawn like a bundle piece (the GLB materials, tint, footprints) and its collider is the convex hull of the visible mesh (see [Maps](maps.md#pieces)). `size` is the Size of a new piece in the builder.
-- **Record.** The command is in `scripts/custom-models.json` under the piece key, with the file `terrain/<key>.glb`, as for a character. The migrate and turn scripts look up character keys only, so a piece key does not disturb them.
+- **Record.** The command is in `src/characters/custom-models.json` under the piece key, with the file `terrain/<key>.glb`, as for a character. The migrate and turn scripts look up character keys only, so a piece key does not disturb them.
 - **The front of the piece is random.** Object Capture does not know which side is the front, so the piece can be turned (about 90° in the test). The placement turn of a map sets it right. `turn-model` with a file path turns the file, see [Front](#front).
 - **The center is the center of the bounding box.** This is correct for terrain, because the placements in `maps/<id>.json` are relative to the piece center.
 - **The camera cannot see some parts.** Undersides, overhangs, the inside of buildings and very thin parts (railings, antennas) come out bad or closed. A convex hull fills holes, so a piece with an arch or a gap is solid there.
@@ -174,7 +174,7 @@ To replace the model of a character:
 
 1. Make the GLB with `photos-to-glb`, with `--base` of the character and `--texture 1024`.
 2. Copy it to `src/assets/characters/<key>/model.glb`. The app already loads this file, so `characters.json` does not change.
-3. Add the file to `scripts/custom-models.json`: character key, file relative to `src/assets`, and how it was made (command, photo set).
+3. Add the file to `src/characters/custom-models.json`: character key, file relative to `src/assets`, and how it was made (command, photo set).
 4. Turn the front to the board with `pnpm --filter web turn-model <key> <degrees>`, see [Front](#front). It adds the turn to the command in the list.
 
 The list exists because `migrate-characters.mjs` would convert the TTS model again and overwrite the scan, for example with `--force` or after a new source URL. The script never converts or overwrites a listed file, also with `--force`. It prints a line when it skips one. The rest of the character still migrates, and the manifest keeps the source URL.

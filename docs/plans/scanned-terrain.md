@@ -25,7 +25,7 @@ This is the first part of a bigger request: a map designer in the Sandbox (a mat
 1. **Scan piece kind:** `scan: true` in `pieces.js`, for example `'traffic-light': { name: 'Traffic Light', scan: true, size: 1 }`. Terrain.jsx draws it with the bundle code (GLB materials, tint, footprints). Its collider is the convex hull of the visible mesh (`autoColliders: 'hull'`). There is no collider file and no `colliders` list.
 2. **Size from the scan command:** `photos-to-glb --size <1-5>` marks a terrain scan. It needs `--height` or `--width`, and it does not go with `--base` or `--stand`. The script prints the `pieces.js` line with the size. `size` on the piece is the default Size of a new placement. A placement can still have its own `size`, as today. Traffic Light: Size 1. Taxi Cab: Size 2, the same as the cars of the mod (Police Car, Pink Car).
 3. **Catalog:** a piece with `size` and no placement in any map goes into its size group, with scale 1 and no tint.
-4. **Record:** the files go to `src/assets/terrain/<key>.glb`. Their commands go to `scripts/custom-models.json` under the piece key, as for a character. The coder checks that the code that reads this list (`isScanFile`, the `#models` page, `migrate-characters.mjs`) still works with a key that is not a character. If one of them breaks, the terrain scans get their own top-level group in the file.
+4. **Record:** the files go to `src/assets/terrain/<key>.glb`. Their commands go to `src/characters/custom-models.json` under the piece key, as for a character. The coder checks that the code that reads this list (`isScanFile`, the `#models` page, `migrate-characters.mjs`) still works with a key that is not a character. If one of them breaks, the terrain scans get their own top-level group in the file.
 5. **Scale by width:** `photos-to-glb --width <mm>` scales the scan so that its widest side (bounding box, x or z) gets this width. A scan can come out with a wrong ratio of height to width, and the user prefers a correct footprint and a height that is a bit off. `--width` and `--height` do not go together.
 6. **Scan settings:** terrain scans use the figure settings: `--texture 1024 --tone medium --triangles 60000`. The user takes the photos in the same light as for the figures.
 7. **Front:** not handled now. `turn-model` with a file path works when needed. Map placements set the turn of each piece anyway.
@@ -45,7 +45,7 @@ Files:
 - `src/assets/terrain/taxi-cab.glb`, made with:
   `pnpm --filter web photos-to-glb ~/Downloads/_HERO_3D_TAXI_CAB_YELLOW --height 50 --size 2 --texture 1024 --tone medium --triangles 60000 --out src/assets/terrain/taxi-cab.glb`
 - Run each scan in the foreground (a background run fails), 3–4 min each.
-- `scripts/custom-models.json`: decision 4. The photo folders as `<Traffic Light photos>` and `<Taxi Cab photos>`, as for the characters.
+- `src/characters/custom-models.json`: decision 4. The photo folders as `<Traffic Light photos>` and `<Taxi Cab photos>`, as for the characters.
 - Docs: `docs/features/custom-models.md` ("Terrain pieces": what is now built; `--size` and `--width` in the options table; the two pieces). `docs/features/maps.md` ("Pieces": the scan kind; "Terrain page": pieces without placements).
 
 Tests:

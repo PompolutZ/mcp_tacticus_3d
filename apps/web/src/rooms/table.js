@@ -106,18 +106,19 @@ export function applyEmptyMat(table, mat) {
   applyBoard(table, mat, [])
 }
 
-// The value of the Map select for the table: the map id, 'custom' (no map, but pieces: a built or imported
-// board), 'mat:<name>' (an empty mat) or '' (nothing).
-export const CUSTOM_BOARD = 'custom'
 // A room on the saved board of its host has this mapId (docs/features/map-builder.md, "Board in a new room").
-// MAPS has no such key, so a reader of mapId checks it first (isPlayableMap).
-export const CUSTOM_MAP_ID = CUSTOM_BOARD
+// MAPS has no such key, so a reader of mapId checks it first (isPlayableMap). It is also the Map select value of
+// a table with pieces and no map (mapChoice): both are a board of the user, and mapChoice passes a room's mapId
+// through, so the two must be one value.
+export const CUSTOM_MAP_ID = 'custom'
 // A map the app can open: a key in MAPS, or the board copied into the room
 export const isPlayableMap = (mapId) => mapId === CUSTOM_MAP_ID || Boolean(MAPS[mapId])
 export const MAT_PREFIX = 'mat:'
+// The value of the Map select for the table: the map id, CUSTOM_MAP_ID (no map, but pieces: a built or imported
+// board), 'mat:<name>' (an empty mat) or '' (nothing).
 export function mapChoice(mapId, mat, pieceCount) {
   if (mapId != null) return mapId
-  if (pieceCount > 0) return CUSTOM_BOARD
+  if (pieceCount > 0) return CUSTOM_MAP_ID
   return mat ? `${MAT_PREFIX}${mat.name}` : ''
 }
 

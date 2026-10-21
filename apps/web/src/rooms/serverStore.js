@@ -1,6 +1,6 @@
 // The multiplayer rooms API (docs/features/auth.md, "Endpoints"). One function per route. The only caller of api() for rooms.
 
-import { api, ApiError } from '../api/client.js'
+import { api, getBlob } from '../api/client.js'
 import { toBase64 } from './base64.js'
 
 const path = (code) => `/rooms/${encodeURIComponent(code)}`
@@ -23,14 +23,9 @@ export async function createRoom({ mapId, maps, roster, table }) {
 }
 
 // The top view copy of a room on the custom board as a WebP Blob, or null when there is none. Open like getRoom;
-// the token goes along when there is one. A caller makes an object URL of the Blob.
+// the token goes along when there is one.
 export async function getRoomImage(code) {
-  try {
-    return new Blob([await api(`${path(code)}/image`, { binary: true })], { type: 'image/webp' })
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) return null
-    throw error
-  }
+  return getBlob(`${path(code)}/image`, 'image/webp')
 }
 
 export async function joinRoom(code, roster) {

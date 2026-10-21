@@ -11,8 +11,8 @@ import {
   transformStandee,
 } from './files.js'
 import { DEG } from '../camera.js'
-import customModels from '../../scripts/custom-models.json' with { type: 'json' }
-import { isCustomModel } from '../../scripts/lib/custom-models.mjs'
+import customModels from './custom-models.json' with { type: 'json' }
+import { isCustomModel } from './customModels.js'
 
 // The first model has the character's own id, so code that knows only the character (hold and
 // drop, the tray card) finds that model. The second model's id adds this suffix.
@@ -130,7 +130,7 @@ export function modelSpawnYaw(team) {
   return -(((TRAY_ROTATION[team] + 180) % 360) * DEG) + 0
 }
 
-// True when `file` (relative to src/assets) of character `key` is a scan: it is in scripts/custom-models.json,
+// True when `file` (relative to src/assets) of character `key` is a scan: it is in custom-models.json,
 // the same list that migrate-characters.mjs and turn-model.mjs read.
 export function isScanFile(key, file) {
   return isCustomModel(customModels, key, file)

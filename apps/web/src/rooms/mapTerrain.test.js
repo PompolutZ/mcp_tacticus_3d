@@ -8,6 +8,7 @@ import {
   applyBoard,
   applyEmptyMat,
   applyMap,
+  CUSTOM_MAP_ID,
   fillMap,
   isPlayableMap,
   mapChoice,
@@ -110,7 +111,7 @@ test('the Map select shows the map, a custom board or the empty mat', () => {
   const mat = { name: MATS[0].name, rotation: 0 }
   assert.equal(mapChoice('m', null, 3), 'm')
   assert.equal(mapChoice(null, mat, 0), `mat:${mat.name}`)
-  assert.equal(mapChoice(null, mat, 2), 'custom')
+  assert.equal(mapChoice(null, mat, 2), CUSTOM_MAP_ID)
   assert.equal(mapChoice(null, null, 0), '')
 })
 

@@ -4,7 +4,7 @@ import { useSideColors } from '../table/useSideColors.jsx'
 import { TEAMS } from '../setup/setup.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { SORTED_MATS } from '../terrain/builder.js'
-import { CUSTOM_BOARD, MAT_PREFIX } from '../rooms/table.js'
+import { CUSTOM_MAP_ID, MAT_PREFIX } from '../rooms/table.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from '../rooms/CopyLinkButton.jsx'
 import '../rooms/comicBase.js'
@@ -259,8 +259,8 @@ function Toolbar({
                 onChange={(e) => onMapChange(e.target.value)}
               >
                 {mapChoice === '' && <option value="" disabled />}
-                {mapChoice === CUSTOM_BOARD && (
-                  <option value={CUSTOM_BOARD} disabled>
+                {mapChoice === CUSTOM_MAP_ID && (
+                  <option value={CUSTOM_MAP_ID} disabled>
                     Custom board
                   </option>
                 )}

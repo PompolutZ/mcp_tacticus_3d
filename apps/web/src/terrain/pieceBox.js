@@ -8,14 +8,20 @@ import { pieceUrls } from './urls.js'
 // visible mesh GLB on its own, once per piece, and keeps the box. The browser caches the file, so the
 // piece itself (useGLTF in Terrain.jsx) does not download it again. The scene is never mounted, so its
 // box is in mesh space, like labelPosition in Terrain.jsx.
+// This is a second load and decode of the GLB, not the one of useGLTF: the drei cache (useLoader, suspend-react)
+// has no public way to await an entry outside a component, and its key is the GLTFLoader class of three-stdlib.
+
+// The Draco decoder is served from public/draco, not from the default Google CDN. App.jsx gives it to
+// useGLTF (setDecoderPath), and this loader uses it too.
+export const DRACO_DECODER_PATH = '/draco/'
 
 let loader = null
 const boxes = new Map()
 
 function gltfLoader() {
   if (!loader) {
-    // The mesh GLBs are Draco compressed. The decoder path is the one of App.jsx (useGLTF.setDecoderPath).
-    const draco = new DRACOLoader().setDecoderPath('/draco/')
+    // The mesh GLBs are Draco compressed
+    const draco = new DRACOLoader().setDecoderPath(DRACO_DECODER_PATH)
     loader = new GLTFLoader().setDRACOLoader(draco)
   }
   return loader

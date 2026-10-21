@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { isCustomModel } from './custom-models.mjs'
+import { isCustomModel } from './customModels.js'
 
 const list = { hero: { 'characters/hero/model.glb': 'photos-to-glb, set 1' } }
 

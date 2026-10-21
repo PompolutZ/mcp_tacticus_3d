@@ -16,7 +16,7 @@ Object Capture does not know the front of a figure, so a scan comes out turned b
 ## Facts
 
 - `docs/features/custom-models.md`: the model is Y up, the base center is at the origin (with `--base`). "Choosing the front" and `--turn` are listed as not built.
-- `scripts/custom-models.json`: character key → { file: command that made it }. `migrate-characters.mjs` never overwrites a listed file.
+- `src/characters/custom-models.json`: character key → { file: command that made it }. `migrate-characters.mjs` never overwrites a listed file.
 - `scripts/lib/convert.mjs`: GLB read and write, `compressMesh` (Draco), used by `photos-to-glb.mjs`.
 - `#models` page: `src/debug/ModelsPage.jsx`, `src/debug/modelList.js`, doc `docs/features/model-viewer.md`. It shows game models and candidates (`model-candidates/`).
 - `setup/setup.js`: host sits at +z, guest at -z. `sideYaw` is 0 for host, 180° for guest.
@@ -61,4 +61,4 @@ The user checks every scanned model on `#models` and gives the angles. The main 
 
 - Step 1 (commit 42929f0): `turn-model` script and the Front section of `custom-models.md`.
 - Finding: the game turns every model by `rotation`, scans too, so each scan had a different front. Decision 5 fixed it.
-- Step 2: scans skip `rotation` (`modelFigureYaw`, `isScanFile` reads `scripts/custom-models.json`), front is local +z, with a test. `#models` has the board arrow, turn buttons, and the turn and command in the stats. Feature docs updated.
+- Step 2: scans skip `rotation` (`modelFigureYaw`, `isScanFile` reads `src/characters/custom-models.json`), front is local +z, with a test. `#models` has the board arrow, turn buttons, and the turn and command in the stats. Feature docs updated.

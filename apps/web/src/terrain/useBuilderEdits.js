@@ -1,4 +1,3 @@
-import { startTransition } from 'react'
 import { applyBoard, renameBoard } from '../rooms/table.js'
 import { selectPiece } from '../selection.js'
 import { MATS } from './catalog.js'
@@ -21,16 +20,12 @@ import { loadPieceBox } from './pieceBox.js'
 export function useBuilderEdits({ table, mapId, setTerrain, setSelection }) {
   const deselect = () => setSelection((prev) => prev.filter((p) => p.kind !== 'terrain'))
 
-  // dx, dz: Three coords on the mat (useTerrainDrag). startTransition: the piece mounts again with its fixed body
+  // dx, dz: Three coords on the mat (useTerrainDrag)
   const move = (id, dx, dz) =>
-    startTransition(() =>
-      setTerrain((prev) => editStoredPiece(mapId, prev, id, (l) => movePlacement(l, id, dx, dz))),
-    )
+    setTerrain((prev) => editStoredPiece(mapId, prev, id, (l) => movePlacement(l, id, dx, dz)))
   // dir 1 is Q, -1 is E
   const turn = (id, dir) =>
-    startTransition(() =>
-      setTerrain((prev) => editStoredPiece(mapId, prev, id, (l) => turnPlacement(l, id, dir))),
-    )
+    setTerrain((prev) => editStoredPiece(mapId, prev, id, (l) => turnPlacement(l, id, dir)))
 
   // The box comes first (the files load async), so the piece is written at its final height, on the mat
   async function add(piece) {

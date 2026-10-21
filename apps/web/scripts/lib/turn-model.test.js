@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { Document } from '@gltf-transform/core'
-import { withTurn, turnSumOf } from './custom-models.mjs'
-import { normalizeAngle, turnRoots } from './turn-model.mjs'
+import { normalizeAngle, turnRoots, turnSumOf, withTurn } from './turn-model.mjs'
 
 // A model with a mesh at the base ring and a root node that is already moved and turned
 function makeDoc() {

@@ -1,6 +1,6 @@
 // The Sandbox board of the account (docs/features/map-builder.md). One function per route. Needs a login.
 
-import { api, ApiError } from './client.js'
+import { api, ApiError, getBlob } from './client.js'
 import { toBase64 } from '../rooms/base64.js'
 
 // The saved board: { board (the map JSON format), hasImage }, or null when there is none
@@ -27,13 +27,7 @@ export async function saveBoard(board, image) {
   await api('/me/board', { method: 'PUT', json })
 }
 
-// The top view of the saved board as a WebP Blob, or null when there is none. The route needs the token, which an img
-// src cannot send, so the bytes come through the api client. A caller makes an object URL of the Blob.
+// The top view of the saved board as a WebP Blob, or null when there is none. The route needs the token.
 export async function getBoardImage() {
-  try {
-    return new Blob([await api('/me/board/image', { binary: true })], { type: 'image/webp' })
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) return null
-    throw error
-  }
+  return getBlob('/me/board/image', 'image/webp')
 }

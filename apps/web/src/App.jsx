@@ -64,6 +64,7 @@ import { DebugPanel } from './debug/DebugPanel.jsx'
 import { mapChoice, tableMat, withPlacements } from './rooms/table.js'
 import SandboxBuilder from './terrain/SandboxBuilder.jsx'
 import { useBuilderEdits } from './terrain/useBuilderEdits.js'
+import { DRACO_DECODER_PATH } from './terrain/pieceBox.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
 import { useTableTools } from './tabletools/useTableTools.js'
@@ -93,9 +94,9 @@ import { useRenderCount } from './debug/renderCount.js'
 const FrameStats = lazy(() => import('./perf/FrameStats.jsx'))
 const PerfOverlay = lazy(() => import('./perf/PerfOverlay.jsx'))
 
-// Draco decoder is served from public/draco, not from the default Google CDN. Module scope of the table
-// chunk, so it runs before any model loads.
-useGLTF.setDecoderPath('/draco/')
+// The Draco decoder of public/draco (DRACO_DECODER_PATH). Module scope of the table chunk, so it runs
+// before any model loads.
+useGLTF.setDecoderPath(DRACO_DECODER_PATH)
 
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.

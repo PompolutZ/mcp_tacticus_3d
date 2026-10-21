@@ -1,5 +1,6 @@
-// Turns a model around the vertical line through its origin (the base center), for turn-model.mjs.
-// Plain module: it needs only a glTF-Transform document, so a test can build one in memory.
+// Turns a model around the vertical line through its origin (the base center), and keeps the sum of the
+// turns in the command of the file, for turn-model.mjs.
+// Plain module: it needs only a glTF-Transform document and strings, so a test can build them in memory.
 // See docs/features/custom-models.md, "Front".
 
 // Turns every root node of every scene around Y by `degrees`. Positive is counterclockwise seen from
@@ -24,4 +25,24 @@ export function normalizeAngle(degrees) {
   let a = ((degrees % 360) + 360) % 360
   if (a > 180) a -= 360
   return Math.round(a * 1e6) / 1e6
+}
+
+// The turn-model part of the command of character `key` in src/characters/custom-models.json:
+// ` && pnpm --filter web turn-model <key> <sum>`
+const turnPart = (key) =>
+  new RegExp(` && pnpm --filter web turn-model ${escapeRegExp(key)} (-?[0-9.]+)`)
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+// The sum of the turns that the command of a character already has (0 when none), in degrees
+export function turnSumOf(command, key) {
+  const match = command.match(turnPart(key))
+  return match ? Number(match[1]) : 0
+}
+
+// The command with `degrees` added to its turn part. The sum is in -180..180. A sum of 0 removes the
+// turn part: the file is then as the first command made it, and the record has no turn.
+export function withTurn(command, key, degrees) {
+  const sum = normalizeAngle(turnSumOf(command, key) + degrees)
+  const bare = command.replace(turnPart(key), '')
+  return sum === 0 ? bare : `${bare} && pnpm --filter web turn-model ${key} ${sum}`
 }

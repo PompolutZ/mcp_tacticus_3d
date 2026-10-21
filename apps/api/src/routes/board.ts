@@ -5,6 +5,7 @@ import type { Config } from '../config'
 import { requireUser, type AuthEnv } from '../middleware/user'
 import { validate } from '../middleware/validate'
 import type { Board, BoardPlacement, Store } from '../stores/store'
+import { webpResponse } from './webp'
 
 // The image is a top view of the mat, 512 x 512 WebP. The limit is on the decoded bytes.
 const MAX_IMAGE = 150 * 1024
@@ -69,14 +70,11 @@ export function boardRoutes(deps: { store: Store; config: Config }) {
     })
   })
 
-  // The bytes of the top view. private, no-cache: the browser asks again, the image is the user's own.
+  // The bytes of the top view. The image is the user's own.
   app.get('/me/board/image', async (c) => {
     const image = await store.boards.getImage(c.get('user')._id)
     if (!image) return c.json({ error: 'No image' }, 404)
-    return c.body(image as Uint8Array<ArrayBuffer>, 200, {
-      'Content-Type': 'image/webp',
-      'Cache-Control': 'private, no-cache',
-    })
+    return webpResponse(c, image)
   })
 
   app.put(

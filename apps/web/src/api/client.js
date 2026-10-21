@@ -63,3 +63,14 @@ export async function api(
   }
   return data
 }
+
+// The bytes of a GET as a Blob of `type`, or null on a 404. For images behind the token, which an img src
+// cannot send. A caller makes an object URL of the Blob.
+export async function getBlob(path, type) {
+  try {
+    return new Blob([await api(path, { binary: true })], { type })
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
+  }
+}
