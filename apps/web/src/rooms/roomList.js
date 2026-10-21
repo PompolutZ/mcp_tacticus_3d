@@ -1,10 +1,11 @@
 // One list of the single player and the multiplayer rooms (docs/features/rooms.md, "Lobby"). No React.
 
 import { isPlayableMap } from './table.js'
+import { serverRoomBoard, singleRoomBoard } from './roomBoard.js'
 import { TEAMS } from '../setup/setup.js'
 
 // single: records of rooms/store.js (updatedAt in ms). multiplayer: rooms of the API (updatedAt is ISO).
-// Returns { kind, id, mapId, rosters, colors, updatedAt (ms), room }
+// Returns { kind, id, mapId, board, rosters, colors, updatedAt (ms), room } (board: the card data of a room on the custom board, or null, rooms/roomBoard.js)
 // (colors: { host, guest } of a single player room, undefined when unknown), the last changed first. A room of a map that
 // the app does not have cannot open, so it is left out. A multiplayer room with mapId null (random, the
 // guest has not joined) stays.
@@ -14,6 +15,7 @@ export function roomList(single, multiplayer) {
       kind: 'single',
       id: room.id,
       mapId: room.mapId,
+      board: singleRoomBoard(room),
       rosters: room.rosters,
       colors: room.colors,
       updatedAt: room.updatedAt,
@@ -23,6 +25,7 @@ export function roomList(single, multiplayer) {
       kind: 'multiplayer',
       id: room.code,
       mapId: room.mapId,
+      board: serverRoomBoard(room),
       rosters: room.rosters,
       updatedAt: Date.parse(room.updatedAt),
       room,

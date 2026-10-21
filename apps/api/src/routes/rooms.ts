@@ -11,6 +11,8 @@ import { HostingError, publicRoom, userIdsOf, type RoomInfo, type Store } from '
 import type { Config } from '../config'
 
 const MAX_TABLE = 1024 * 1024
+// The map id of a room on the board of the account (CUSTOM_MAP_ID in rooms/table.js on the web)
+const CUSTOM_MAP_ID = 'custom'
 const LIST_LIMIT = 100
 
 const rosterSchema = z.object({ code: z.string().check(z.minLength(1), z.maxLength(1000)) })
@@ -66,6 +68,10 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
       const table = new Uint8Array(Buffer.from(body.table, 'base64'))
       if (table.length > MAX_TABLE) throw err(413, 'Table too large')
       if (!isYjsUpdate(table)) throw err(400, 'Invalid table')
+      // A room on the custom board copies name, author and image from the board of the same user, here on the
+      // server: no upload, nothing from the client to trust. The account has no board: the room has no copy.
+      const saved = body.mapId === CUSTOM_MAP_ID ? await store.boards.get(user._id) : null
+      const image = saved?.hasImage ? await store.boards.getImage(user._id) : null
       try {
         const room = await store.rooms.create(
           {
@@ -74,6 +80,15 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
             ...(body.maps ? { maps: body.maps } : {}),
             roster: body.roster,
             table,
+            ...(saved
+              ? {
+                  board: {
+                    name: saved.board.name ?? '',
+                    author: saved.board.author ?? '',
+                    ...(image ? { image } : {}),
+                  },
+                }
+              : {}),
           },
           new Date(),
         )
@@ -89,6 +104,18 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
   app.get('/rooms/:code', async (c) => {
     const { room, users } = await readRoom(c.req.param('code'))
     return c.json({ room: publicRoom(room, users) })
+  })
+
+  // The top view copy of a room on the custom board. Open like GET /rooms/{code}: the room code is the secret, and
+  // the join page shows the card before the login. 404 for an unknown room, or a room with no image.
+  app.get('/rooms/:code/image', async (c) => {
+    const { room } = await readRoom(c.req.param('code'))
+    const image = room.hasImage ? await store.rooms.getImage(room._id) : null
+    if (!image) throw err(404, 'No image')
+    return c.body(image as Uint8Array<ArrayBuffer>, 200, {
+      'Content-Type': 'image/webp',
+      'Cache-Control': 'private, no-cache',
+    })
   })
 
   app.post('/rooms/:code/join', login, validate(joinSchema), async (c) => {

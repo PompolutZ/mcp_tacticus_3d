@@ -235,11 +235,6 @@
   letter-spacing: 0.04em;
 }
 
-.new-room-nav-author {
-  font: italic 700 13px var(--font-label);
-  letter-spacing: 0.08em;
-}
-
 /* ---- The right column ---- */
 .new-room-side {
   flex: 1;

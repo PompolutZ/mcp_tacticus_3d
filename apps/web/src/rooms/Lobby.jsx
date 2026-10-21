@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
+import { RoomBoardCard } from './RoomBoardCard.jsx'
 import { mapFace } from '../terrain/mapFace.js'
 import { avatarUrl } from '../auth/avatar.js'
 import { useUser } from '../auth/useUser.js'
@@ -101,7 +102,11 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
 
   // A browser confirm, the same as Remove on a character tray
   async function handleDelete(item) {
-    if (!window.confirm(`Delete room ${item.id} (${mapFace(item.mapId).name})? Its table is lost.`))
+    if (
+      !window.confirm(
+        `Delete room ${item.id} (${mapFace(item.mapId, item.board?.name).name})? Its table is lost.`,
+      )
+    )
       return
     if (item.kind === 'single') {
       deleteRoom(item.id)
@@ -166,7 +171,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
           {items.map((item, index) => {
             const room = item.room
             const isMulti = item.kind === 'multiplayer'
-            const face = mapFace(item.mapId)
+            const face = mapFace(item.mapId, item.board?.name)
             const links = new Map(rosterLinks(item).map((link) => [link.team, link]))
             const isHost = isMulti ? room.host === userId : ownsRoom(room)
             const plates = isMulti
@@ -203,12 +208,21 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                   )}
                 </div>
                 <div className="room-body">
-                  <img
-                    className="room-card"
-                    src={assetUrl(face.src)}
-                    alt={face.name}
-                    draggable={false}
-                  />
+                  {item.board ? (
+                    <RoomBoardCard
+                      className="room-card"
+                      code={item.id}
+                      multiplayer={isMulti}
+                      board={item.board}
+                    />
+                  ) : (
+                    <img
+                      className="room-card"
+                      src={assetUrl(face.src)}
+                      alt={face.name}
+                      draggable={false}
+                    />
+                  )}
                   <div className="room-info">
                     <div>
                       <span className="room-tag">{isMulti ? 'Versus' : 'Solo'}</span>

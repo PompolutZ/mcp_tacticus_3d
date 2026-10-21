@@ -198,3 +198,37 @@ describe('table writes through the app on Mongo', () => {
     vi.restoreAllMocks()
   })
 })
+
+describe('mongo rooms store, board copy', () => {
+  const image = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0xff, 0x00, 0x80])
+
+  it('keeps name, author and image; get and list leave the image out; getImage returns the bytes', async () => {
+    const made = await store.rooms.create(
+      room('u_img1', { mapId: 'custom', board: { name: 'B', author: 'A', image } }),
+      t1,
+    )
+    expect(made).toMatchObject({ boardName: 'B', boardAuthor: 'A', hasImage: true })
+    expect(made).not.toHaveProperty('image')
+    const got = await store.rooms.get(made._id)
+    expect(got).toMatchObject({ boardName: 'B', boardAuthor: 'A', hasImage: true })
+    expect(got).not.toHaveProperty('image')
+    await store.rooms.join(made._id, 'guest', 'u_img2', { code: 'x' }, t1)
+    const list = await store.rooms.listForUser('u_img2', 10)
+    expect(list[0]).not.toHaveProperty('image')
+    expect(await store.rooms.getImage(made._id)).toEqual(image)
+    await store.rooms.delete(made._id)
+    expect(await store.rooms.getImage(made._id)).toBeNull()
+  })
+
+  it('a room with no board, or a board without an image, has no image', async () => {
+    const plain = await store.rooms.create(room('u_img3'), t1)
+    expect(plain).not.toHaveProperty('boardName')
+    expect(await store.rooms.getImage(plain._id)).toBeNull()
+    const noImage = await store.rooms.create(
+      room('u_img4', { mapId: 'custom', board: { name: 'B', author: '' } }),
+      t1,
+    )
+    expect(noImage).toMatchObject({ boardName: 'B', hasImage: false })
+    expect(await store.rooms.getImage(noImage._id)).toBeNull()
+  })
+})

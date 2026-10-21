@@ -47,6 +47,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 - **Messages:** a message at the top of the lobby (a room link that is not found, a failed load) shows as a yellow comic box.
 - **Your rooms:** the title "Your rooms" with a badge "1 battle in progress" or "N battles in progress" (the number of listed rooms, hidden with no rooms). Then one list with a tile for each single player room and each multiplayer room, the last changed room first, and the **+** tile at the end. With login off, the list has only single player rooms and makes no API call.
 - **Room tile:** an article, not clickable. **Enter the fight →** is the only way into a room. The tile shows:
+  - for a room on the custom board, the card of the room copy (`RoomBoardCard`: name, "by <author>", top view) instead of the map card; the title is the board name;
   - a yellow badge "Room" with the code. The badge has a copy icon button, the **Copy link** of `docs/features/auth.md` ("Lobby and room UI");
   - the map card (alt text: the map name), the tag "Versus" or "Solo", the map name and "Last change" with the time. A random multiplayer room shows the card back and "Random map" until the guest joins;
   - the two seats as plates (`SeatPlate.jsx`) with "VS" between them, and the roster link "Roster ›" under a plate;
@@ -80,7 +81,7 @@ The carousel shows only maps that the app has (`apps/web/src/terrain/maps/index.
 
 ## Join page
 
-A logged-in player who opens the link of a versus room with a free seat sees this page (`rooms/JoinRoom.jsx`). The header is the lobby header. The page has two framed panels side by side; on a narrow screen they stack, the map on top and shorter.
+A logged-in player who opens the link of a versus room with a free seat sees this page (`rooms/JoinRoom.jsx`). For a room on the custom board the map is the card of the room copy, with the image from `GET /rooms/{code}/image` (open like the room read: the code is the secret). The header is the lobby header. The page has two framed panels side by side; on a narrow screen they stack, the map on top and shorter.
 
 - **Map panel** (yellow rays): the tab "Incoming challenge!" on the top left corner, and the map card turned a little with a hard shadow. A random room shows the card back.
 - **Room panel** (paper): a yellow tag "Room" with the code, "Join room" in red, and the map name as the title ("Random map" in a random room, with the hint "The map spawns when you join.").
@@ -146,6 +147,7 @@ A room has two parts. The room record is in `localStorage`. The table is a Yjs d
 | `localStorage` | `mcp-assist-3d/user` | `{ id }`: a random id of the user of this browser, made once |
 | `localStorage` | `mcp-assist-3d/room/<code>` | One room record |
 | IndexedDB | `mcp-assist-3d/room/<code>` | The Yjs document of the table (`y-indexeddb`) |
+| IndexedDB | `mcp-assist-3d/room-images`, key `<code>` | The top view (WebP Blob) of a single player room on the custom board (`map-builder.md`, "Board in a new room"). `rooms/roomImage.js` |
 
 The lobby finds the rooms by the key prefix. One key per room, so a room cannot be half written, and there is no list that can disagree with the rooms.
 
@@ -156,7 +158,7 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
   owner: '<user id>',
   createdAt, updatedAt,           // ms since 1970
   mapId: 'vibranium-heist',       // key in MAPS, or 'custom': the board of the host
-  board: { ... },                 // only with mapId 'custom': the checked board (map-builder.md), copied at creation
+  board: { ... },                 // only with mapId 'custom': the checked board (map-builder.md), copied at creation. Its name and author show on the tile
   rosters: { host: { code }, guest: null | { code } },   // docs/features/roster.md, "State"
   colors: { host: 'blue', guest: 'red' },                // sideColorsOf of the setup; a record from before has none
 }
@@ -181,7 +183,7 @@ Not saved: dice in the well and in the air, selection, camera, open popups, spec
 
 - The document: at each change. `y-indexeddb` stores each update at once. There is no poll.
 - The room record: at most every 2 seconds after a change of the document, when the page closes or reloads (`pagehide`), and when the table unmounts. **← Lobby** writes it first, so the lobby shows the last change. `updatedAt` changes only then, not when a room only opens.
-- **Delete** also deletes the IndexedDB database of the room.
+- **Delete** also deletes the IndexedDB database of the room, and its board image. The lobby cleanup deletes board images whose record is gone.
 
 ### When IndexedDB does not work
 
@@ -210,7 +212,9 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 | `apps/web/src/Table.jsx` | Shows the loading screen, mounts `App` when the session has opened the table. Gives the session its page and server functions |
 | `apps/web/src/rooms/openTableSession.js` | `openTableSession`: opens the document of a room or the Sandbox. Multiplayer: reads the table from the server, runs the table writer and the connection, logs the traffic. Plain module, tested with fakes |
 | `apps/web/src/rooms/localDocs.js` | Cleanup: `deleteStaleRooms` (single player), stale multiplayer copies and squads |
-| `apps/web/src/rooms/store.js` | `localStorage`: user id, room code, list, read, create. `saveRoomRecord`, `roomDocName`, `deleteRoom` (also deletes the IndexedDB database). `createRoom` takes both rosters |
+| `apps/web/src/rooms/roomImage.js` | IndexedDB store of the board top view of single player rooms |
+| `apps/web/src/rooms/RoomBoardCard.jsx` | The card of a room on the custom board (lobby tile, join page) |
+| `apps/web/src/rooms/store.js` | `localStorage`: user id, room code, list, read, create. `saveRoomRecord`, `roomDocName`, `deleteRoom` (also deletes the IndexedDB database and the board image). `createRoom` takes both rosters |
 | `apps/web/src/rooms/tableDoc.js` | `openTableDoc`: the document with IndexedDB, the 5-second timeout and the in-memory fallback. `watchRoomRecord`: writes the room record |
 | `apps/web/src/rooms/table.js` | The table state that a new table starts with (`startTable`), `withPlacements`, `poseOf` |
 | `apps/web/src/net/doc.js` | The layout of the document, `createTable`, `fillTable`, `encodeTable` |

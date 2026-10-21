@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
+import { RoomBoardCard } from './RoomBoardCard.jsx'
+import { serverRoomBoard } from './roomBoard.js'
 import { mapFace } from '../terrain/mapFace.js'
 import { avatarUrl } from '../auth/avatar.js'
 import { DISCORD_ON, login } from '../auth/session.js'
@@ -19,7 +21,8 @@ import { RoomRosterPopup } from '../rosters/RoomRosterPopup.jsx'
 export function JoinRoom({ room, onJoined, onExit }) {
   const { status, user } = useUser()
   const loggedIn = status === 'in'
-  const face = mapFace(room.mapId)
+  const board = serverRoomBoard(room)
+  const face = mapFace(room.mapId, board?.name)
   const host = room.players.host
   const hostRoster = room.rosters.host
   const hostLabel = `${host?.gone ? 'Deleted player' : (host?.name ?? 'Host')} roster`
@@ -50,7 +53,11 @@ export function JoinRoom({ room, onJoined, onExit }) {
       <div className="join-room">
         <div className="join-room-map">
           <span className="join-room-caption">Incoming challenge!</span>
-          <img className="join-room-card" src={assetUrl(face.src)} alt="" draggable={false} />
+          {board ? (
+            <RoomBoardCard className="join-room-card" code={room.code} multiplayer board={board} />
+          ) : (
+            <img className="join-room-card" src={assetUrl(face.src)} alt="" draggable={false} />
+          )}
         </div>
         <form className="join-room-panel" onSubmit={handleJoin}>
           <div className="join-room-tag">

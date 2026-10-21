@@ -15,7 +15,7 @@ import {
   type UserDoc,
 } from './store'
 
-function info({ table: _table, ...rest }: RoomDoc): RoomInfo {
+function info({ table: _table, image: _image, ...rest }: RoomDoc): RoomInfo {
   return { ...rest, players: { ...rest.players }, rosters: { ...rest.rosters } }
 }
 
@@ -73,6 +73,7 @@ export function createMemoryStore(): Store {
           const code = makeCode()
           if (rooms.has(code)) continue
           const doc = newRoom(input, code, now)
+          if (doc.image) doc.image = new Uint8Array(doc.image)
           rooms.set(code, doc)
           return info(doc)
         }
@@ -85,6 +86,10 @@ export function createMemoryStore(): Store {
       async getTable(code) {
         const doc = rooms.get(code)
         return doc ? { table: doc.table, tableRev: doc.tableRev } : null
+      },
+      async getImage(code) {
+        const image = rooms.get(code)?.image
+        return image ? new Uint8Array(image) : null
       },
       async listForUser(userId, limit) {
         return [...rooms.values()]

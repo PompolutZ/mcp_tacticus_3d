@@ -114,6 +114,8 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
   mapId: 'vibranium-heist' | null, // null: a random room, until the guest joins
   maps: ['vibranium-heist', ...],  // only when mapId is null at creation. Never sent to clients
   rosters: { host: { code }, guest: null | { code } },
+  boardName, boardAuthor, hasImage, // only with mapId 'custom': the copy of the board of the host, made at creation
+  image: Binary,                  // only with hasImage: the top view (WebP, at most 150 KB). Never in a normal read or the list
   table: Binary,                  // Yjs snapshot, always set. See "Table on the server"
   tableRev: 0,                    // +1 on each table write
   createdAt, updatedAt,           // Date
@@ -122,7 +124,7 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 ```
 
 - The Lambda makes the room code. It inserts the room and tries a new code when the code exists already (at most 5 times).
-- Indexes: unique `{ host: 1 }` (one hosted room per user), `{ 'players.host': 1 }`, `{ 'players.guest': 1 }`, and the TTL index on `expiresAt`. `GET /rooms` finds the rooms of a user with `$or` on both seats. It returns the 100 rooms changed last. The list leaves out `table` (projection), so the list stays small.
+- Indexes: unique `{ host: 1 }` (one hosted room per user), `{ 'players.host': 1 }`, `{ 'players.guest': 1 }`, and the TTL index on `expiresAt`. `GET /rooms` finds the rooms of a user with `$or` on both seats. It returns the 100 rooms changed last. The list leaves out `table` and `image` (projection), so the list stays small.
 - **Old records.** A record with the seats under the old color keys (before plan `setup-round-2`) has no `players.host`. It is not migrated and not read: `GET /rooms` leaves it out, `GET /rooms/{code}`, join, the table routes and the signaling routes answer 404 for it, and it cannot be joined. When its host creates a new room, the Lambda deletes the old record first, because it would block the unique `host` index. Otherwise the TTL index removes it. An existing Atlas collection gets the new indexes at the next Lambda start (`createIndex` on first use); the two old color indexes stay unused and can be dropped by hand.
 - A user who no longer exists keeps the seat. The answer shows `{ id, gone: true }`, and the UI shows "Deleted player". A room whose host no longer exists is deleted when it is read next time, and the route answers 404.
 - Limits: the table is at most 1 MB. The roster `code` has 1 to 1000 characters. `mapId` and each id in `maps` match `^[a-z0-9-]{1,64}$`. The server does not check that the map exists or that the roster code is valid.
@@ -186,16 +188,17 @@ How it works:
 | `PUT /me/board` | yes | Replaces the board. Body: the map JSON format, at most 300 placements, and an optional `image` (base64 of a WebP, at most 150 KB decoded; the body limit is 128 KB plus the base64 of that). The server checks the `RIFF....WEBP` signature. A save without `image` removes the old image. The server sets `author` to the display name of the user; a body `author` is ignored. 204. 400 (also a bad image), 413 (body or image too large) |
 | `DELETE /me` | yes | Deletes the user, the room that the user hosts, with its table, the user's signaling messages and the saved Sandbox board with its image. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
 | `GET /rooms` | yes | `{ rooms }`: the rooms where the user has a seat, the last changed first, at most 100, with both players' names and avatars. No table. 401 |
-| `POST /rooms` | yes | `{ mapId, roster, table }` or `{ maps, roster, table }`: exactly one of `mapId` and `maps`. `maps` is 1 to 50 map ids, each like `mapId`, for a random room. The room then has `mapId` null. The creator takes the `host` seat. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
+| `POST /rooms` | yes | `{ mapId, roster, table }` or `{ maps, roster, table }`: exactly one of `mapId` and `maps`. `maps` is 1 to 50 map ids, each like `mapId`, for a random room. The room then has `mapId` null. With `mapId: 'custom'` the server copies the name, the author and the image from the board of the same user (`customBoards`) into the room, and the body has nothing extra; a later save to the account does not change the copy. Other rooms never have a copy. The creator takes the `host` seat. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
 | `GET /rooms/{code}` | no | 200 `{ room }`: map, rosters, players' names and avatars, free seats. No table. 404 (also for an old record) |
+| `GET /rooms/{code}/image` | no | The top view copy of a room on the custom board: the bytes, `Content-Type: image/webp`, `Cache-Control: private, no-cache`. Open like `GET /rooms/{code}`: the room code is the secret, and the join page shows the card before the login. 404 for an unknown room or a room with no image |
 | `POST /rooms/{code}/join` | yes | `{ roster }`, required. Takes the free seat. When the room `mapId` is null, the server picks one id from `maps` at random and sets it in the same write. 200 `{ room }`, also when the user has a seat already (no change). 400 no roster, 409 no free seat, 404 |
 | `GET /rooms/{code}/table` | yes, seat | 200, the table bytes. 403 no seat, 404 |
 | `PUT /rooms/{code}/table` | yes, seat | The table bytes. Merges them into the stored table. 204. 400 not a Yjs update, 409 the merge lost twice, 413 too large, 403, 404. See [Table on the server](#table-on-the-server) |
-| `DELETE /rooms/{code}` | yes, host | Deletes the room, its table and its signaling messages. 204. 403 not the host, 404 |
+| `DELETE /rooms/{code}` | yes, host | Deletes the room, its table, its board image and its signaling messages. 204. 403 not the host, 404 |
 | `POST /rooms/{code}/messages` | yes, seat | `{ from, to, type, data }`. Stores a signaling message. 201 `{ id }`. 400, 403, 404, 413, 429 |
 | `GET /rooms/{code}/messages?to={peer}` | yes, seat | The poll. Header `x-after`, optional. 200 `{ messages }`. 400, 403, 404 |
 
-A `room` in an answer is `{ code, host, players: { host, guest }, mapId (null in a random room before the join), rosters: { host, guest }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
+A `room` in an answer is `{ code, host, players: { host, guest }, mapId (null in a random room before the join), rosters: { host, guest }, boardName, boardAuthor, hasImage (only in a room on the custom board), createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
 
 The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` prefix. Their rules are in `docs/features/peer-to-peer.md` ("Endpoints").
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { assetUrl, hasAsset } from '../assets/index.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { MAP_CARD_BACK, mapCard } from '../terrain/files.js'
-import { getBoardInfo } from '../api/board.js'
+import { getBoardImage, getBoardInfo } from '../api/board.js'
 import { MAP_IDS, carouselIds, myBoardChoice } from './myBoard.js'
 import { BoardCard } from './BoardCard.jsx'
 import { useBoardImageUrl } from './useBoardImageUrl.js'
@@ -12,6 +12,7 @@ import { parseRosterText } from '../rosters/cards.js'
 import { DISCORD_ON } from '../auth/session.js'
 import { useUser } from '../auth/useUser.js'
 import { createRoom } from './store.js'
+import { putRoomImage } from './roomImage.js'
 import { createRoom as createServerRoom } from './serverStore.js'
 import { startTableBytes } from './startTable.js'
 import { CARD_STEP_KEYS, isEditing } from '../keyboard.js'
@@ -70,7 +71,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   const [savedBoard, setMyBoard] = useState(null)
   const myBoard = loggedIn ? savedBoard : null
   const ids = carouselIds(myBoard)
-  const boardImage = useBoardImageUrl(Boolean(myBoard?.hasImage))
+  const boardImage = useBoardImageUrl(myBoard?.hasImage ? getBoardImage : null, 'account')
   const mapName = (id) => (id === CUSTOM_MAP_ID ? myBoard.name : MAPS[id].name)
   const mapImage = (id) =>
     id !== CUSTOM_MAP_ID && hasAsset(mapCard(id)) ? mapCard(id) : MAP_CARD_BACK
@@ -84,7 +85,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   // A Red text without a known code blocks Create room, so a wrong paste does not make a room without Red
   const canCreate = multiplayer
     ? !isEmptyRoster(parsed.host) && !hostedCode && !busy
-    : !isEmptyRoster(parsed.host) && (!text.guest.trim() || !isEmptyRoster(parsed.guest))
+    : !busy && !isEmptyRoster(parsed.host) && (!text.guest.trim() || !isEmptyRoster(parsed.guest))
 
   useEffect(() => {
     if (!loggedIn) return
@@ -138,8 +139,18 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
       return
     }
     const room = createRoom(mapId, { host: roster('host'), guest: roster('guest') }, board)
-    if (room) onCreate(room)
-    else setFailed(true)
+    if (!room) return setFailed(true)
+    // The room keeps its own copy of the top view, in IndexedDB. No image or a failure: the card back only.
+    if (board && myBoard.hasImage) {
+      setBusy(true)
+      try {
+        const blob = await getBoardImage()
+        if (blob) await putRoomImage(room.id, blob)
+      } catch {
+        // The room opens without the image
+      }
+    }
+    onCreate(room)
   }
 
   function handleTextChange(team, value) {
@@ -227,9 +238,6 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
                     Map {index + 1} of {count}
                   </div>
                   <div className="new-room-nav-name">{mapName(ids[index])}</div>
-                  {ids[index] === CUSTOM_MAP_ID && myBoard.author && (
-                    <div className="new-room-nav-author">by {myBoard.author}</div>
-                  )}
                 </div>
                 <button
                   type="button"

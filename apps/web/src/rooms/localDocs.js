@@ -8,6 +8,7 @@ import {
   listRawRoomRecords,
   listSquadCodes,
 } from './store.js'
+import { deleteOrphanRoomImages } from './roomImage.js'
 
 // The user id has no '/', and a room code has none either, so a prefix match is exact
 const prefix = (userId) => `mcp-assist-3d/multiplayer/${userId}/`
@@ -72,6 +73,9 @@ export function orphanRoomDocNames(names, ids) {
 export async function deleteStaleRooms() {
   const records = listRawRoomRecords().map(({ record }) => record)
   for (const id of staleRoomIds(records, VERSION)) deleteRoom(id)
+  await deleteOrphanRoomImages(
+    listRawRoomRecords().flatMap(({ record }) => (record?.id ? [record.id] : [])),
+  )
   if (typeof indexedDB === 'undefined' || !indexedDB.databases) return
   try {
     const dbs = await indexedDB.databases()

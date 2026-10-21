@@ -1,15 +1,22 @@
-import { useEffect, useState } from 'react'
-import { getBoardImage } from '../api/board.js'
+import { useEffect, useRef, useState } from 'react'
 
-// The object URL of the top view of the saved board of the account, or null: none, or not loaded yet. enabled: false
-// loads nothing (no login, or no image). The URL is revoked when the component goes or enabled changes.
-export function useBoardImageUrl(enabled) {
+// The object URL of a board top view, or null: none, or not loaded yet. load: a function that returns a Promise of
+// the WebP Blob (or null when there is none), or null to load nothing (no login, no image). key: when it changes, the
+// image loads again (the account, a room code). The URL is revoked when the component goes or the key changes.
+export function useBoardImageUrl(load, key) {
   const [url, setUrl] = useState(null)
+  const loadRef = useRef(load)
+  const enabled = Boolean(load)
+  // Set before the effect below runs: effects run in order
+  useEffect(() => {
+    loadRef.current = load
+  })
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
     let made = null
-    getBoardImage()
+    loadRef
+      .current()
       .then((blob) => {
         if (cancelled || !blob) return
         made = URL.createObjectURL(blob)
@@ -21,6 +28,6 @@ export function useBoardImageUrl(enabled) {
       if (made) URL.revokeObjectURL(made)
       setUrl(null)
     }
-  }, [enabled])
+  }, [enabled, key])
   return enabled ? url : null
 }

@@ -4,6 +4,7 @@
 import { clearDocument } from 'y-indexeddb'
 import { CODE_CHARS, CODE_LENGTH } from './roomCode.js'
 import { equal } from '../net/collections.js'
+import { deleteRoomImage } from './roomImage.js'
 import { readJson as read, removeKey, storageKeys, writeJson as write } from '../storage.js'
 
 // The colors before the roll off, the same as sideColorsOf of a new setup (setup/setup.js)
@@ -151,10 +152,11 @@ export function saveRoomRecord(id, { mapId, rosters, colors }, changed) {
   })
 }
 
-// Deletes the record and the table of a room
+// Deletes the record, the table and the board image of a room
 export function deleteRoom(id) {
   removeKey(ROOM_PREFIX + id)
   deleteDoc(roomDocName(id))
+  deleteRoomImage(id)
 }
 
 // True when the user of this browser created the room, so they can delete it

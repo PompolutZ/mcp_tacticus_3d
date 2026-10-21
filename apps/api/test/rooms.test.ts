@@ -344,3 +344,96 @@ describe('random map room', () => {
     expect(((await res.json()) as { room: PublicRoom }).room.mapId).toBe('vibranium-heist')
   })
 })
+
+describe('room on the custom board', () => {
+  const image = new Uint8Array(
+    [...'RIFF', 0, 0, 0, 0, ...'WEBP', 0xff].map((v) =>
+      typeof v === 'string' ? v.charCodeAt(0) : v,
+    ),
+  )
+  const saved = (name: string) => ({
+    mat: 'Some mat',
+    matRotation: 0,
+    placements: [],
+    name,
+    author: 'alice',
+  })
+  const getImage = (
+    call: Awaited<ReturnType<typeof setup>>['call'],
+    who: string | null,
+    code: string,
+  ) => call(who, 'GET', `/rooms/${code}/image`)
+
+  it('copies name, author and image from the account board, and a new save does not change the copy', async () => {
+    const { store, users, call, create } = await setup()
+    await store.boards.put(users.alice?.id ?? '', saved('First'), new Date(), image)
+    const room = await create('alice', { mapId: 'custom' })
+    expect(room).toMatchObject({
+      mapId: 'custom',
+      boardName: 'First',
+      boardAuthor: 'alice',
+      hasImage: true,
+    })
+    await store.boards.put(users.alice?.id ?? '', saved('Second'), new Date())
+    const res = await getImage(call, null, room.code)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Type')).toBe('image/webp')
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(image)
+    const read = (await (await call(null, 'GET', `/rooms/${room.code}`)).json()) as {
+      room: PublicRoom
+    }
+    expect(read.room).toMatchObject({ boardName: 'First', hasImage: true })
+    const list = (await (await call('alice', 'GET', '/rooms')).json()) as { rooms: PublicRoom[] }
+    expect(list.rooms[0]).toMatchObject({ boardName: 'First', hasImage: true })
+    expect(JSON.stringify(list)).not.toContain('"image"')
+  })
+
+  it('a board without an image gives a copy with the name only; no board gives no copy', async () => {
+    const { store, users, call, create } = await setup()
+    await store.boards.put(users.alice?.id ?? '', saved('Plain'), new Date())
+    const room = await create('alice', { mapId: 'custom' })
+    expect(room).toMatchObject({ boardName: 'Plain', hasImage: false })
+    expect((await getImage(call, null, room.code)).status).toBe(404)
+    const bare = await create('bob', { mapId: 'custom' })
+    expect(bare).not.toHaveProperty('boardName')
+    expect((await getImage(call, null, bare.code)).status).toBe(404)
+  })
+
+  it('normal and random rooms have no copy, even when the account has a board; the client cannot send one', async () => {
+    const { store, users, call, createBody, create } = await setup()
+    await store.boards.put(users.alice?.id ?? '', saved('Mine'), new Date(), image)
+    const normal = await create('alice')
+    expect(normal).not.toHaveProperty('boardName')
+    expect(normal).not.toHaveProperty('hasImage')
+    expect((await getImage(call, 'alice', normal.code)).status).toBe(404)
+    await call('alice', 'DELETE', `/rooms/${normal.code}`)
+    const random = await create('alice', { mapId: undefined, maps: ['vibranium-heist'] })
+    expect(random).not.toHaveProperty('boardName')
+    await call('alice', 'DELETE', `/rooms/${random.code}`)
+    const res = await call('alice', 'POST', '/rooms', createBody({ image: 'AAAA', boardName: 'x' }))
+    expect(res.status).toBe(201)
+    const sent = ((await res.json()) as { room: PublicRoom }).room
+    expect(sent).not.toHaveProperty('boardName')
+  })
+
+  it('the image route answers 404 for an unknown room and a bad code; delete removes the copy', async () => {
+    const { store, users, call, create } = await setup()
+    await store.boards.put(users.alice?.id ?? '', saved('Mine'), new Date(), image)
+    expect((await getImage(call, null, 'AAAA-AAAA')).status).toBe(404)
+    expect((await getImage(call, null, 'nope')).status).toBe(404)
+    const room = await create('alice', { mapId: 'custom' })
+    expect((await getImage(call, 'bob', room.code)).status).toBe(200)
+    expect((await call('bob', 'DELETE', `/rooms/${room.code}`)).status).toBe(403)
+    expect((await call('alice', 'DELETE', `/rooms/${room.code}`)).status).toBe(204)
+    expect((await getImage(call, null, room.code)).status).toBe(404)
+    expect(await store.rooms.getImage(room.code)).toBeNull()
+  })
+
+  it('DELETE /me removes the hosted room with its copy', async () => {
+    const { store, users, call, create } = await setup()
+    await store.boards.put(users.alice?.id ?? '', saved('Mine'), new Date(), image)
+    const room = await create('alice', { mapId: 'custom' })
+    expect((await call('alice', 'DELETE', '/me')).status).toBe(204)
+    expect(await store.rooms.getImage(room.code)).toBeNull()
+  })
+})

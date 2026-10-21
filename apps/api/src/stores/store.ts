@@ -56,6 +56,12 @@ export interface RoomDoc {
   mapId: string | null
   maps?: string[]
   rosters: Record<Side, Roster | null>
+  // A room on the custom board ('custom') keeps its own copy of the board name, the author and the top view (WebP),
+  // made at creation (docs/features/map-builder.md, "Board in a new room"). A later save to the account does not change it.
+  boardName?: string
+  boardAuthor?: string
+  hasImage?: boolean
+  image?: Uint8Array
   // A Yjs update. Always set.
   table: Uint8Array
   // +1 on each table write.
@@ -66,8 +72,8 @@ export interface RoomDoc {
   expiresAt: Date
 }
 
-// What a read without the table returns.
-export type RoomInfo = Omit<RoomDoc, 'table'>
+// What a read without the table and the image returns.
+export type RoomInfo = Omit<RoomDoc, 'table' | 'image'>
 
 export interface NewRoom {
   host: string
@@ -75,6 +81,8 @@ export interface NewRoom {
   maps?: string[]
   roster: Roster
   table: Uint8Array
+  // The copy of the board of the account, for mapId 'custom'. image: none when the board has none.
+  board?: { name: string; author: string; image?: Uint8Array }
 }
 
 // The user hosts a room already.
@@ -92,6 +100,8 @@ export interface RoomsStore {
   // Without the table. A record of the old shape (seats under color keys) is not read: null.
   get(code: string): Promise<RoomInfo | null>
   getTable(code: string): Promise<{ table: Uint8Array; tableRev: number } | null>
+  // The top view copy of the room (WebP), or null. get and listForUser never return it.
+  getImage(code: string): Promise<Uint8Array | null>
   // The rooms where the user has a seat, the last changed first, without the table. Old shape records are left out.
   listForUser(userId: string, limit: number): Promise<RoomInfo[]>
   // Sets the seat and the roster only when the seat is free. True when it wrote.
@@ -243,6 +253,14 @@ export function newRoom(input: NewRoom, code: string, now: Date): RoomDoc {
     mapId: input.mapId,
     ...(input.maps ? { maps: input.maps } : {}),
     rosters: { host: input.roster, guest: null },
+    ...(input.board
+      ? {
+          boardName: input.board.name,
+          boardAuthor: input.board.author,
+          hasImage: input.board.image !== undefined,
+          ...(input.board.image ? { image: input.board.image } : {}),
+        }
+      : {}),
     table: input.table,
     tableRev: 0,
     createdAt: now,
@@ -261,6 +279,10 @@ export interface PublicRoom {
   players: Record<Side, RoomPlayer | null>
   mapId: string | null
   rosters: Record<Side, Roster | null>
+  // Only in a room on the custom board
+  boardName?: string
+  boardAuthor?: string
+  hasImage?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -288,6 +310,13 @@ export function publicRoom(doc: RoomInfo, users: Map<string, UserDoc>): PublicRo
     players: { host: player(doc.players.host), guest: player(doc.players.guest) },
     mapId: doc.mapId,
     rosters: doc.rosters,
+    ...(doc.boardName !== undefined
+      ? {
+          boardName: doc.boardName,
+          boardAuthor: doc.boardAuthor ?? '',
+          hasImage: doc.hasImage === true,
+        }
+      : {}),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   }

@@ -16,14 +16,14 @@ import {
   type UserDoc,
 } from './store'
 
-// In Mongo the table is BSON binary.
-type RoomRow = Omit<RoomDoc, 'table'> & { table: Binary }
+// In Mongo the table and the board image are BSON binary.
+type RoomRow = Omit<RoomDoc, 'table' | 'image'> & { table: Binary; image?: Binary }
 // The board record: the image is BSON binary. A record saved before the images has no image and no hasImage.
 type BoardRow = Omit<BoardDoc, 'hasImage'> & { hasImage?: boolean; image?: Binary }
 
 // A record of the current shape. Old records keep the seats under the old color keys and have no players.host.
 const CURRENT = { 'players.host': { $exists: true } } as const
-const NO_TABLE = { projection: { table: 0 } } as const
+const NO_TABLE = { projection: { table: 0, image: 0 } } as const
 
 export interface MongoOptions {
   uri: string
@@ -129,8 +129,13 @@ export function createMongoStore({
         for (let i = 0; i < CODE_TRIES; i++) {
           const doc = newRoom(input, makeCode(), now)
           try {
-            await roomsCol.insertOne({ ...doc, table: new Binary(input.table) })
-            const { table: _table, ...rest } = doc
+            const { image, ...row } = doc
+            await roomsCol.insertOne({
+              ...row,
+              table: new Binary(input.table),
+              ...(image ? { image: new Binary(image) } : {}),
+            })
+            const { table: _table, image: _image, ...rest } = doc
             return rest
           } catch (err) {
             if (!(err instanceof MongoServerError) || err.code !== 11000) throw err
@@ -150,6 +155,11 @@ export function createMongoStore({
         if (!doc) return null
         // A plain Uint8Array, not the driver's Buffer.
         return { table: new Uint8Array(doc.table.value()), tableRev: doc.tableRev }
+      },
+      async getImage(code) {
+        await ready()
+        const doc = await roomsCol.findOne({ _id: code, ...CURRENT }, { projection: { image: 1 } })
+        return doc?.image ? new Uint8Array(doc.image.value()) : null
       },
       async listForUser(userId, limit) {
         await ready()
