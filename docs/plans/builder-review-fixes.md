@@ -1,6 +1,6 @@
 # Plan: Builder review fixes
 
-Requested by the user on 2026-10-21. Status: in progress. Branch `builder-review-fixes`, worktree `../mcp_assist_3d-builder-review-fixes`.
+Requested by the user on 2026-10-21. Status: done. The user tested it and gave the OK on 2026-10-21. Branch `builder-review-fixes`, worktree `../mcp_assist_3d-builder-review-fixes`.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
