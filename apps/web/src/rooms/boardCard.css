@@ -14,8 +14,8 @@
 .board-card-title {
   position: absolute;
   top: 4.8%;
-  left: 22.9%;
-  right: 5%;
+  left: 8.75%;
+  right: 8.75%;
   max-height: 11%;
   overflow: hidden;
   font: 800 8.9cqw/1 var(--font-label, 'Barlow Condensed', sans-serif);
