@@ -24,7 +24,7 @@
   overflow-wrap: anywhere;
 }
 
-.board-card-author {
+.board-card-line {
   position: absolute;
   top: 16.4%;
   left: 8.75%;
@@ -34,6 +34,11 @@
   text-overflow: ellipsis;
   font: 300 5.75cqw/1.2 var(--font-label, 'Barlow Condensed', sans-serif);
   color: #2a2a2a;
+}
+
+/* Second text line: one pitch (67 of 1400 px of the card height) lower */
+.board-card-author {
+  top: calc(16.4% + 4.786%);
 }
 
 .board-card-view {
