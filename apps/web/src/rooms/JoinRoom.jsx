@@ -8,6 +8,7 @@ import { DISCORD_ON, login } from '../auth/session.js'
 import { useUser } from '../auth/useUser.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
+import { track } from '../analytics/track.js'
 import { joinRoom } from './serverStore.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
 import { SeatPlate } from './SeatPlate.jsx'
@@ -40,7 +41,9 @@ export function JoinRoom({ room, onJoined, onExit }) {
     if (!canJoin) return
     setBusy(true)
     try {
-      onJoined(await joinRoom(room.code, { code: formatMctCode(parsed) }))
+      const joined = await joinRoom(room.code, { code: formatMctCode(parsed) })
+      track('room_join', 'versus')
+      onJoined(joined)
     } catch (err) {
       setError(`Could not join: ${err.message}`)
       setBusy(false)

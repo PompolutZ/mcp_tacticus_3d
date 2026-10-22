@@ -7,6 +7,7 @@ import { getRoom } from './rooms/serverStore.js'
 import { multiplayerRoom, roomPage } from './rooms/roomPage.js'
 import { openRoom } from './rooms/store.js'
 import { isPlayableMap } from './rooms/table.js'
+import { track } from './analytics/track.js'
 import { LoadingOverlay } from './rooms/LoadingOverlay.jsx'
 
 // The table page (three.js, Rapier, models) is its own chunk. The prefetch in Root starts it once the lobby
@@ -82,6 +83,15 @@ export default function Root() {
   useEffect(() => {
     loadTable()
   }, [])
+
+  // Usage events (docs/features/analytics.md): once per open of the page
+  useEffect(() => {
+    if (page.page === 'sandbox') track('sandbox_open')
+  }, [page.page])
+  useEffect(() => {
+    if (route?.page === 'single') track('room_open', 'solo')
+    if (route?.page === 'multiplayer') track('room_open', 'versus')
+  }, [route?.page, page.id])
 
   // The back and forward buttons, and a hash typed into the address bar
   useEffect(() => {

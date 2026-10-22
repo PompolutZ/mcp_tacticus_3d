@@ -4,7 +4,7 @@ Status: partly built.
 
 The app counts how often people use it: how many try it, and whether they use the Sandbox or create a room (solo or versus). The data stays small and is easy to extend.
 
-Built: the API route that takes events. Not built: the browser side that sends them, and the script that reads them.
+Built: the API route that takes events, and the browser side that sends them. Not built: the script that reads them.
 
 ## Why this way
 
@@ -28,6 +28,16 @@ Built: the API route that takes events. Not built: the browser side that sends t
 | `room_create` | A room is created | `solo` or `versus` |
 | `room_open` | A room opens (also a reload) | `solo` or `versus` |
 | `room_join` | A guest takes the free seat of a versus room | `versus` |
+
+## Where events are sent
+
+The browser calls `track(name, kind)` from `apps/web/src/analytics/track.js`. It sends `POST /events` with `keepalive` and the build id as `version`. A failed send is ignored and never goes to the error reporter.
+
+- `app_open`: `src/main.jsx`.
+- `sandbox_open`: `src/Root.jsx`, when the Sandbox page opens.
+- `room_open`: `src/Root.jsx`, when a single player or multiplayer room page opens.
+- `room_create`: `src/rooms/NewRoomDialog.jsx`, after the room is created.
+- `room_join`: `src/rooms/JoinRoom.jsx`, after `joinRoom` succeeds.
 
 ## API
 

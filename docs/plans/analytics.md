@@ -65,7 +65,7 @@ The user wants to know how often people use the app: how many people try it, and
 - Tests: `track` sends the right body; a rejected send does not throw.
 - Docs: `analytics.md` lists where each event is sent.
 
-**Result:**
+**Result:** Done, not committed. `src/analytics/track.js` (`createTracker` with injected `send`, lazy `api` import), tests in `track.test.js`. Calls in `main.jsx`, `Root.jsx` (sandbox and room open), `NewRoomDialog.jsx`, `JoinRoom.jsx` (the caller of `joinRoom`). `analytics.md` lists them. Checks pass.
 
 ### Step 3. Read the data
 

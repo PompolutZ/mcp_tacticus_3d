@@ -11,6 +11,7 @@ import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
 import { DISCORD_ON } from '../auth/session.js'
 import { useUser } from '../auth/useUser.js'
+import { track } from '../analytics/track.js'
 import { createRoom } from './store.js'
 import { putRoomImage } from './roomImage.js'
 import { createRoom as createServerRoom } from './serverStore.js'
@@ -131,6 +132,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
           roster: own,
           table: startTableBytes(random ? null : mapId, rosters, board),
         })
+        track('room_create', 'versus')
         onCreate({ id: created.code })
       } catch (err) {
         setCreateError(`Could not create the room: ${err.message}`)
@@ -150,6 +152,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
         // The room opens without the image
       }
     }
+    track('room_create', 'solo')
     onCreate(room)
   }
 
