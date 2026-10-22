@@ -85,3 +85,12 @@ Each step is one commit, after the user checks the diff. `pnpm format`, `pnpm li
 - `rooms/RoomPlayers.jsx` is now `PlayerTag` (tag and Try again); the words moved to `rooms/connectionStatus.js`. The toolbar box lost the plates and the divider. `SpectatorColumns.jsx` lost the VP and Round tags (and the `scoreMarkers` prop).
 - `useHudTop.js`: `--hud-top` goes under the scoreboard when it has moved to a row under the toolbar.
 - Deviations: (1) the plate has no avatar (the design has none); the own plate shows the account name, "You" is the tag. (2) The narrow breakpoint is 1360px, or 1540px when the toolbar has a Setup box or table tools (they sit in the middle, under the scoreboard). The plan said only "when it does not fit"; CSS cannot measure it. Widths are estimates, not tested in a browser.
+
+### Step 2: Crisis strip, row names, phase row
+
+- `ui/CrisisStrip.jsx` + `ui/crisisStrip.js` (pure `crisisStripItems`, tests): one bar per card of `game.crisis`, Secure first; none during the setup steps up to the edge (the Sandbox has no steps). A click calls `setOpenCard` with the card image, the same call as `CrisisCard`. App renders it only while Streamer is on.
+- `useHudTop.js` sets `--score-bottom` and `--streamer-top`; `streamer.css` columns start at `--streamer-top`. Row name `streamer-char-name` before the tag; KO name grey and crossed out.
+- `game/PhaseButtons.jsx` + `hud.css`: `phase-buttons--streamer` (bottom center row), `--above-panel` when a crisis token is selected. `HudWarnings` is not lifted while Streamer is on.
+- Step 1 fix: the guessed breakpoints and the `crowded` prop are gone. `useHudTop.js` measures: `scoreboardFits` (pure, tested) checks the scoreboard's own max-content width against the boxes of the bar (room box, Setup, table tools, panel buttons), and sets `data-below` on it. Resize, ResizeObserver and a MutationObserver (tools come and go) trigger it.
+- Docs: `spectator-view.md` (strip, names, phase row), `round-phases.md`, `table-tools.md`.
+- Deviations: the token-panel lift is a fixed offset in `hud.css`, not measured. The strip hides during all setup steps up to the edge (the plan named "the setup steps"); the cards are not on the board ends before the edge anyway.

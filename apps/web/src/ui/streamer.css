@@ -7,7 +7,7 @@
   --left-push: calc(var(--library-w) + 12px);
   --right-push: calc(var(--log-w) + 12px);
   position: absolute;
-  top: var(--hud-top);
+  top: var(--streamer-top, var(--hud-top));
   z-index: 2;
   box-sizing: border-box;
   display: flex;
@@ -15,7 +15,7 @@
   /* Never wider than the window minus the gutters, so the page has no horizontal scroll */
   width: min(calc(270px * var(--s)), calc(100vw - 2 * var(--gutter)));
   /* Not under the bottom-right phase buttons */
-  max-height: calc(100% - var(--hud-top) - 100px);
+  max-height: calc(100% - var(--streamer-top, var(--hud-top)) - 100px);
   font: 500 calc(13px * var(--s)) var(--font-body);
   color: var(--ink);
   background: var(--paper);
@@ -145,6 +145,21 @@
 }
 
 /* The small skewed tag beside the portrait: Injured (red) or Knocked out (black) */
+.streamer-char-name {
+  min-width: 0;
+  overflow: hidden;
+  font: 400 calc(21px * var(--s)) / 1.1 var(--font-title);
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streamer-row--ko .streamer-char-name {
+  color: #5a5560;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
 .streamer-state {
   align-self: flex-start;
   padding: 0 calc(8px * var(--s));
@@ -290,4 +305,78 @@
   font-size: calc(10px * var(--s));
   line-height: calc(14px * var(--s));
   border-radius: calc(7px * var(--s));
+}
+
+/* The crisis strip (CrisisStrip.jsx): under the scoreboard, centered. useHudTop.js sets --score-bottom (under the
+   scoreboard) and --streamer-top (under the strip, where the columns start). */
+.crisis-strip {
+  position: absolute;
+  top: var(--score-bottom, var(--hud-top));
+  left: 50%;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(380px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.crisis-bar {
+  display: flex;
+  align-items: stretch;
+  height: 30px;
+  padding: 0;
+  overflow: hidden;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.crisis-bar:hover {
+  background: var(--yellow);
+}
+
+.crisis-bar:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.crisis-tag {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: 2px 10px;
+  font: 400 17px var(--font-title);
+  letter-spacing: 0.06em;
+  color: #fff;
+  border-right: 3px solid var(--ink);
+  -webkit-text-stroke: 1px var(--ink);
+  paint-order: stroke fill;
+}
+
+.crisis-tag--secure {
+  background: var(--blue);
+}
+
+.crisis-tag--extract {
+  background: var(--red);
+}
+
+.crisis-name {
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+  overflow: hidden;
+  font: 700 15px/24px var(--font-label);
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }

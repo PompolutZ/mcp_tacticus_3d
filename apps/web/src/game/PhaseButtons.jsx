@@ -1,3 +1,5 @@
+import { selectedId } from '../selection.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import '../rooms/comicBase.js'
 import '../ui/hud.css'
 
@@ -52,7 +54,8 @@ function TurnIcon() {
 }
 
 // The Power and Cleanup buttons when the settings put them in the HUD: a column fixed in the bottom right
-// corner, Power on top (docs/features/round-phases.md, docs/features/table-tools.md). The handlers, the
+// corner, Power on top. streamer (Streamer is on): one row at the bottom center, above the token panel while a token
+// is selected (tokens: the crisis tokens, as the panel reads them) (docs/features/round-phases.md, docs/features/table-tools.md). The handlers, the
 // disabled state and the titles are the same as on the table; App passes them.
 // shown: false hides both (phaseHudShown in setup/setup.js).
 // onPowerPhase(): gives Power to the sides this browser plays. powerBlock: the reason Power is off, or null. cleanupDisabled, cleanupTitle: the Cleanup
@@ -65,14 +68,26 @@ export function PhaseButtons({
   onCleanupPhase,
   cleanupDisabled,
   cleanupTitle,
+  streamer = false,
+  tokens = [],
 }) {
+  const tokenId = useTableStore((s) => selectedId(s.selection, 'token'))
+  const panelOpen = tokens.some((t) => t.id === tokenId)
   const powerHud = settings.tools.power === 'hud'
   const cleanupHud = settings.tools.cleanup === 'hud'
   if (!shown || (!powerHud && !cleanupHud)) return null
   // The button that can run is big, the one that cannot is small and grey (hud.css)
   const size = (blocked) => (blocked ? 'phase-button--small' : 'phase-button--big')
   return (
-    <div className="comic phase-buttons">
+    <div
+      className={[
+        'comic phase-buttons',
+        streamer && 'phase-buttons--streamer',
+        streamer && panelOpen && 'phase-buttons--above-panel',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       {powerHud && (
         <button
           type="button"

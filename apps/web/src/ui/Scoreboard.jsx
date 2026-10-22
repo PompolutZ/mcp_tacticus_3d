@@ -11,8 +11,8 @@ import './hud.css'
 // the round burst, the VP and the plate of the right player. It shows at all times. The sides are the Streamer
 // columns' sides (scoreboardSides.js). VP and the round come from the score markers (scoreFromMarkers); a VP marker
 // on no spot counts 0, a round marker on no spot shows "-". connection: the room connection (net/peer.js), or
-// null. crowded: the toolbar has a Setup box or table tools, so the scoreboard moves under the toolbar sooner.
-export function Scoreboard({ scoreMarkers, connection, crowded = false }) {
+// null. When it does not fit between the boxes of the bar, useHudTop.js moves it to a row under the bar.
+export function Scoreboard({ scoreMarkers, connection }) {
   const nameCtx = useTableStore((s) => s.nameCtx)
   const colors = useSideColors()
   const score = scoreFromMarkers(scoreMarkers)
@@ -38,11 +38,7 @@ export function Scoreboard({ scoreMarkers, connection, crowded = false }) {
     </div>
   )
   return (
-    <div
-      className={`comic scoreboard${crowded ? ' scoreboard--crowded' : ''}`}
-      role="group"
-      aria-label="Score and round"
-    >
+    <div className="comic scoreboard" role="group" aria-label="Score and round">
       {plate(left, 'left')}
       {vp(left, 'left')}
       <div className="score-round" aria-label={`Round ${round}`}>

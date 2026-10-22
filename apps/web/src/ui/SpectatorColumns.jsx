@@ -102,22 +102,21 @@ function Row({ character, held, off, ko }) {
               </span>
             )}
           </span>
-          {(tag || tokens.length > 0) && (
-            <div className="streamer-side">
-              {tag && (
-                <span className={`streamer-state streamer-state--${ko ? 'ko' : 'injured'}`}>
-                  {tag}
-                </span>
-              )}
-              {tokens.length > 0 && (
-                <div className="streamer-tokens">
-                  {tokens.map(([key, count]) => (
-                    <OnToken key={key} tokenKey={key} count={count} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="streamer-side">
+            <span className="streamer-char-name">{name}</span>
+            {tag && (
+              <span className={`streamer-state streamer-state--${ko ? 'ko' : 'injured'}`}>
+                {tag}
+              </span>
+            )}
+            {tokens.length > 0 && (
+              <div className="streamer-tokens">
+                {tokens.map(([key, count]) => (
+                  <OnToken key={key} tokenKey={key} count={count} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="streamer-lower">
           <div className="streamer-bars">
@@ -153,7 +152,7 @@ function Row({ character, held, off, ko }) {
 
 // Spectator view, HUD part: one column per squad, my squad left and the opponent right (the Sandbox and a
 // single player room: Blue, the host, left). A header with the player name and the affiliation icon (VP and the round are on the scoreboard), then a row
-// per character and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
+// per character (name, tag, tokens, bars) and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
 // "Squad columns".
 // characters, tokens, poses, setup (the viewer's setup), affiliations: App state.
 // nameCtx (names, setup/names.js), mySide, hiddenSquads (the seat, rooms/seat.js) and size (percent, settings.spectator.size) come from the store of the table. libraryOpen and

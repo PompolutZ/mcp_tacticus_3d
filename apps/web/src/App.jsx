@@ -47,6 +47,7 @@ import { useTokenDrag } from './drag/useTokenDrag.js'
 import { cancelActiveDrag, isDragActive } from './drag/pointerDrag.js'
 import { characterOnBoard } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
+import { getCard } from './crisis/cards.js'
 import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
 import {
   chooserOf,
@@ -78,6 +79,8 @@ import { useCharacterActions } from './characters/useCharacterActions.js'
 import { useTablePieces } from './pieces/useTablePieces.js'
 import { usePhaseActions } from './game/usePhaseActions.js'
 import SpectatorColumns from './ui/SpectatorColumns.jsx'
+import { CrisisStrip } from './ui/CrisisStrip.jsx'
+import { crisisStripItems } from './ui/crisisStrip.js'
 import HudNotice from './ui/HudNotice.jsx'
 import { PhaseButtons } from './game/PhaseButtons.jsx'
 import { HudWarnings } from './ui/HudWarnings.jsx'
@@ -332,7 +335,6 @@ export default function App({
   // The Sandbox Setup panel under the toolbar (Toolbar.jsx). Esc closes it as a popup.
   const [setupOpen, setSetupOpen] = useState(false)
   const hudRootRef = useRef(null)
-  useHudTop(hudRootRef)
   // A token put on a character sounds in both browsers (log/useLogSounds.js)
   useLogSounds(log)
   // A token that the other player puts down on the table sounds here (tokens/useRemoteDropSounds.js)
@@ -546,6 +548,12 @@ export default function App({
     const missing = info.kind === 'character' ? 'No card image or model' : 'No card image'
     showHudMessage(`${missing} for ${info.name} (${info.code})`)
   }
+
+  // The crisis strip (Streamer on): the cards on the board ends, not during the setup steps (a Sandbox has none)
+  const stripItems = spectator
+    ? crisisStripItems(crisis, room ? setupStep(setup) : null, (key) => getCard(key)?.name)
+    : []
+  useHudTop(hudRootRef, stripItems.length)
 
   // The compare overlay shows in the steps that have crisis cards on the table. After them it is gone.
   const crisisShown =
@@ -1056,6 +1064,7 @@ export default function App({
             logOpen={logOpen}
           />
         )}
+        {stripItems.length > 0 && <CrisisStrip items={stripItems} onOpen={setOpenCard} />}
         <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
         {!popupOpen && <CardPeek card={peekCard} size={settings.peek.size} />}
         {settingsOpen && (
@@ -1141,9 +1150,15 @@ export default function App({
           onCleanupPhase={handleCleanupPhase}
           cleanupDisabled={cleanupDisabled}
           cleanupTitle={cleanupTitle}
+          streamer={spectator}
+          tokens={tokens}
         />
         <HudWarnings
-          lifted={phaseHud && (settings.tools.power === 'hud' || settings.tools.cleanup === 'hud')}
+          lifted={
+            phaseHud &&
+            !spectator &&
+            (settings.tools.power === 'hud' || settings.tools.cleanup === 'hud')
+          }
           storageFailed={storageFailed}
           serverWarning={serverWarning}
           versionMismatch={versionMismatch}

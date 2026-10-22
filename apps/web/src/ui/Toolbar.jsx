@@ -127,11 +127,7 @@ function Toolbar({
   ]
   return (
     <div className="toolbar">
-      <Scoreboard
-        scoreMarkers={scoreMarkers}
-        connection={connection}
-        crowded={!multiplayer || showMat || rackHud || deployHud}
-      />
+      <Scoreboard scoreMarkers={scoreMarkers} connection={connection} />
       <div className="toolbar-left">
         <div className="comic hud-box hud-left">
           <button type="button" className="hud-lobby" title="Back to the lobby" onClick={onLobby}>

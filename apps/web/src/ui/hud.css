@@ -186,6 +186,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  /* Its own width, so the fit check does not depend on the row it sits in (useHudTop.js) */
+  width: max-content;
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -290,18 +292,10 @@
   text-transform: uppercase;
 }
 
-/* Not enough room between the room box and the panel buttons: the scoreboard moves to a row under them,
-   centered. A Setup box or table tools need more room. useHudTop.js moves --hud-top below it. */
-@media (max-width: 1360px) {
-  .scoreboard {
-    top: calc(100% + 12px);
-  }
-}
-
-@media (max-width: 1540px) {
-  .scoreboard--crowded {
-    top: calc(100% + 12px);
-  }
+/* Not enough room between the room box, the table tools and the panel buttons: the scoreboard moves to a row
+   under them, centered. useHudTop.js measures that and sets data-below; it also moves --hud-top below it. */
+.scoreboard[data-below] {
+  top: calc(100% + 12px);
 }
 
 .hud-tag {
@@ -508,7 +502,8 @@
 }
 
 /* Power and Cleanup in the HUD (game/PhaseButtons.jsx, docs/features/round-phases.md): one column in the
-   bottom right corner. The button that can run is big, the one that cannot is small and grey. */
+   bottom right corner. The button that can run is big, the one that cannot is small and grey. While Streamer is
+   on, one row at the bottom center, above the token panel when a token is selected. */
 .phase-buttons {
   position: absolute;
   right: 18px;
@@ -518,6 +513,22 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
+}
+
+.phase-buttons--streamer {
+  right: auto;
+  left: 50%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  max-width: calc(100vw - 36px);
+  transform: translateX(-50%);
+}
+
+/* The token panel is at the bottom center too (index.css) */
+.phase-buttons--above-panel {
+  bottom: 84px;
 }
 
 .phase-button {
