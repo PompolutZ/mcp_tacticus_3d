@@ -1065,7 +1065,7 @@ export default function App({
             logOpen={logOpen}
           />
         )}
-        {stripItems.length > 0 && <CrisisStrip items={stripItems} onOpen={setOpenCard} />}
+        {stripItems.length > 0 && <CrisisStrip items={stripItems} />}
         <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
         {!popupOpen && <CardPeek card={peekCard} size={settings.peek.size} />}
         {settingsOpen && (

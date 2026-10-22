@@ -9,7 +9,7 @@ import { fitRows, ROW_HEIGHT } from './rowFit.js'
 export function useRowFit(count, size) {
   const colRef = useRef(null)
   const listRef = useRef(null)
-  const [fit, setFit] = useState({ scale: 1, scroll: false })
+  const [fit, setFit] = useState({ scale: 1 })
   useEffect(() => {
     const col = colRef.current
     const list = listRef.current
@@ -22,7 +22,7 @@ export function useRowFit(count, size) {
       // 2px spare for rounding
       const available = room - (col.offsetHeight - list.offsetHeight) - 2
       const next = fitRows({ available, count, rowHeight: ROW_HEIGHT * size })
-      setFit((old) => (old.scale === next.scale && old.scroll === next.scroll ? old : next))
+      setFit((old) => (old.scale === next.scale ? old : next))
     }
     measure()
     window.addEventListener('resize', measure)

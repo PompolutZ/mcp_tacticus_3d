@@ -29,7 +29,7 @@ const MAX_POWER = 10
 function Bar({ value, max, className, label, short }) {
   const percent = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0
   return (
-    <div className={`streamer-bar ${className}`} title={`${label} ${value} / ${max}`}>
+    <div className={`streamer-bar ${className}`} aria-label={`${label} ${value} / ${max}`}>
       <span className="streamer-bar-label">{short}</span>
       <div className="streamer-bar-track">
         <div className="streamer-bar-fill" style={{ width: `${percent}%` }} />
@@ -46,17 +46,11 @@ function HeldMark({ token }) {
   const key = token.up === 'front' ? token.frontKey : (token.backKey ?? token.frontKey)
   const name = tokenInfo(key)?.name ?? key
   return (
-    <img
-      className="streamer-held"
-      src={assetUrl(crisisToken(key))}
-      alt={name}
-      title={name}
-      draggable={false}
-    />
+    <img className="streamer-held" src={assetUrl(crisisToken(key))} alt={name} draggable={false} />
   )
 }
 
-// The affiliation token image of a side, its name as the title
+// The affiliation token image of a side, its name as the alt
 function AffiliationMark({ affiliation }) {
   const name = affiliationName(affiliation)
   return (
@@ -64,7 +58,6 @@ function AffiliationMark({ affiliation }) {
       className="streamer-affiliation"
       src={assetUrl(characterToken(affiliationTokenKey(affiliation)))}
       alt={name}
-      title={name}
       draggable={false}
     />
   )
@@ -86,7 +79,6 @@ function TeamTactics({ list }) {
           <li
             key={item.id}
             className={`streamer-tactic${item.used ? ' streamer-tactic--used' : ''}`}
-            title={item.name}
           >
             <span className="streamer-tactic-card">
               <img
@@ -108,7 +100,7 @@ function TeamTactics({ list }) {
 
 const tacticName = (key) => getTactic(key)?.name ?? key
 
-// Most small tokens in the name line of a row; more show as one "+N" chip (the full list is its title)
+// Most small tokens in the name line of a row; more show as one "+N" chip (the full list is its aria-label)
 const MAX_CHIPS = 3
 
 // off: the character is off the mat. ko: and the deploy is over, so it is KO.
@@ -126,7 +118,6 @@ function Row({ character, held, off, ko }) {
     ...tokens.map(([key, count]) => ({
       id: key,
       node: <OnToken tokenKey={key} count={count} />,
-      title: `${getToken(key)?.name ?? key}${count > 1 ? ` x${count}` : ''}`,
     })),
   ]
   const overflow = chips.length > MAX_CHIPS
@@ -156,7 +147,6 @@ function Row({ character, held, off, ko }) {
           className="streamer-portrait"
           src={assetUrl(characterPortrait(character.key))}
           alt=""
-          title={name}
           loading="lazy"
           draggable={false}
         />
@@ -182,7 +172,7 @@ function Row({ character, held, off, ko }) {
                 </span>
               ))}
               {overflow && (
-                <span className="streamer-more" title={allNames}>
+                <span className="streamer-more" role="img" aria-label={allNames}>
                   +{chips.length - shown.length}
                 </span>
               )}
@@ -232,7 +222,7 @@ function Column({ side, pushed, size, header, hidden, rows, tacticList }) {
         {header.affiliation && <AffiliationMark affiliation={header.affiliation} />}
       </header>
       {!hidden && (
-        <ul ref={listRef} className={`streamer-list${fit.scroll ? ' streamer-list--scroll' : ''}`}>
+        <ul ref={listRef} className="streamer-list">
           {rows}
         </ul>
       )}
@@ -243,7 +233,7 @@ function Column({ side, pushed, size, header, hidden, rows, tacticList }) {
 
 // Spectator view, HUD part: one column per squad, my squad left and the opponent right (the Sandbox and a
 // single player room: Blue, the host, left). A header with the player name and the affiliation icon (VP and the round are on the scoreboard), then a row
-// per character (portrait, name, tag, small tokens, bars) and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
+// per character (portrait, name, tag, small tokens, bars) and grunt in squad order (no constructs). Read-only, pointer-events none (streamer.css). See docs/features/spectator-view.md,
 // "Squad columns".
 // characters, tokens, poses, setup (the viewer's setup), affiliations: App state. tactics: the list of the Team Tactic cards (the
 // Team tactics section at the end of a column, none when the squad is hidden or has no cards).

@@ -20,7 +20,7 @@ Same look as `hud-redesign.md`, "The design".
 
 - **Scoreboard, top center:** in one row: the plate of the left player (skewed, side color with halftone dots, name in white Bangers with outline, a tag under it: "You" black or the connection state yellow), a paper box with the VP number (big Bangers) and "VP", a black-and-yellow burst with "Round" and the number, the VP box of the right player, the plate of the right player. The plates lean outward (skew), the shadows point outward.
 - **Top left box:** only **<- Lobby**, "Room" + code + copy icon. The player plates move into the scoreboard.
-- **Crisis strip, under the scoreboard (Streamer on):** one bar per crisis card in play. Left: a tag in the card type color, "Secure" (blue) or "Extract" (red). Right: the card name in upper case Barlow Condensed, cut with "..." when too long, full name as the title. Paper background, yellow on hover.
+- **Crisis strip, under the scoreboard (Streamer on):** one bar per crisis card in play. Left: a tag in the card type color, "Secure" (blue) or "Extract" (red). Right: the card name in upper case Barlow Condensed, cut with "..." when too long, Paper background. Not clickable (decision 6).
 - **Streamer columns:** both start under the crisis strip, at the same top.
   - Header: the player name only, in the side color. The VP and Round tags go away, because the scoreboard shows them. The affiliation icon stays (decision 3).
   - Row: the character name in Bangers next to the portrait, before the Injured / Knocked out tag. A KO name is grey and crossed out.
@@ -46,7 +46,7 @@ Read on 2026-10-22.
 3. **Kept from today:** the affiliation icon in the column header, the tokens row, the held crisis tokens, the look of a character off the mat before the deploy, the green power bar. A hidden squad (before the reveal) shows only its header: no rows and no Team tactics section.
 4. **Tag of a plate:** "You" for my side; the connection state for the other player, as `RoomPlayers` shows it today. Sandbox and single player room: no tag. The plates reuse the `seat-plate` classes; `RoomPlayers` changes, there is no copy of it.
 5. **Crisis strip source:** the crisis cards that lie on the board ends (the same list the table draws), Secure first. Nothing in play: no strip. During the setup steps, the strip does not show (the rows on the table show the cards then).
-6. **Crisis strip click:** opens the card in the card popup (`CardPopup.jsx`), the same as a click on the card on the board end. The compare overlay works only in the setup steps, and the strip shows only after them.
+6. **Crisis strip click:** none. The strip is not clickable (viewers of a shared screen cannot click). It ignores the pointer.
 7. **Team tactics:** all tactic cards with `team` of that side, in the order of the slots (by x from the owner's left, as `layout.js` numbers the slots). "N of M used", M = the number of cards, so a 6th card counts. Image: the face of the card (`TacticFace`, the same as the Library and the card popup) or its small image, whichever the Library tactic grid uses. Alt over a card in the column does nothing (the columns are read-only HUD).
 8. **Phase buttons and the token panel:** while Streamer is on and a crisis token is selected, the phase row sits above the token panel, so they do not overlap.
 9. **Narrow window:** no overlap and no horizontal page scroll. When the scoreboard does not fit between the top left and top right boxes, it moves to a row under them, centered. The columns then start under it.
@@ -108,3 +108,9 @@ Each step is one commit, after the user checks the diff. `pnpm format`, `pnpm li
 - Fit: pure `ui/rowFit.js` + tests (`fitRows`: scale = free height / (rows x row height), max 1, min 0.6, below it a scroll flag). `ui/useRowFit.js` measures free height per column (ResizeObserver, window resize, root style change for `--streamer-top`) and sets `--row-scale`; `streamer.css` sizes in a row use `--k` = size x row scale. Team tactics got a little tighter.
 - Docs: `spectator-view.md` "Squad columns".
 - Not tested in a browser (per project rule).
+
+### Fix after user test 2
+
+- Decision 6 replaced: the crisis strip is not clickable. No button, hover or popup call.
+- Streamer columns and the strip have `pointer-events: none`; hover styles, cursors and hover-only titles removed.
+- Rows list: no scroll fallback. Below the min scale it is clipped. `fitRows` returns only the scale.
