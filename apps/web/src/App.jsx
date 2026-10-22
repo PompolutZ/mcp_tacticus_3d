@@ -1060,6 +1060,7 @@ export default function App({
             poses={poses}
             setup={viewSetup}
             affiliations={affiliations}
+            tactics={table.tactics}
             libraryOpen={libraryOpen}
             logOpen={logOpen}
           />

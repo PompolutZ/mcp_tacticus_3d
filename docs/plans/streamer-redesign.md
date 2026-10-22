@@ -94,3 +94,10 @@ Each step is one commit, after the user checks the diff. `pnpm format`, `pnpm li
 - Step 1 fix: the guessed breakpoints and the `crowded` prop are gone. `useHudTop.js` measures: `scoreboardFits` (pure, tested) checks the scoreboard's own max-content width against the boxes of the bar (room box, Setup, table tools, panel buttons), and sets `data-below` on it. Resize, ResizeObserver and a MutationObserver (tools come and go) trigger it.
 - Docs: `spectator-view.md` (strip, names, phase row), `round-phases.md`, `table-tools.md`.
 - Deviations: the token-panel lift is a fixed offset in `hud.css`, not measured. The strip hides during all setup steps up to the edge (the plan named "the setup steps"); the cards are not on the board ends before the edge anyway.
+
+### Step 3: Team tactics in the columns
+
+- Pure `ui/teamTactics.js` + tests: cards of the team only, slot order from the owner's left (by x times `sideSign`), used = `up === 'back'`, used <= total.
+- `SpectatorColumns.jsx`: new prop `tactics` (the Yjs list `table.tactics`, read with `useYList` in the component, so App does not re-render on a card drag). `TeamTactics` section + rules in `streamer.css`. Image: `tacticCardBack(key)`, as the Library grid. No section for a hidden squad or no cards.
+- Docs: `spectator-view.md` "Squad columns".
+- Deviations: none.

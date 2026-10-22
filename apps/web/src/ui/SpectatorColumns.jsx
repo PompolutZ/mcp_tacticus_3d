@@ -10,6 +10,10 @@ import { playerName } from '../setup/names.js'
 import { affiliationName } from '../scoreboard/affiliations.js'
 import { characterToken } from '../tokens/files.js'
 import { affiliationTokenKey } from '../tokens/affiliationTokens.js'
+import { getTactic } from '../tactics/cards.js'
+import { tacticCardBack } from '../tactics/files.js'
+import { useYList } from '../net/useY.js'
+import { teamTactics } from './teamTactics.js'
 import { Burst } from '../rooms/Burst.jsx'
 import { OnToken } from '../characters/TrayPopup.jsx'
 import { useTableStore } from '../table/TableStoreContext.jsx'
@@ -63,6 +67,44 @@ function AffiliationMark({ affiliation }) {
     />
   )
 }
+
+// The Team tactics section of a column: the card images as the Library shows them, a used (flipped) one
+// grey with a "Used" stamp
+function TeamTactics({ list }) {
+  return (
+    <div className="streamer-tactics">
+      <div className="streamer-tactics-head">
+        <span className="streamer-tactics-title">Team tactics</span>
+        <span className="streamer-tactics-count">
+          {list.used} of {list.total} used
+        </span>
+      </div>
+      <ul className="streamer-tactics-grid">
+        {list.items.map((item) => (
+          <li
+            key={item.id}
+            className={`streamer-tactic${item.used ? ' streamer-tactic--used' : ''}`}
+            title={item.name}
+          >
+            <span className="streamer-tactic-card">
+              <img
+                className="streamer-tactic-image"
+                src={assetUrl(tacticCardBack(item.key))}
+                alt=""
+                loading="lazy"
+                draggable={false}
+              />
+              {item.used && <span className="streamer-tactic-stamp">Used</span>}
+            </span>
+            <span className="streamer-tactic-name">{item.name}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+const tacticName = (key) => getTactic(key)?.name ?? key
 
 // off: the character is off the mat. ko: and the deploy is over, so it is KO.
 function Row({ character, held, off, ko }) {
@@ -154,7 +196,8 @@ function Row({ character, held, off, ko }) {
 // single player room: Blue, the host, left). A header with the player name and the affiliation icon (VP and the round are on the scoreboard), then a row
 // per character (name, tag, tokens, bars) and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
 // "Squad columns".
-// characters, tokens, poses, setup (the viewer's setup), affiliations: App state.
+// characters, tokens, poses, setup (the viewer's setup), affiliations: App state. tactics: the list of the Team Tactic cards (the
+// Team tactics section at the end of a column, none when the squad is hidden or has no cards).
 // nameCtx (names, setup/names.js), mySide, hiddenSquads (the seat, rooms/seat.js) and size (percent, settings.spectator.size) come from the store of the table. libraryOpen and
 // logOpen push the column on their side inward.
 export default function SpectatorColumns({
@@ -163,9 +206,11 @@ export default function SpectatorColumns({
   poses,
   setup,
   affiliations,
+  tactics,
   libraryOpen,
   logOpen,
 }) {
+  const [tacticCards] = useYList(tactics)
   const colors = useSideColors()
   const nameCtx = useTableStore((s) => s.nameCtx)
   const mySide = useTableStore((s) => s.mySide)
@@ -181,6 +226,7 @@ export default function SpectatorColumns({
     <>
       {sides.map((team, i) => {
         const hidden = Boolean(hiddenSquads && team !== mySide && !placed[team])
+        const tacticList = teamTactics(tacticCards, team, tacticName)
         const side = i === 0 ? 'left' : 'right'
         const pushed = i === 0 ? libraryOpen : logOpen
         const className = `comic streamer-col streamer-col--${side}${pushed ? ' streamer-col--pushed' : ''}`
@@ -213,6 +259,7 @@ export default function SpectatorColumns({
                   })}
               </ul>
             )}
+            {!hidden && tacticList.total > 0 && <TeamTactics list={tacticList} />}
           </section>
         )
       })}

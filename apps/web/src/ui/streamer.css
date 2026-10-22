@@ -380,3 +380,97 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
+
+/* Team tactics, at the end of a column (SpectatorColumns.jsx). The list above scrolls, this stays. */
+.streamer-tactics {
+  flex: none;
+  padding: calc(8px * var(--s)) calc(10px * var(--s)) calc(10px * var(--s));
+  border-top: 3px solid var(--ink);
+}
+
+.streamer-tactics-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: calc(6px * var(--s));
+}
+
+.streamer-tactics-title {
+  font-family: var(--font-title);
+  font-size: calc(18px * var(--s));
+  letter-spacing: 0.05em;
+}
+
+.streamer-tactics-count {
+  font: 700 calc(13px * var(--s)) var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.streamer-tactics-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: calc(8px * var(--s));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.streamer-tactic {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--s));
+  min-width: 0;
+}
+
+.streamer-tactic-card {
+  position: relative;
+  display: block;
+}
+
+.streamer-tactic-image {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  object-fit: cover;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.streamer-tactic--used .streamer-tactic-image {
+  filter: grayscale(1) brightness(1.15);
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+.streamer-tactic-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 1px calc(5px * var(--s));
+  font-family: var(--font-title);
+  font-size: calc(14px * var(--s));
+  letter-spacing: 0.06em;
+  color: #fff;
+  white-space: nowrap;
+  background: var(--red);
+  border: 2px solid var(--ink);
+  transform: translate(-50%, -50%) rotate(-18deg);
+}
+
+.streamer-tactic-name {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 700 calc(11px * var(--s)) / 1.05 var(--font-label);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.streamer-tactic--used .streamer-tactic-name {
+  color: #5a5560;
+}
