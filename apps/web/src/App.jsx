@@ -35,6 +35,7 @@ import { LoadingOverlay } from './rooms/LoadingOverlay.jsx'
 import { Preload, Ready } from './scene/Preload.jsx'
 import { TokenPanel } from './tokens/TokenPanel.jsx'
 import { CardPeek, CardPopup } from './rosters/CardPopup.jsx'
+import { zoomPeekSize } from './rosters/peekSize.js'
 import { TrayPopup } from './characters/TrayPopup.jsx'
 import { useBreakdownChoice } from './rosters/useBreakdownChoice.js'
 import { RosterPopupHost } from './rosters/RosterPopupHost.jsx'
@@ -742,6 +743,19 @@ export default function App({
     overPiece: !!hoveredNow().piece,
     bindings,
   })
+  // The wheel sizes the Alt peek card while it shows (WheelCamera.jsx, onPeekZoom). The ref holds the size
+  // between renders, so quick wheel events add up. Returns false when no card shows.
+  const peekSizeRef = useRef(settings.peek.size)
+  useEffect(() => {
+    peekSizeRef.current = settings.peek.size
+  }, [settings.peek.size])
+  const peekZoom = (amount) => {
+    if (!peekCard || popupOpen || dragActive()) return false
+    const size = zoomPeekSize(peekSizeRef.current, amount)
+    peekSizeRef.current = size
+    updateSettings({ peek: { size } })
+    return true
+  }
   // The keys (keyboard.js, useTableKeys.js). The state is read at every key press. Last hook call: the
   // table of handlers uses what the hooks above give.
   const { heldPan, heldTurn, heldRotate } = useTableKeys({
@@ -968,6 +982,7 @@ export default function App({
               <WheelCamera
                 ref={wheelCameraRef}
                 wheelState={wheelState}
+                onPeekZoom={peekZoom}
                 trackpadSwipePans={settings.trackpadSwipePans}
                 onTurn={(dir) => sceneApi.current?.turnPiece(dir)}
               />
@@ -1044,7 +1059,7 @@ export default function App({
           />
         )}
         <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
-        {!popupOpen && <CardPeek card={peekCard} />}
+        {!popupOpen && <CardPeek card={peekCard} size={settings.peek.size} />}
         {settingsOpen && (
           <SettingsPopup
             settings={settings}

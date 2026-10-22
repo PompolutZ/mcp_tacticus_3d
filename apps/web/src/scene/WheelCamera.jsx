@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Plane, Raycaster, Vector2, Vector3 } from 'three'
 import { CAMERA_FRAME_PRIORITY, framePart, panOnTable, wheelRoute, zoomAround } from '../camera.js'
 import { getAction, resolve } from '../input/bindings.js'
+import { PEEK_TRACKPAD_RATE, PEEK_WHEEL_FACTOR } from '../rosters/peekSize.js'
 
 // One mouse wheel step zooms by this factor, the same step as OrbitControls (0.95 at zoomSpeed 1).
 // The size of the delta is not used: one wheel step is 100 px on Windows and 4 px on a Mac.
@@ -57,8 +58,11 @@ function looksLikeTrackpad(e) {
 // A mouse wheel step is an input (WheelUp / WheelDown, input/bindings.js). wheelState(): the state for
 // the resolver, { popup, dragging, overDiceTray, overPiece, bindings }. onTurn(dir): one piece turn
 // step. Both are read at the wheel event.
+// onPeekZoom(amount): while the Alt peek card shows, every wheel input changes its size instead of
+// moving the camera (rosters/peekSize.js). amount: the log of the size factor, above 0 is bigger.
+// Returns true when the peek took the input, false when no card shows.
 export const WheelCamera = forwardRef(function WheelCamera(
-  { wheelState, onTurn, trackpadSwipePans = false },
+  { wheelState, onTurn, onPeekZoom, trackpadSwipePans = false },
   ref,
 ) {
   const camera = useThree((state) => state.camera)
@@ -77,9 +81,9 @@ export const WheelCamera = forwardRef(function WheelCamera(
   useImperativeHandle(ref, () => ({ stop }), [])
 
   // The latest props, so the wheel listener is added once
-  const latest = useRef({ wheelState, onTurn, trackpadSwipePans })
+  const latest = useRef({ wheelState, onTurn, onPeekZoom, trackpadSwipePans })
   useEffect(() => {
-    latest.current = { wheelState, onTurn, trackpadSwipePans }
+    latest.current = { wheelState, onTurn, onPeekZoom, trackpadSwipePans }
   })
 
   useEffect(() => {
@@ -97,6 +101,7 @@ export const WheelCamera = forwardRef(function WheelCamera(
       // go back a page on a sideways swipe.
       e.preventDefault()
       e.stopPropagation()
+      if (peekZoom(e, trackpadGesture)) return
       const route = wheelRoute({
         ctrlKey: e.ctrlKey,
         trackpadGesture,
@@ -116,6 +121,21 @@ export const WheelCamera = forwardRef(function WheelCamera(
         // OrbitControls is off during a piece drag. A swipe does nothing then.
         if (controls.enabled) addPan(e.deltaX, e.deltaY)
       } else wheelStep(e)
+    }
+
+    // While the Alt peek shows, the wheel sizes the card. Up, swipe up and pinch out make it bigger.
+    // A pinch, Ctrl + wheel and a swipe use the size of the delta. A mouse wheel step is one factor.
+    function peekZoom(e, trackpadGesture) {
+      const onPeek = latest.current.onPeekZoom
+      if (!onPeek) return false
+      let amount
+      if (e.ctrlKey || trackpadGesture) {
+        amount = -MathUtils.clamp(e.deltaY, -MAX_ZOOM_DELTA, MAX_ZOOM_DELTA) * PEEK_TRACKPAD_RATE
+      } else {
+        const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+        amount = Math.sign(-delta) * Math.log(PEEK_WHEEL_FACTOR)
+      }
+      return onPeek(amount)
     }
 
     // A mouse wheel step: the binding of WheelUp / WheelDown with the modifiers of the event. Shift +

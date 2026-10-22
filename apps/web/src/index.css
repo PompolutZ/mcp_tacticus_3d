@@ -694,6 +694,12 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
+/* The Alt peek sets the size itself (rosters/peekSize.js): no fixed cap */
+.card-popup-image--peek {
+  max-width: none;
+  max-height: none;
+}
+
 /* The whole character tray in a popup (TrayPopup.jsx), on the .card-popup backdrop. The same
    color as the 3D tray's background plate (CharacterTray.jsx). */
 .tray-popup {

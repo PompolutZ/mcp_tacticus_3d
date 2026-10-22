@@ -3,9 +3,11 @@ import '../rooms/comicBase.js'
 import './settings.css'
 import {
   MAX_BRIGHTNESS,
+  MAX_PEEK_SIZE,
   MAX_SPECTATOR_SIZE,
   MAX_TURN_STEP,
   MIN_BRIGHTNESS,
+  MIN_PEEK_SIZE,
   MIN_SPECTATOR_SIZE,
   MIN_TURN_STEP,
   PLACES,
@@ -153,6 +155,20 @@ export function SettingsPopup({
             Screens differ. Raise it if the table looks dark on yours. High values can make models
             look washed out.
           </p>
+        </section>
+        <section className="settings-section">
+          <h3>Card view</h3>
+          <SliderRow
+            text="Alt card size (%)"
+            title="100 fills the window. The mouse wheel changes it while Alt shows a card."
+            ariaLabel="Alt card size"
+            min={Math.round(MIN_PEEK_SIZE * 100)}
+            max={Math.round(MAX_PEEK_SIZE * 100)}
+            step="5"
+            value={Math.round(settings.peek.size * 100)}
+            shown={`${Math.round(settings.peek.size * 100)}%`}
+            onChange={(percent) => onSettingsChange({ peek: { size: percent / 100 } })}
+          />
         </section>
         <section className="settings-section">
           <h3>Performance</h3>

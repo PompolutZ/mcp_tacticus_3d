@@ -2,7 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   MAX_BRIGHTNESS,
+  MAX_PEEK_SIZE,
   MIN_BRIGHTNESS,
+  MIN_PEEK_SIZE,
   VERSION,
   defaultSettings,
   readSettings,
@@ -349,6 +351,26 @@ test('scene brightness: default 100, clamped into range, rounded, junk is the de
   assert.equal(read({ brightness: 1000 }), MAX_BRIGHTNESS)
   assert.equal(read({ brightness: 80.4 }), 80)
   assert.equal(read({ brightness: 'bright' }), fallback)
+  assert.equal(read(undefined), fallback)
+})
+
+test('peek size: default within range, clamped into range, junk is the default', () => {
+  const fallback = defaultSettings().peek.size
+  assert.ok(fallback >= MIN_PEEK_SIZE && fallback <= MAX_PEEK_SIZE)
+  const read = (peek) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, peek }))
+    let size
+    withStorage(storage, () => {
+      size = readSettings().peek.size
+    })
+    return size
+  }
+  assert.equal(read({ size: 0.01 }), MIN_PEEK_SIZE)
+  assert.equal(read({ size: 50 }), MAX_PEEK_SIZE)
+  const inside = (MIN_PEEK_SIZE + MAX_PEEK_SIZE) / 2 + 0.013
+  assert.equal(read({ size: inside }), inside)
+  assert.equal(read({ size: 'big' }), fallback)
   assert.equal(read(undefined), fallback)
 })
 

@@ -33,6 +33,13 @@ const DEFAULT_BRIGHTNESS = 100
 export const MIN_BRIGHTNESS = 50
 export const MAX_BRIGHTNESS = 150
 
+// Size of the Alt peek card, a part of the largest size that fits the window (docs/features/key-shortcuts.md, "Alt").
+// The default leaves a margin like the old fixed look on a laptop, and is bigger on a big screen. The wheel
+// changes it while the card shows, so it is not rounded.
+const DEFAULT_PEEK_SIZE = 0.9
+export const MIN_PEEK_SIZE = 0.3
+export const MAX_PEEK_SIZE = 1
+
 export function defaultSettings() {
   return {
     version: VERSION,
@@ -43,6 +50,7 @@ export function defaultSettings() {
     spectator: { size: DEFAULT_SPECTATOR_SIZE },
     turn: { step: DEFAULT_TURN_STEP },
     light: { brightness: DEFAULT_BRIGHTNESS },
+    peek: { size: DEFAULT_PEEK_SIZE },
     // The composer draws the outlines and the antialiasing; off is faster (docs/features/rendering.md, "Setting")
     // stats: the performance stats overlay (docs/features/rendering.md, "Performance stats")
     performance: { composer: true, stats: false },
@@ -105,6 +113,9 @@ function normalize(raw) {
     settings.light.brightness = Math.round(
       Math.min(MAX_BRIGHTNESS, Math.max(MIN_BRIGHTNESS, brightness)),
     )
+  const peekSize = raw?.peek?.size
+  if (Number.isFinite(peekSize))
+    settings.peek.size = Math.min(MAX_PEEK_SIZE, Math.max(MIN_PEEK_SIZE, peekSize))
   settings.performance.composer = raw?.performance?.composer !== false
   settings.performance.stats = raw?.performance?.stats === true
   settings.labels = raw?.labels === true
