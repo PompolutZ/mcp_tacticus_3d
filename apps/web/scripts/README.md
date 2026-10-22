@@ -264,7 +264,7 @@ These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and 
 
 1. `Scene.jsx` loads only `angel.glb`. It needs a way to choose characters from `characters.json`.
 2. `CharacterModel.jsx` uses the base radius of Angel (medium) for every model. It needs the radius from `BASE_DIAMETER[base]`.
-3. A standee component for `figure: 'standee'` (Valkyrie and Elendil): the two images on a thin card, on a base of the character's size.
+3. A standee component for `figure: 'standee'` (Havok): the two images on a thin card, on a base of the character's size.
 4. The exception of the model turn (`twoCards` with `newCard`), see the rule above.
 
 # Jarvis character data

@@ -18,6 +18,7 @@ import {
 import { parseMigrateArgs } from './lib/cli.mjs'
 import { outputPath, readJson, writeJson } from './lib/files.mjs'
 import { isCustomModel } from '../src/characters/customModels.js'
+import { hasModelFile } from './lib/figure.mjs'
 import { slug } from './lib/keys.mjs'
 import { cachedFile, downloadMissing, loadCharacterDatabase } from './lib/tts.mjs'
 import {
@@ -423,7 +424,7 @@ function appEntry(row, key, sources, tokens) {
     return n
   }
   const entry = { id: row.ID, name: row.cName, base: row.cBase }
-  const models = count((n) => has(characterModel(key, n)))
+  const models = count((n) => hasModelFile(sources, CUSTOM_MODELS, key, characterModel(key, n)))
   if (models) {
     entry.figure = 'model'
     entry.rotation = row.cModelRot ?? 0

@@ -59,6 +59,9 @@
   "valkyrie": {
     "characters/valkyrie/model.glb": "pnpm --filter web photos-to-glb \"<Valkyrie photos>\" --base small --texture 1024 --tone medium"
   },
+  "valkyrie-and-elendil": {
+    "characters/valkyrie-and-elendil/model.glb": "pnpm --filter web photos-to-glb \"<Valkyrie and Elendil photos>\" --base large --height 110 --texture 1024 --tone medium --triangles 60000 && pnpm --filter web turn-model valkyrie-and-elendil -45"
+  },
   "venom": {
     "characters/venom/model.glb": "pnpm --filter web photos-to-glb \"<Venom photos>\" --base medium --texture 1024 --tone medium --triangles 60000"
   },

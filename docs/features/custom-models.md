@@ -2,7 +2,7 @@
 
 Status: partly built.
 
-The script works. A custom model can replace the model of a character (see [Use for a character](#use-for-a-character)). Adam Warlock, Baron Zemo, Bastion, Blue Marvel, Gamora, Hawkeye, Hulk, Lockjaw, Magneto, Moondragon, Nebula, Okoye, Quasar, Rocket Raccoon, Sin, Star-Lord, Thor, Prince of Asgard, Valkyrie, Venom and Viper use one.
+The script works. A custom model can replace the model of a character (see [Use for a character](#use-for-a-character)). Adam Warlock, Baron Zemo, Bastion, Blue Marvel, Gamora, Hawkeye, Hulk, Lockjaw, Magneto, Moondragon, Nebula, Okoye, Quasar, Rocket Raccoon, Sin, Star-Lord, Thor, Prince of Asgard, Valkyrie, Valkyrie and Elendil, Venom and Viper use one.
 
 Not built yet:
 
@@ -177,7 +177,7 @@ To replace the model of a character:
 3. Add the file to `src/characters/custom-models.json`: character key, file relative to `src/assets`, and how it was made (command, photo set).
 4. Turn the front to the board with `pnpm --filter web turn-model <key> <degrees>`, see [Front](#front). It adds the turn to the command in the list.
 
-The list exists because `migrate-characters.mjs` would convert the TTS model again and overwrite the scan, for example with `--force` or after a new source URL. The script never converts or overwrites a listed file, also with `--force`. It prints a line when it skips one. The rest of the character still migrates, and the manifest keeps the source URL.
+The list exists because `migrate-characters.mjs` would convert the TTS model again and overwrite the scan, for example with `--force` or after a new source URL. The script never converts or overwrites a listed file, also with `--force`. It prints a line when it skips one. The rest of the character still migrates, and the manifest keeps the source URL. The migration keeps `figure: "model"` for a character whose model is listed, also when the mod has only a standee.
 
 ## Out of scope
 

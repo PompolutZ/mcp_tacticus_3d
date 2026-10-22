@@ -2335,7 +2335,8 @@
     "id": "00940101",
     "name": "Valkyrie and Elendil",
     "base": "large",
-    "figure": "standee",
+    "figure": "model",
+    "rotation": 0,
     "tokens": [
       "stagger"
     ]
