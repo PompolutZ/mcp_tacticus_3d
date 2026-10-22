@@ -1,6 +1,7 @@
 // Sends errors to the API (POST /errors, docs/features/backend.md "Error reports"). Players do not copy
 // their console, so the app does it. Few and small: at most 5 per page load, the same message once, no
 // query strings. The first error is always sent. A failed send is ignored and never reported again.
+import { quietPost } from '../api/quietPost.js'
 import { subscribeErrors } from './errors.js'
 
 const MAX_PER_PAGE = 5
@@ -70,11 +71,7 @@ export function startErrorReporter() {
   if (started) return
   started = true
   const report = createReporter({
-    // Loaded here: the client reads import.meta.env, which the node tests do not have
-    send: async (body) => {
-      const { api } = await import('../api/client.js')
-      await api('/errors', { method: 'POST', json: body, keepalive: true })
-    },
+    send: quietPost('/errors'),
     version: import.meta.env.VITE_BUILD_ID,
     agent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
   })

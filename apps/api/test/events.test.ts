@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
-import { eventRoutes } from '../src/routes/events'
+import { LIMIT_PER_MINUTE, eventRoutes } from '../src/routes/events'
 import { createMemoryStore } from '../src/stores/memory'
-import type { UsageEvent } from '../src/stores/store'
+import { MAX_VERSION, type UsageEvent } from '../src/stores/store'
 
 const good = { name: 'room_create', kind: 'versus', version: 'abc123' }
 const AGENT = 'Mozilla/5.0 (Macintosh)'
@@ -46,6 +46,7 @@ describe('POST /events', () => {
     expect(saved).toHaveLength(1)
     expect(saved[0]).toMatchObject(good)
     expect(Object.keys(saved[0] ?? {}).sort()).toEqual([
+      'expiresAt',
       'kind',
       'name',
       'time',
@@ -68,7 +69,7 @@ describe('POST /events', () => {
     expect((await post({ ...good, name: 'nope' })).status).toBe(400)
     expect((await post({ ...good, kind: 'other' })).status).toBe(400)
     expect((await post({ ...good, extra: 'x' })).status).toBe(400)
-    expect((await post({ ...good, version: 'x'.repeat(65) })).status).toBe(400)
+    expect((await post({ ...good, version: 'x'.repeat(MAX_VERSION + 1) })).status).toBe(400)
     expect((await post({ ...good, $set: { a: 1 } })).status).toBe(400)
     expect((await post('{nope')).status).toBe(400)
     expect(saved).toEqual([])
@@ -112,9 +113,9 @@ describe('POST /events', () => {
     expect(saved[0]?.visitor).not.toBe(saved[1]?.visitor)
   })
 
-  it('answers 429 after 60 events a minute from one address', async () => {
+  it('answers 429 after the limit of events a minute from one address', async () => {
     const { post } = setup()
-    for (let i = 0; i < 60; i++) expect((await post(good)).status).toBe(204)
+    for (let i = 0; i < LIMIT_PER_MINUTE; i++) expect((await post(good)).status).toBe(204)
     expect((await post(good)).status).toBe(429)
   })
 })

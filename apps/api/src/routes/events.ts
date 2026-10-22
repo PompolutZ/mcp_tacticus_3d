@@ -5,21 +5,28 @@ import { HTTPException } from 'hono/http-exception'
 import * as z from 'zod/mini'
 import { callerIp, createRateLimit } from '../middleware/rateLimit'
 import { validate } from '../middleware/validate'
-import { EVENT_KINDS, EVENT_NAMES, type Store, type UsageEvent } from '../stores/store'
+import {
+  EVENT_KINDS,
+  EVENT_NAMES,
+  EVENTS_TTL_SECONDS,
+  MAX_VERSION,
+  type Store,
+  type UsageEvent,
+} from '../stores/store'
 
 const MAX_BODY = 1024
-const LIMIT_PER_MINUTE = 60
+export const LIMIT_PER_MINUTE = 60
 const BOT_AGENT = /bot|crawler|spider|headless/i
 
 const eventSchema = z.strictObject({
   name: z.enum(EVENT_NAMES),
   kind: z.optional(z.enum(EVENT_KINDS)),
-  version: z.string().check(z.maxLength(64)),
+  version: z.string().check(z.maxLength(MAX_VERSION)),
 })
 
 // Same IP and agent on the same UTC day give the same visitor. The IP and the agent are never stored.
 function visitorHash(salt: string, ip: string, agent: string): string {
-  return createHash('sha256').update(`${salt}${ip}${agent}`).digest('hex').slice(0, 16)
+  return createHash('sha256').update([salt, ip, agent].join('\n')).digest('hex').slice(0, 16)
 }
 
 export function eventRoutes(deps: { store: Store; now?: () => Date }) {
@@ -50,8 +57,9 @@ export function eventRoutes(deps: { store: Store; now?: () => Date }) {
       const event: UsageEvent = {
         time,
         name: body.name,
-        version: String(body.version),
+        version: body.version,
         visitor: visitorHash(salt, callerIp(c), agent),
+        expiresAt: new Date(time.getTime() + EVENTS_TTL_SECONDS * 1000),
       }
       if (body.kind !== undefined) event.kind = body.kind
       await deps.store.events.add(event)

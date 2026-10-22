@@ -1,9 +1,8 @@
 import { createInterface } from 'node:readline/promises'
-import { mongoClient } from './mongo'
+import { DB_NAME, mongoClient } from './mongo'
 
-const DB_NAME = 'assist3d'
 // deleteMany, not drop, so the indexes stay.
-const COLLECTIONS = ['users', 'rooms', 'messages', 'customBoards']
+const COLLECTIONS = ['users', 'rooms', 'messages', 'customBoards', 'events', 'salts']
 
 const client = mongoClient()
 // The host name only. The URI holds the password.

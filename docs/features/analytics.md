@@ -1,10 +1,10 @@
 # Analytics
 
-Status: partly built.
+Status: built.
 
 The app counts how often people use it: how many try it, and whether they use the Sandbox or create a room (solo or versus). The data stays small and is easy to extend.
 
-Built: the API route that takes events, and the browser side that sends them. Not built: the script that reads them.
+Built: the API route that takes events, the browser side that sends them, and the script that reads them.
 
 ## Why this way
 
@@ -12,7 +12,7 @@ Built: the API route that takes events, and the browser side that sends them. No
 - **No id on the device.** Nothing is written to `localStorage` or cookies for analytics, so the app needs no consent notice.
 - **Visitor hash on the server.** The server stores `visitor`, a short hash of a daily salt, the IP and the user agent. The IP and the user agent are never stored.
   - The salt is random, one per UTC day, and kept in Mongo (collection `salts`). So all Lambda instances use the same salt in one day.
-  - The salt is deleted two days after its day starts. After that nobody can find the IP from a hash.
+  - The salt is deleted a short time after its day starts (`SALT_TTL_MS` in `apps/api/src/stores/store.ts`). After that nobody can find the IP from a hash.
   - Result: unique visitors per day. The same person counts again on the next day.
 - **Fixed names and fields, no free data.** The body has `name`, an optional `kind` and `version`. The server has the list of names and kinds (`apps/api/src/stores/store.ts`). A new event adds a name to the list. A new field adds a field to the schema (`apps/api/src/routes/events.ts`). So the browser cannot store any text it wants.
 - **No user id in events,** also when the user is logged in. The route does not read the token.
@@ -43,4 +43,13 @@ The browser calls `track(name, kind)` from `apps/web/src/analytics/track.js`. It
 
 - `POST /events`: no login, body limit, rate limit per IP, strict body check. A good event gives 204. See `docs/features/backend.md`, "Events".
 - The stored document is `{ time, name, kind?, version, visitor }`. The server sets `time`. The route builds it field by field.
-- Events are deleted after 13 months (TTL index on `time`, value in `apps/api/src/stores/store.ts`).
+- Events are deleted after a set time (TTL index on `expiresAt`, set by the route from `EVENTS_TTL_SECONDS` in `apps/api/src/stores/store.ts`).
+
+## Reading the data
+
+`pnpm --filter infra stats [days]` (the default and the range are in `infra/scripts/stats-lib.ts`) prints one line per UTC day, newest first. Days with no events are left out. The columns are: date, unique visitors, `app_open`, `sandbox_open`, `room_create` solo and versus, `room_open` solo and versus, `room_join`. The last line holds the totals.
+
+- One aggregation on `events`, grouped by UTC day. The pipeline and the table text are pure functions in `infra/scripts/stats-lib.ts`.
+- Total visitors is the sum of the daily counts, so a person who comes on two days counts twice.
+- Only numbers and dates are printed. No text from the events is shown.
+- It reads the Mongo URI from the infra env file, like the errors command.

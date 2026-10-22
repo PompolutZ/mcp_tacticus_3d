@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createTracker } from './track.js'
+import { MAX_VERSION, createTracker } from './track.js'
 
 test('sends name and version, and kind only when given', () => {
   const sent = []
@@ -15,9 +15,12 @@ test('sends name and version, and kind only when given', () => {
 
 test('the version is cut to the server limit', () => {
   const sent = []
-  const track = createTracker({ send: (body) => sent.push(body), version: 'x'.repeat(100) })
+  const track = createTracker({
+    send: (body) => sent.push(body),
+    version: 'x'.repeat(MAX_VERSION + 36),
+  })
   track('app_open')
-  assert.equal(sent[0].version.length, 64)
+  assert.equal(sent[0].version.length, MAX_VERSION)
 })
 
 test('a throwing send does not throw', () => {

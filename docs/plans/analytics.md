@@ -1,6 +1,6 @@
 # Plan: Usage analytics
 
-Requested by the user on 2026-10-22. Status: in progress. Branch `analytics`, worktree `../mcp_assist_3d-analytics`, from main.
+Requested by the user on 2026-10-22. Status: done. Branch `analytics`, worktree `../mcp_assist_3d-analytics`, from main.
 
 Each step makes one commit and writes its **Result** below. Web paths are under `apps/web/`.
 
@@ -52,7 +52,7 @@ The user wants to know how often people use the app: how many people try it, and
 - Tests (`test/events.test.ts`): a good event gives 204 and one stored event without IP or user agent; an unknown name or field gives 400; a big body gives 413; a bot agent stores nothing; two events of one IP and agent on one day have the same visitor; on the next day the visitor is different.
 - Docs: new `docs/features/analytics.md` (Status: partly built) with the decisions above. `docs/features/backend.md`: the new route, and `events` and `salts` in the collections list.
 
-**Result:** Done, not committed. `POST /events` in `routes/events.ts` (clock injectable: `eventRoutes({ store, now })`). `callerIp` and `createRateLimit` moved to `middleware/rateLimit.ts`. Store has `events.add` and `salts.forDay` (memory and Mongo, TTL indexes). Tests in `test/events.test.ts` and `test/mongo.mongo.test.ts`. Docs written. Checks pass; lint warnings same as main (39).
+**Result:** Done. `POST /events` in `routes/events.ts` (clock injectable: `eventRoutes({ store, now })`). `callerIp` and `createRateLimit` moved to `middleware/rateLimit.ts`. Store has `events.add` and `salts.forDay` (memory and Mongo, TTL indexes). Tests in `test/events.test.ts` and `test/mongo.mongo.test.ts`. Docs written. Checks pass; lint warnings same as main (39).
 
 ### Step 2. Web: send the events
 
@@ -65,7 +65,7 @@ The user wants to know how often people use the app: how many people try it, and
 - Tests: `track` sends the right body; a rejected send does not throw.
 - Docs: `analytics.md` lists where each event is sent.
 
-**Result:** Done, not committed. `src/analytics/track.js` (`createTracker` with injected `send`, lazy `api` import), tests in `track.test.js`. Calls in `main.jsx`, `Root.jsx` (sandbox and room open), `NewRoomDialog.jsx`, `JoinRoom.jsx` (the caller of `joinRoom`). `analytics.md` lists them. Checks pass.
+**Result:** Done. `src/analytics/track.js` (`createTracker` with injected `send`, lazy `api` import), tests in `track.test.js`. Calls in `main.jsx`, `Root.jsx` (sandbox and room open), `NewRoomDialog.jsx`, `JoinRoom.jsx` (the caller of `joinRoom`). `analytics.md` lists them. Checks pass.
 
 ### Step 3. Read the data
 
@@ -73,7 +73,7 @@ The user wants to know how often people use the app: how many people try it, and
 - `infra/scripts/delete-test-data.ts`: also clears `events` and `salts`.
 - Docs: `analytics.md` Status: built. `backend.md`: the stats command.
 
-**Result:**
+**Result:** Done. `infra/scripts/stats.ts` (script `stats`) with pure pipeline and table code in `infra/scripts/stats-lib.ts`; test in `infra/test/stats.test.ts`. `delete-test-data.ts` also clears `events` and `salts`. Docs updated. Checks pass; lint warnings same as main (39). The script was not run (not against Atlas; local mongo skipped). Review fixes applied: events TTL via `expiresAt`, shared quiet POST helper (`src/api/quietPost.js`), one stats column list.
 
 ## Deploy
 

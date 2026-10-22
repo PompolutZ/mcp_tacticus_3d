@@ -71,7 +71,13 @@ describe('events and salts collections', () => {
   })
 
   it('stores an event and has the TTL indexes', async () => {
-    const event = { time: new Date(1), name: 'app_open' as const, version: 'v', visitor: 'abcd' }
+    const event = {
+      time: new Date(1),
+      name: 'app_open' as const,
+      version: 'v',
+      visitor: 'abcd',
+      expiresAt: new Date(2),
+    }
     await store.events.add(event)
     const client = new MongoClient(uri)
     const db = client.db(dbName)
@@ -83,7 +89,7 @@ describe('events and salts collections', () => {
     const saltIndexes = await db.collection('salts').indexes()
     await client.close()
     expect(saved).toEqual([event])
-    expect(eventIndexes.find((i) => i.key.time)?.expireAfterSeconds).toBeGreaterThan(0)
+    expect(eventIndexes.find((i) => i.key.expiresAt)?.expireAfterSeconds).toBe(0)
     expect(saltIndexes.find((i) => i.key.expiresAt)?.expireAfterSeconds).toBe(0)
   })
 })

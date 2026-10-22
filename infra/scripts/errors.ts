@@ -1,6 +1,5 @@
-import { mongoClient } from './mongo'
+import { DB_NAME, mongoClient } from './mongo'
 
-const DB_NAME = '[REDACTED:DB_NAME]'
 const DEFAULT_COUNT = 20
 const MAX_COUNT = 200
 

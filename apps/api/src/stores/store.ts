@@ -175,7 +175,8 @@ export const ERRORS_KEEP = 200
 // The Mongo collection is capped at this size.
 export const ERRORS_MAX_BYTES = 10 * 1024 * 1024
 
-// The usage events (docs/features/analytics.md). A new event adds a name here.
+// The usage events (docs/features/analytics.md). A new event adds a name here, and a column in
+// infra/scripts/stats-lib.ts (the packages do not import each other).
 export const EVENT_NAMES = [
   'app_open',
   'sandbox_open',
@@ -196,6 +197,8 @@ export interface UsageEvent {
   version: string
   // A hash of the daily salt, the IP and the user agent, cut short.
   visitor: string
+  // The TTL index deletes the event after this date.
+  expiresAt: Date
 }
 
 export interface EventsStore {
@@ -209,6 +212,9 @@ export interface SaltsStore {
 
 // Events are deleted this long after their time.
 export const EVENTS_TTL_SECONDS = 13 * 30 * 24 * 60 * 60
+
+// The longest build id an event takes.
+export const MAX_VERSION = 64
 
 // The salt of a day is deleted this long after the start of the day.
 export const SALT_TTL_MS = 2 * 24 * 60 * 60 * 1000

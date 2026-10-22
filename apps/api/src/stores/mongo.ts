@@ -4,7 +4,6 @@ import { newRoomCode } from '../rooms/code'
 import {
   CODE_TRIES,
   ERRORS_MAX_BYTES,
-  EVENTS_TTL_SECONDS,
   HostingError,
   newRoom,
   newUserId,
@@ -83,7 +82,7 @@ export function createMongoStore({
       roomsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       messagesCol.createIndex({ room: 1, _id: 1 }),
       messagesCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
-      eventsCol.createIndex({ time: 1 }, { expireAfterSeconds: EVENTS_TTL_SECONDS }),
+      eventsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       saltsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     ]).catch((err) => {
       indexes = undefined

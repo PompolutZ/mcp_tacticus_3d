@@ -9,6 +9,7 @@
     "put-secrets": "tsx scripts/put-secrets.ts",
     "delete-test-data": "tsx scripts/delete-test-data.ts",
     "errors": "tsx scripts/errors.ts",
+    "stats": "tsx scripts/stats.ts",
     "typecheck": "tsc",
     "test": "vitest run"
   },
