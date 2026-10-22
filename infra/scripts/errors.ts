@@ -1,4 +1,5 @@
-import { DB_NAME, mongoClient } from './mongo'
+import { DB_NAME } from '../lib/db-name'
+import { mongoClient } from './mongo'
 
 const DEFAULT_COUNT = 20
 const MAX_COUNT = 200

@@ -1,4 +1,5 @@
-import { DB_NAME, mongoClient } from './mongo'
+import { DB_NAME } from '../lib/db-name'
+import { mongoClient } from './mongo'
 import { DEFAULT_DAYS, MAX_DAYS, formatStats, normalizeRow, statsPipeline } from './stats-lib'
 
 const DAY_MS = 24 * 60 * 60 * 1000

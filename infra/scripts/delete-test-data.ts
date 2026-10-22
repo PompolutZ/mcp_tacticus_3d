@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline/promises'
-import { DB_NAME, mongoClient } from './mongo'
+import { DB_NAME } from '../lib/db-name'
+import { mongoClient } from './mongo'
 
 // deleteMany, not drop, so the indexes stay.
 const COLLECTIONS = ['users', 'rooms', 'messages', 'customBoards', 'events', 'salts']

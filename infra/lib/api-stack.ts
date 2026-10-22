@@ -8,6 +8,8 @@ import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as logs from 'aws-cdk-lib/aws-logs'
 import type { Construct } from 'constructs'
 
+import { DB_NAME } from './db-name'
+
 const SITE_ORIGIN = 'https://herotable3d.netlify.app'
 const SSM_PREFIX = '/mcptacticus/prod/'
 const repoRoot = path.resolve(import.meta.dirname, '../..')
@@ -40,7 +42,7 @@ export class ApiStack extends Stack {
       reservedConcurrentExecutions: props.reservedConcurrency ?? undefined,
       environment: {
         SSM_PREFIX,
-        DB_NAME: 'assist3d',
+        DB_NAME,
         APP_VERSION: props.version,
         NODE_OPTIONS: '--enable-source-maps',
       },

@@ -11,5 +11,3 @@ export function mongoClient(): MongoClient {
   }
   return new MongoClient(uri)
 }
-
-export const DB_NAME = '[REDACTED:DB_NAME]'
