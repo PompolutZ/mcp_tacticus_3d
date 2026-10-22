@@ -60,3 +60,30 @@ describe('errors collection', () => {
     await other.close()
   })
 })
+
+describe('events and salts collections', () => {
+  it('two stores get the same salt of a day, and another day gets another', async () => {
+    const other = createMongoStore({ uri, dbName })
+    const a = await store.salts.forDay('2026-10-22')
+    expect(await other.salts.forDay('2026-10-22')).toBe(a)
+    expect(await store.salts.forDay('2026-10-23')).not.toBe(a)
+    await other.close()
+  })
+
+  it('stores an event and has the TTL indexes', async () => {
+    const event = { time: new Date(1), name: 'app_open' as const, version: 'v', visitor: 'abcd' }
+    await store.events.add(event)
+    const client = new MongoClient(uri)
+    const db = client.db(dbName)
+    const saved = await db
+      .collection('events')
+      .find({}, { projection: { _id: 0 } })
+      .toArray()
+    const eventIndexes = await db.collection('events').indexes()
+    const saltIndexes = await db.collection('salts').indexes()
+    await client.close()
+    expect(saved).toEqual([event])
+    expect(eventIndexes.find((i) => i.key.time)?.expireAfterSeconds).toBeGreaterThan(0)
+    expect(saltIndexes.find((i) => i.key.expiresAt)?.expireAfterSeconds).toBe(0)
+  })
+})

@@ -81,7 +81,7 @@ apps/api/src/
   local.ts        Node entry for dev: @hono/node-server, memory or Mongo store, the dev login route
   config.ts       the config type. Read from SSM (Lambda) or from process.env (local)
   auth/           token (session token), discord (Discord client)
-  routes/         health, errors (POST of client error reports), auth, devAuth (local only), me, board (GET and PUT of /me/board, GET of /me/board/image), rooms (room and seat routes, GET of /rooms/{code}/image), table (GET and PUT of the snapshot), signal (POST and GET of the messages)
+  routes/         health, errors (POST of client error reports), events (POST of usage events), auth, devAuth (local only), me, board (GET and PUT of /me/board, GET of /me/board/image), rooms (room and seat routes, GET of /rooms/{code}/image), table (GET and PUT of the snapshot), signal (POST and GET of the messages)
   rooms/          code (room code), table (Yjs check and merge), read (room read, 404, host-gone cleanup), seats (seat cache, 30 s per room)
   middleware/     user (token check and user read), session (token check only, for polls), validate (body check), errors, log
   stores/         store interfaces, and a memory and a Mongo version of each
@@ -96,6 +96,7 @@ apps/api/test/    Vitest: routes through app.request(), with the memory store
 - The function URL serves the app at its root, so the routes have no prefix. In dev, Vite forwards `/api/*` to the API and removes `/api`.
 - `GET /health` returns `{ ok, version, db }`. `version` is the git commit of the deploy. `db` is the result of a Mongo `ping`. This is the first route, and it checks every deploy.
 - `POST /errors` takes an error report from the browser. No login. See "Error reports".
+- `POST /events` takes a usage event from the browser. No login. See "Events".
 - The other routes are in the auth doc ("Endpoints") and the peer-to-peer doc ("Endpoints").
 
 ### Binary bodies
@@ -186,6 +187,15 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 - Store: `errors.add` and `errors.latest`. Memory keeps the last 200. Mongo uses the collection `errors`, capped at 10 MB, so Mongo deletes the oldest reports when it is full. No TTL. The store creates it with the indexes, before the first call, when it is missing.
 - Read the reports with `pnpm --filter infra errors [count]` (default 20, newest first). It reads the Mongo URI from the infra env file, like `delete-test-data`. It strips control characters and terminal escape codes before it prints, because a browser can send any text.
 
+### Events
+
+- `POST /events` has no login and does not read the token. The body has `name` (one of the event names), optional `kind` (`solo` or `versus`) and `version` (string, max 64). An unknown field, name or kind gives 400. A body over 1 KB gives 413. A good event gives 204. The lists are in `apps/api/src/stores/store.ts`. Intent and reasons: `docs/features/analytics.md`.
+- A user agent that matches `bot|crawler|spider|headless` gets 204 and nothing is stored.
+- The route builds the stored document field by field: `{ time, name, kind?, version, visitor }`. `visitor` is the first 16 hex characters of `sha256(salt + ip + userAgent)`. The salt is the one of the UTC day. The IP and the agent are never stored.
+- Limit: 60 events a minute for each IP address, in the memory of the Lambda instance, with the same code as `POST /errors` (`apps/api/src/middleware/rateLimit.ts`). More gives 429.
+- Store: `events.add` and `salts.forDay`. Mongo keeps the salt of the current day in the instance memory, so it asks Mongo once a day. The first instance of a day inserts the salt with `$setOnInsert`, the others read the same one.
+- Indexes are created with the others: a TTL index on `events.time` (13 months) and a TTL index on `salts.expiresAt`.
+
 ## Database
 
 - An Atlas Free cluster (the old name is M0) in its own Atlas project, on AWS `eu-central-1`. It was created in the Atlas UI. Atlas allows one Free cluster per project, so the second project can have its own.
@@ -194,7 +204,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
   - Database user `mcptacticus-api` with `readWrite@assist3d`.
   - IP access list `0.0.0.0/0`. The Lambda has no fixed IP address. A fixed address needs a NAT gateway, and a NAT gateway costs money.
 - Atlas is not in CDK. The Atlas CloudFormation resources need the Atlas API key in Secrets Manager ($0.40 per month), and third-party extensions that are activated in the account.
-- Collections: `users`, `rooms`, `messages`, `customBoards` and `errors` (see "Error reports"). `customBoards` holds one record per user: `{ _id: userId, board, updatedAt, hasImage, image }` (`board.author`: the display name of the user at the last save; `image`: the top view as BSON binary, a WebP of at most 150 KB; a record saved before the images has neither `image` nor `hasImage`), no extra index. `boards.get` leaves `image` out (projection) and `boards.getImage` reads it. Binary responses such as `image/webp` go through the Lambda adapter base64 encoded (`test/lambda-binary.test.ts`). `DELETE /me` deletes it. A room on the custom board keeps its own copy in the `rooms` record (`boardName`, `boardAuthor`, `hasImage`, `image` as BSON binary), copied from `customBoards` by `POST /rooms`; `rooms.get` and `listForUser` leave `image` out (projection) and `rooms.getImage` reads it. It goes with the room (delete, `DELETE /me`, TTL). `messages` holds the signaling messages: `{ _id, room, from, to, type, data, user, expiresAt }`. The `_id` is 13 digits of the server time in ms, `-`, and 8 random characters, so it sorts by time. Indexes: `{ room: 1, _id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `expiresAt` is 1 hour after the write. `DELETE /rooms/{code}` and `DELETE /me` delete the messages too.
+- Collections: `users`, `rooms`, `messages`, `customBoards`, `errors` (see "Error reports"), `events` and `salts` (see "Events"). `events` holds `{ time, name, kind?, version, visitor }`. `salts` holds `{ _id: day (YYYY-MM-DD), salt, expiresAt }`, deleted 2 days after the day starts. `customBoards` holds one record per user: `{ _id: userId, board, updatedAt, hasImage, image }` (`board.author`: the display name of the user at the last save; `image`: the top view as BSON binary, a WebP of at most 150 KB; a record saved before the images has neither `image` nor `hasImage`), no extra index. `boards.get` leaves `image` out (projection) and `boards.getImage` reads it. Binary responses such as `image/webp` go through the Lambda adapter base64 encoded (`test/lambda-binary.test.ts`). `DELETE /me` deletes it. A room on the custom board keeps its own copy in the `rooms` record (`boardName`, `boardAuthor`, `hasImage`, `image` as BSON binary), copied from `customBoards` by `POST /rooms`; `rooms.get` and `listForUser` leave `image` out (projection) and `rooms.getImage` reads it. It goes with the room (delete, `DELETE /me`, TTL). `messages` holds the signaling messages: `{ _id, room, from, to, type, data, user, expiresAt }`. The `_id` is 13 digits of the server time in ms, `-`, and 8 random characters, so it sorts by time. Indexes: `{ room: 1, _id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `expiresAt` is 1 hour after the write. `DELETE /rooms/{code}` and `DELETE /me` delete the messages too.
 - The connection rules of the peer-to-peer doc stay: one client per Lambda instance, `maxPoolSize: 2`, `serverSelectionTimeoutMS: 5000`, indexes created at cold start.
 
 ### Free cluster limits
@@ -298,7 +308,7 @@ The site is `https://herotable3d.netlify.app`. Netlify builds the web app from g
 - Secrets are never in git, in Lambda env vars or in logs.
 - The CI role works only for `main` through the environment `prod`, and it can only assume the CDK bootstrap roles.
 - The bootstrap CloudFormation role has admin rights by default. So a deploy from CI can change any resource in the account, wuclub included. This is accepted for now, because only the user pushes to `main`. `cdk bootstrap --cloudformation-execution-policies` can narrow it later.
-- `POST /errors` has no login. Its body is small and strict, it has a per-IP limit, and it is capped in size (see "Error reports").
+- `POST /errors` has no login. Its body is small and strict, it has a per-IP limit, and it is capped in size (see "Error reports"). `POST /events` is the same (see "Events").
 - Reserved concurrency and the budget alert limit the cost of abuse. To stop all traffic at once, set reserved concurrency to 0.
 - The rest is in the security sections of the auth doc and the peer-to-peer doc.
 

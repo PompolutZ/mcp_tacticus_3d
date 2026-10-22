@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createRateLimit } from '../src/routes/errors'
+import { createRateLimit } from '../src/middleware/rateLimit'
 import { makeApp } from './helpers'
 
 const good = {

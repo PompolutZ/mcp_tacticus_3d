@@ -1,14 +1,18 @@
+import { randomBytes } from 'node:crypto'
 import { Binary, MongoClient, MongoServerError } from 'mongodb'
 import { newRoomCode } from '../rooms/code'
 import {
   CODE_TRIES,
   ERRORS_MAX_BYTES,
+  EVENTS_TTL_SECONDS,
   HostingError,
   newRoom,
   newUserId,
+  SALT_TTL_MS,
   userExpiry,
   type BoardDoc,
   type ErrorReport,
+  type UsageEvent,
   type MessageDoc,
   type RoomDoc,
   type RoomInfo,
@@ -50,6 +54,10 @@ export function createMongoStore({
   const messagesCol = db.collection<MessageDoc>('messages')
   const boardsCol = db.collection<BoardRow>('customBoards')
   const errorsCol = db.collection<ErrorReport>('errors')
+  const eventsCol = db.collection<UsageEvent>('events')
+  const saltsCol = db.collection<{ _id: string; salt: string; expiresAt: Date }>('salts')
+  // The salt of the current day, so a busy instance asks Mongo once a day.
+  let cachedSalt: { day: string; salt: string } | undefined
 
   // A capped collection: Mongo deletes the oldest reports when it is full. It must be created
   // before the first insert, or Mongo makes a normal one. Two instances can race: code 48 is fine.
@@ -75,6 +83,8 @@ export function createMongoStore({
       roomsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       messagesCol.createIndex({ room: 1, _id: 1 }),
       messagesCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      eventsCol.createIndex({ time: 1 }, { expireAfterSeconds: EVENTS_TTL_SECONDS }),
+      saltsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     ]).catch((err) => {
       indexes = undefined
       throw err
@@ -281,6 +291,32 @@ export function createMongoStore({
           .limit(limit)
           .toArray()
         return docs
+      },
+    },
+    events: {
+      async add(event) {
+        await ready()
+        await eventsCol.insertOne({ ...event })
+      },
+    },
+    salts: {
+      async forDay(day) {
+        if (cachedSalt?.day === day) return cachedSalt.salt
+        await ready()
+        // Two instances can race: $setOnInsert keeps the first salt, both read it back.
+        const doc = await saltsCol.findOneAndUpdate(
+          { _id: day },
+          {
+            $setOnInsert: {
+              salt: randomBytes(16).toString('hex'),
+              expiresAt: new Date(Date.parse(`${day}T00:00:00Z`) + SALT_TTL_MS),
+            },
+          },
+          { upsert: true, returnDocument: 'after' },
+        )
+        if (!doc) throw new Error('Salt upsert returned no document')
+        cachedSalt = { day, salt: doc.salt }
+        return doc.salt
       },
     },
     async ping() {

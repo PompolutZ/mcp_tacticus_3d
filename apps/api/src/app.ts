@@ -6,6 +6,7 @@ import { log } from './middleware/log'
 import { authRoutes } from './routes/auth'
 import { boardRoutes } from './routes/board'
 import { errorRoutes } from './routes/errors'
+import { eventRoutes } from './routes/events'
 import { healthRoutes } from './routes/health'
 import { meRoutes } from './routes/me'
 import { createSeatCache } from './rooms/seats'
@@ -26,6 +27,7 @@ export function createApp(deps: Deps) {
   app.use(log)
   app.route('/', healthRoutes(deps))
   app.route('/', errorRoutes(deps))
+  app.route('/', eventRoutes(deps))
   app.route('/', authRoutes(deps))
   app.route('/', meRoutes(deps))
   app.route('/', boardRoutes(deps))

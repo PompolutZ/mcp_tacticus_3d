@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { newRoomCode } from '../rooms/code'
 import {
   CODE_TRIES,
@@ -8,6 +9,7 @@ import {
   userExpiry,
   type BoardDoc,
   type ErrorReport,
+  type UsageEvent,
   type MessageDoc,
   type RoomDoc,
   type RoomInfo,
@@ -25,6 +27,8 @@ export function createMemoryStore(): Store {
   const rooms = new Map<string, RoomDoc>()
   const messages = new Map<string, MessageDoc>()
   const errors: ErrorReport[] = []
+  const events: UsageEvent[] = []
+  const salts = new Map<string, string>()
   const boards = new Map<string, BoardDoc>()
   const boardImages = new Map<string, Uint8Array>()
   return {
@@ -189,6 +193,21 @@ export function createMemoryStore(): Store {
           .slice(-limit)
           .reverse()
           .map((r) => ({ ...r }))
+      },
+    },
+    events: {
+      async add(event) {
+        events.push({ ...event })
+      },
+    },
+    salts: {
+      async forDay(day) {
+        let salt = salts.get(day)
+        if (!salt) {
+          salt = randomBytes(16).toString('hex')
+          salts.set(day, salt)
+        }
+        return salt
       },
     },
     // No database, so there is nothing to ping.

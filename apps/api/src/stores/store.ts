@@ -175,6 +175,44 @@ export const ERRORS_KEEP = 200
 // The Mongo collection is capped at this size.
 export const ERRORS_MAX_BYTES = 10 * 1024 * 1024
 
+// The usage events (docs/features/analytics.md). A new event adds a name here.
+export const EVENT_NAMES = [
+  'app_open',
+  'sandbox_open',
+  'room_create',
+  'room_open',
+  'room_join',
+] as const
+export type EventName = (typeof EVENT_NAMES)[number]
+export const EVENT_KINDS = ['solo', 'versus'] as const
+export type EventKind = (typeof EVENT_KINDS)[number]
+
+// Built field by field by the route (routes/events.ts). No IP, no user agent, no user id.
+export interface UsageEvent {
+  // Set by the server.
+  time: Date
+  name: EventName
+  kind?: EventKind
+  version: string
+  // A hash of the daily salt, the IP and the user agent, cut short.
+  visitor: string
+}
+
+export interface EventsStore {
+  add(event: UsageEvent): Promise<void>
+}
+
+export interface SaltsStore {
+  // The random salt of a UTC day (YYYY-MM-DD). All instances get the same one.
+  forDay(day: string): Promise<string>
+}
+
+// Events are deleted this long after their time.
+export const EVENTS_TTL_SECONDS = 13 * 30 * 24 * 60 * 60
+
+// The salt of a day is deleted this long after the start of the day.
+export const SALT_TTL_MS = 2 * 24 * 60 * 60 * 1000
+
 // The Sandbox board of a user: the map JSON format of the web app (docs/features/map-builder.md).
 export interface Board {
   id?: string
@@ -218,6 +256,8 @@ export interface Store {
   rooms: RoomsStore
   messages: MessagesStore
   errors: ErrorsStore
+  events: EventsStore
+  salts: SaltsStore
   ping(): Promise<DbStatus>
   close(): Promise<void>
 }
