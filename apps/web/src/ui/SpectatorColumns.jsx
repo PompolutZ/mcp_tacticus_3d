@@ -12,8 +12,10 @@ import { characterToken } from '../tokens/files.js'
 import { affiliationTokenKey } from '../tokens/affiliationTokens.js'
 import { getTactic } from '../tactics/cards.js'
 import { tacticCardBack } from '../tactics/files.js'
+import { getToken } from '../tokens/tokens.js'
 import { useYList } from '../net/useY.js'
 import { teamTactics } from './teamTactics.js'
+import { useRowFit } from './useRowFit.js'
 import { Burst } from '../rooms/Burst.jsx'
 import { OnToken } from '../characters/TrayPopup.jsx'
 import { useTableStore } from '../table/TableStoreContext.jsx'
@@ -106,7 +108,12 @@ function TeamTactics({ list }) {
 
 const tacticName = (key) => getTactic(key)?.name ?? key
 
+// Most small tokens in the name line of a row; more show as one "+N" chip (the full list is its title)
+const MAX_CHIPS = 3
+
 // off: the character is off the mat. ko: and the deploy is over, so it is KO.
+// The row has a fixed height: the tokens (on the character and held crisis tokens) are small chips in one
+// line of the name row, so adding or removing one never changes the height.
 function Row({ character, held, off, ko }) {
   const name = characterName(character.key)
   const grunt = Boolean(character.host)
@@ -114,6 +121,25 @@ function Row({ character, held, off, ko }) {
   const tokens = Object.entries(character.tokens ?? {})
   const injured = character.side === 'injured' && !ko
   const tag = ko ? 'Knocked out' : injured ? 'Injured' : null
+  const chips = [
+    ...held.map((token) => ({ id: `held-${token.id}`, node: <HeldMark token={token} /> })),
+    ...tokens.map(([key, count]) => ({
+      id: key,
+      node: <OnToken tokenKey={key} count={count} />,
+      title: `${getToken(key)?.name ?? key}${count > 1 ? ` x${count}` : ''}`,
+    })),
+  ]
+  const overflow = chips.length > MAX_CHIPS
+  const shown = overflow ? chips.slice(0, MAX_CHIPS - 1) : chips
+  const allNames = [
+    ...held.map((token) => {
+      const key = token.up === 'front' ? token.frontKey : (token.backKey ?? token.frontKey)
+      return tokenInfo(key)?.name ?? key
+    }),
+    ...tokens.map(
+      ([key, count]) => `${getToken(key)?.name ?? key}${count > 1 ? ` x${count}` : ''}`,
+    ),
+  ].join(', ')
   return (
     <li
       className={[
@@ -125,76 +151,99 @@ function Row({ character, held, off, ko }) {
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="streamer-main">
-        <div className="streamer-top">
-          <span className="streamer-portrait-wrap">
-            <img
-              className="streamer-portrait"
-              src={assetUrl(characterPortrait(character.key))}
-              alt=""
-              title={name}
-              loading="lazy"
-              draggable={false}
-            />
-            {ko && (
-              <span className="streamer-ko-burst" aria-hidden="true">
-                <Burst size={38} fontSize={14}>
-                  KO!
-                </Burst>
-              </span>
-            )}
+      <span className="streamer-portrait-wrap">
+        <img
+          className="streamer-portrait"
+          src={assetUrl(characterPortrait(character.key))}
+          alt=""
+          title={name}
+          loading="lazy"
+          draggable={false}
+        />
+        {ko && (
+          <span className="streamer-ko-burst" aria-hidden="true">
+            <Burst size={38} fontSize={14}>
+              KO!
+            </Burst>
           </span>
-          <div className="streamer-side">
-            <span className="streamer-char-name">{name}</span>
-            {tag && (
-              <span className={`streamer-state streamer-state--${ko ? 'ko' : 'injured'}`}>
-                {tag}
-              </span>
-            )}
-            {tokens.length > 0 && (
-              <div className="streamer-tokens">
-                {tokens.map(([key, count]) => (
-                  <OnToken key={key} tokenKey={key} count={count} />
-                ))}
-              </div>
-            )}
-          </div>
+        )}
+      </span>
+      <div className="streamer-side">
+        <div className="streamer-nameline">
+          <span className="streamer-char-name">{name}</span>
+          {tag && (
+            <span className={`streamer-state streamer-state--${ko ? 'ko' : 'injured'}`}>{tag}</span>
+          )}
+          {chips.length > 0 && (
+            <div className="streamer-tokens">
+              {shown.map((chip) => (
+                <span key={chip.id} className="streamer-chip">
+                  {chip.node}
+                </span>
+              ))}
+              {overflow && (
+                <span className="streamer-more" title={allNames}>
+                  +{chips.length - shown.length}
+                </span>
+              )}
+            </div>
+          )}
         </div>
-        <div className="streamer-lower">
-          <div className="streamer-bars">
+        <div className="streamer-bars">
+          <Bar
+            value={character.damage ?? 0}
+            max={stamina}
+            label="Damage"
+            short="Dmg"
+            className={
+              character.side === 'injured' ? 'streamer-bar--injured' : 'streamer-bar--healthy'
+            }
+          />
+          {grunt ? (
+            <div className="streamer-bar streamer-bar--empty" aria-hidden="true" />
+          ) : (
             <Bar
-              value={character.damage ?? 0}
-              max={stamina}
-              label="Damage"
-              short="Dmg"
-              className={
-                character.side === 'injured' ? 'streamer-bar--injured' : 'streamer-bar--healthy'
-              }
+              value={character.power ?? 0}
+              max={MAX_POWER}
+              label="Power"
+              short="Pwr"
+              className="streamer-bar--power"
             />
-            {!grunt && (
-              <Bar
-                value={character.power ?? 0}
-                max={MAX_POWER}
-                label="Power"
-                short="Pwr"
-                className="streamer-bar--power"
-              />
-            )}
-          </div>
-          <div className="streamer-held-slot">
-            {held.map((token) => (
-              <HeldMark key={token.id} token={token} />
-            ))}
-          </div>
+          )}
         </div>
       </div>
     </li>
   )
 }
 
+// One squad column. The rows scale down together when they do not fit (useRowFit.js).
+function Column({ side, pushed, size, header, hidden, rows, tacticList }) {
+  const { colRef, listRef, fit } = useRowFit(hidden ? 0 : rows.length, size / 100)
+  const className = `comic streamer-col streamer-col--${side}${pushed ? ' streamer-col--pushed' : ''}`
+  return (
+    <section
+      ref={colRef}
+      className={className}
+      style={{ '--spectator-size': size / 100, '--row-scale': fit.scale }}
+      aria-label={header.label}
+    >
+      <header className={`streamer-head streamer-head--${header.color}`}>
+        <span className="streamer-name">{header.name}</span>
+        {header.affiliation && <AffiliationMark affiliation={header.affiliation} />}
+      </header>
+      {!hidden && (
+        <ul ref={listRef} className={`streamer-list${fit.scroll ? ' streamer-list--scroll' : ''}`}>
+          {rows}
+        </ul>
+      )}
+      {!hidden && tacticList.total > 0 && <TeamTactics list={tacticList} />}
+    </section>
+  )
+}
+
 // Spectator view, HUD part: one column per squad, my squad left and the opponent right (the Sandbox and a
 // single player room: Blue, the host, left). A header with the player name and the affiliation icon (VP and the round are on the scoreboard), then a row
-// per character (name, tag, tokens, bars) and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
+// per character (portrait, name, tag, small tokens, bars) and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
 // "Squad columns".
 // characters, tokens, poses, setup (the viewer's setup), affiliations: App state. tactics: the list of the Team Tactic cards (the
 // Team tactics section at the end of a column, none when the squad is hidden or has no cards).
@@ -226,41 +275,36 @@ export default function SpectatorColumns({
     <>
       {sides.map((team, i) => {
         const hidden = Boolean(hiddenSquads && team !== mySide && !placed[team])
-        const tacticList = teamTactics(tacticCards, team, tacticName)
-        const side = i === 0 ? 'left' : 'right'
-        const pushed = i === 0 ? libraryOpen : logOpen
-        const className = `comic streamer-col streamer-col--${side}${pushed ? ' streamer-col--pushed' : ''}`
         return (
-          <section
+          <Column
             key={team}
-            className={className}
-            style={{ '--spectator-size': size / 100 }}
-            aria-label={`${playerName(team, nameCtx)}, squad`}
-          >
-            <header className={`streamer-head streamer-head--${colors[team]}`}>
-              <span className="streamer-name">{playerName(team, nameCtx)}</span>
-              {affiliations?.[team] && <AffiliationMark affiliation={affiliations[team]} />}
-            </header>
-            {!hidden && (
-              <ul className="streamer-list">
-                {characters
-                  .filter((ch) => ch.team === team)
-                  .map((ch) => {
-                    const off = !characterOnBoard(ch, poses)
-                    return (
-                      <Row
-                        key={ch.id}
-                        character={ch}
-                        held={held.get(ch.id) ?? []}
-                        off={off}
-                        ko={off && afterDeploy}
-                      />
-                    )
-                  })}
-              </ul>
-            )}
-            {!hidden && tacticList.total > 0 && <TeamTactics list={tacticList} />}
-          </section>
+            team={team}
+            side={i === 0 ? 'left' : 'right'}
+            pushed={i === 0 ? libraryOpen : logOpen}
+            size={size}
+            hidden={hidden}
+            tacticList={teamTactics(tacticCards, team, tacticName)}
+            header={{
+              label: `${playerName(team, nameCtx)}, squad`,
+              name: playerName(team, nameCtx),
+              color: colors[team],
+              affiliation: affiliations?.[team],
+            }}
+            rows={characters
+              .filter((ch) => ch.team === team)
+              .map((ch) => {
+                const off = !characterOnBoard(ch, poses)
+                return (
+                  <Row
+                    key={ch.id}
+                    character={ch}
+                    held={held.get(ch.id) ?? []}
+                    off={off}
+                    ko={off && afterDeploy}
+                  />
+                )
+              })}
+          />
         )
       })}
     </>

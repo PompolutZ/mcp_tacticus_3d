@@ -101,3 +101,10 @@ Each step is one commit, after the user checks the diff. `pnpm format`, `pnpm li
 - `SpectatorColumns.jsx`: new prop `tactics` (the Yjs list `table.tactics`, read with `useYList` in the component, so App does not re-render on a card drag). `TeamTactics` section + rules in `streamer.css`. Image: `tacticCardBack(key)`, as the Library grid. No section for a hidden squad or no cards.
 - Docs: `spectator-view.md` "Squad columns".
 - Deviations: none.
+
+### Fix after user test
+
+- A column with 5 characters and Team tactics scrolled and cut the 5th row; up to 7 characters must show. Rows are now compact and a fixed height: portrait left; name line (name, tag, small token chips, "+N" over 3), Dmg bar, Pwr bar (a grunt keeps an empty slot). Held crisis tokens are chips in the same line.
+- Fit: pure `ui/rowFit.js` + tests (`fitRows`: scale = free height / (rows x row height), max 1, min 0.6, below it a scroll flag). `ui/useRowFit.js` measures free height per column (ResizeObserver, window resize, root style change for `--streamer-top`) and sets `--row-scale`; `streamer.css` sizes in a row use `--k` = size x row scale. Team tactics got a little tighter.
+- Docs: `spectator-view.md` "Squad columns".
+- Not tested in a browser (per project rule).
