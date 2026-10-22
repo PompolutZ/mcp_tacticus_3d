@@ -32,11 +32,17 @@
   "nebula": {
     "characters/nebula/model.glb": "pnpm --filter web photos-to-glb \"<Nebula photos>\" --base small --texture 1024 --tone medium --triangles 60000"
   },
+  "okoye": {
+    "characters/okoye/model.glb": "pnpm --filter web photos-to-glb \"<Okoye photos>\" --base small --texture 1024 --tone medium --triangles 60000 && pnpm --filter web turn-model okoye -45"
+  },
   "quasar": {
     "characters/quasar/model.glb": "pnpm --filter web photos-to-glb \"<Quasar photos>\" --base medium --texture 1024 --tone medium"
   },
   "rocket-raccoon": {
     "characters/rocket-raccoon/model.glb": "pnpm --filter web photos-to-glb \"<Rocket Raccoon photos>\" --base small --texture 1024 --tone medium --triangles 60000"
+  },
+  "sin": {
+    "characters/sin/model.glb": "pnpm --filter web photos-to-glb \"<Sin photos>\" --base small --texture 1024 --tone medium --triangles 60000 && pnpm --filter web turn-model sin -45"
   },
   "star-lord": {
     "characters/star-lord/model.glb": "pnpm --filter web photos-to-glb \"<Star-Lord photos>\" --base small --texture 1024"
@@ -52,5 +58,11 @@
   },
   "valkyrie": {
     "characters/valkyrie/model.glb": "pnpm --filter web photos-to-glb \"<Valkyrie photos>\" --base small --texture 1024 --tone medium"
+  },
+  "venom": {
+    "characters/venom/model.glb": "pnpm --filter web photos-to-glb \"<Venom photos>\" --base medium --texture 1024 --tone medium --triangles 60000"
+  },
+  "viper": {
+    "characters/viper/model.glb": "pnpm --filter web photos-to-glb \"<Viper photos>\" --base small --texture 1024 --tone medium --triangles 60000"
   }
 }

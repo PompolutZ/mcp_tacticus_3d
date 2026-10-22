@@ -2,7 +2,7 @@
 
 Status: partly built.
 
-The script works. A custom model can replace the model of a character (see [Use for a character](#use-for-a-character)). Adam Warlock, Baron Zemo, Bastion, Blue Marvel, Gamora, Hawkeye, Hulk, Lockjaw, Magneto, Moondragon, Nebula, Quasar, Rocket Raccoon, Star-Lord, Thor, Prince of Asgard and Valkyrie use one.
+The script works. A custom model can replace the model of a character (see [Use for a character](#use-for-a-character)). Adam Warlock, Baron Zemo, Bastion, Blue Marvel, Gamora, Hawkeye, Hulk, Lockjaw, Magneto, Moondragon, Nebula, Okoye, Quasar, Rocket Raccoon, Sin, Star-Lord, Thor, Prince of Asgard, Valkyrie, Venom and Viper use one.
 
 Not built yet:
 
