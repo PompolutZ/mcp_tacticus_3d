@@ -176,38 +176,132 @@
   z-index: 2;
 }
 
-/* A player: the plate (.seat-plate, rooms/comic.css) and a tag after it */
-.hud-player {
-  display: inline-flex;
-  flex: none;
+/* The scoreboard (Scoreboard.jsx): plates, VP boxes and the round burst in one row at the top center. The plates
+   lean outward (skew) and their shadows point outward. */
+.scoreboard {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  z-index: 2;
+  display: flex;
   align-items: center;
   gap: 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
-.hud-player .seat-plate {
-  gap: 8px;
-  padding: 4px 12px 4px 5px;
-  font-size: 22px;
+.score-plate {
+  position: relative;
+  z-index: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 140px;
+  height: 64px;
+  padding: 0 18px;
+  font-size: 28px;
   line-height: 1;
-  -webkit-text-stroke: 1px var(--ink);
+  -webkit-text-stroke: 1.5px var(--ink);
   paint-order: stroke fill;
+  pointer-events: all;
 }
 
-.hud-player .seat-plate--empty,
-.hud-player .seat-plate--muted {
-  -webkit-text-stroke: 0;
-}
-
-.hud-player .seat-avatar {
-  width: 24px;
-  height: 24px;
-  border-width: 2px;
-  border-radius: 3px;
+.score-plate--left {
+  align-items: flex-end;
+  box-shadow: -4px 4px 0 var(--ink);
   transform: skewX(10deg);
 }
 
-.hud-player .seat-name {
+.score-plate--right {
+  align-items: flex-start;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.score-name {
   max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-text-stroke: 0;
+}
+
+.score-vp {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 66px;
+  height: 66px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  pointer-events: all;
+}
+
+.score-vp--left {
+  box-shadow: -4px 4px 0 var(--ink);
+}
+
+.score-vp--right {
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.score-vp-number {
+  font: 400 40px var(--font-title);
+  line-height: 0.9;
+}
+
+.score-vp-label {
+  font: 700 12px var(--font-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.score-round {
+  position: relative;
+  z-index: 3;
+  margin: 0 -2px;
+  color: var(--ink);
+}
+
+.score-round .burst-inner {
+  color: var(--ink);
+}
+
+.score-round-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.9;
+}
+
+.score-round-label {
+  font: 700 12px var(--font-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Not enough room between the room box and the panel buttons: the scoreboard moves to a row under them,
+   centered. A Setup box or table tools need more room. useHudTop.js moves --hud-top below it. */
+@media (max-width: 1360px) {
+  .scoreboard {
+    top: calc(100% + 12px);
+  }
+}
+
+@media (max-width: 1540px) {
+  .scoreboard--crowded {
+    top: calc(100% + 12px);
+  }
 }
 
 .hud-tag {

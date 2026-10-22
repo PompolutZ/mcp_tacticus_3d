@@ -80,21 +80,6 @@
   height: calc(24px * var(--s));
 }
 
-.streamer-tag {
-  flex: none;
-  padding: 1px calc(6px * var(--s));
-  font: 700 calc(13px * var(--s)) var(--font-label);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink);
-  background: #fff;
-  border: 2px solid var(--ink);
-}
-
-.streamer-tag--vp {
-  background: var(--yellow);
-}
-
 .streamer-list {
   margin: 0;
   padding: 0;

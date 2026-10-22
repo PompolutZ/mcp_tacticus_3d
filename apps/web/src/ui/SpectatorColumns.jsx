@@ -5,7 +5,6 @@ import { characterOnBoard } from '../characters/models.js'
 import { tokenInfo } from '../crisis/cards.js'
 import { crisisToken } from '../crisis/files.js'
 import { heldTokensByCharacter } from '../game/heldTokens.js'
-import { scoreFromMarkers } from '../scoreboard/board.js'
 import { otherTeam, placedSides } from '../setup/setup.js'
 import { playerName } from '../setup/names.js'
 import { affiliationName } from '../scoreboard/affiliations.js'
@@ -153,10 +152,10 @@ function Row({ character, held, off, ko }) {
 }
 
 // Spectator view, HUD part: one column per squad, my squad left and the opponent right (the Sandbox and a
-// single player room: Blue, the host, left). A header with the player name, VP and the round, then a row
+// single player room: Blue, the host, left). A header with the player name and the affiliation icon (VP and the round are on the scoreboard), then a row
 // per character and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
 // "Squad columns".
-// characters, tokens, poses, setup (the viewer's setup), scoreMarkers: App state.
+// characters, tokens, poses, setup (the viewer's setup), affiliations: App state.
 // nameCtx (names, setup/names.js), mySide, hiddenSquads (the seat, rooms/seat.js) and size (percent, settings.spectator.size) come from the store of the table. libraryOpen and
 // logOpen push the column on their side inward.
 export default function SpectatorColumns({
@@ -164,7 +163,6 @@ export default function SpectatorColumns({
   tokens,
   poses,
   setup,
-  scoreMarkers,
   affiliations,
   libraryOpen,
   logOpen,
@@ -174,7 +172,6 @@ export default function SpectatorColumns({
   const mySide = useTableStore((s) => s.mySide)
   const hiddenSquads = useTableStore((s) => s.hiddenSquads)
   const size = useTableStore((s) => s.settings.spectator.size)
-  const score = scoreFromMarkers(scoreMarkers)
   const held = heldTokensByCharacter(tokens)
   const placed = placedSides(setup)
   // A setup with no `deployed` field has no deploy step (setup/setup.js, setupStep)
@@ -198,8 +195,6 @@ export default function SpectatorColumns({
             <header className={`streamer-head streamer-head--${colors[team]}`}>
               <span className="streamer-name">{playerName(team, nameCtx)}</span>
               {affiliations?.[team] && <AffiliationMark affiliation={affiliations[team]} />}
-              <span className="streamer-tag streamer-tag--vp">{score[team]} VP</span>
-              {score.round && <span className="streamer-tag">Round {score.round}</span>}
             </header>
             {!hidden && (
               <ul className="streamer-list">

@@ -999,9 +999,8 @@ export default function App({
           <Toolbar
             roomCode={room?.id ?? null}
             multiplayer={Boolean(room?.multiplayer)}
-            side={room?.side ?? null}
-            players={room?.players ?? null}
             connection={connection}
+            scoreMarkers={scoreMarkers}
             mapChoice={mapChoice(mapId, tableMat(mapId, mat), terrain.length)}
             buildOn={buildOn}
             activeRange={activeRange}
@@ -1052,7 +1051,6 @@ export default function App({
             tokens={tokens}
             poses={poses}
             setup={viewSetup}
-            scoreMarkers={scoreMarkers}
             affiliations={affiliations}
             libraryOpen={libraryOpen}
             logOpen={logOpen}

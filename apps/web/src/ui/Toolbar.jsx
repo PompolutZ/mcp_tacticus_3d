@@ -9,7 +9,7 @@ import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from '../rooms/CopyLinkButton.jsx'
 import '../rooms/comicBase.js'
 import './hud.css'
-import { RoomPlayers } from '../rooms/RoomPlayers.jsx'
+import { Scoreboard } from './Scoreboard.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 
@@ -29,17 +29,16 @@ const CRISIS_TYPES = [
 // the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
 // replaces or removes the Red roster of the room (docs/features/rooms.md).
 // multiplayer: the room is a multiplayer room, which has no Roster group (the rosters are fixed, docs/features/rooms.md, "Room"), no Crisis group and no Mat group (the game setup chooses the crisis cards and the
-// board edge). A room always shows the copy link icon next to its code. side, players, connection: the seats and the
-// connection of the room (RoomPlayers.jsx).
+// board edge). A room always shows the copy link icon next to its code. connection: the connection of the room, and
+// scoreMarkers: the score, for the scoreboard at the top center (Scoreboard.jsx).
 // Each part has the .comic class on its own root (hud.css), so the HUD parts that keep the old look are not
 // touched.
 // The buttons call the table actions (table/tableStore.js): onLobby is the ← Lobby button.
 function Toolbar({
   roomCode,
   multiplayer = false,
-  side = null,
-  players = null,
   connection = null,
+  scoreMarkers,
   mapChoice,
   buildOn = false,
   activeRange,
@@ -128,6 +127,11 @@ function Toolbar({
   ]
   return (
     <div className="toolbar">
+      <Scoreboard
+        scoreMarkers={scoreMarkers}
+        connection={connection}
+        crowded={!multiplayer || showMat || rackHud || deployHud}
+      />
       <div className="toolbar-left">
         <div className="comic hud-box hud-left">
           <button type="button" className="hud-lobby" title="Back to the lobby" onClick={onLobby}>
@@ -158,12 +162,6 @@ function Toolbar({
               </>
             )}
           </span>
-          {multiplayer && (
-            <>
-              <span className="hud-divider" aria-hidden="true" />
-              <RoomPlayers side={side} players={players} connection={connection} />
-            </>
-          )}
         </div>
         {!multiplayer && (
           <div className="comic hud-box hud-setup" ref={setupRef}>

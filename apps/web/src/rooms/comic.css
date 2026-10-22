@@ -143,7 +143,7 @@
   cursor: not-allowed;
 }
 
-/* The plate of a player (SeatPlate.jsx, and RoomPlayers.jsx in the toolbar): a skewed plate in the side color */
+/* The plate of a player (SeatPlate.jsx, and the scoreboard, Scoreboard.jsx): a skewed plate in the side color */
 .seat-plate {
   display: flex;
   align-items: center;
