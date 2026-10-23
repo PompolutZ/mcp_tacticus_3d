@@ -3,11 +3,12 @@ import { Dialog } from '../ui/Dialog.jsx'
 // The comic frame of the setup choose overlays (CrisisChoose.jsx, ThreatChoose.jsx): the roster popup frame
 // (rosters/roster.css) with a header (tag, title; blue or red) and a scrolling stage. crisis.css styles it.
 // tone: 'blue' | 'red'. children: the content of the stage.
-export function ChooseFrame({ tone, tag, title, onClose, children }) {
+export function ChooseFrame({ tone, tag, title, onClose, className = '', style, children }) {
   return (
     <Dialog
       backdropClassName="card-popup roster-popup-backdrop"
-      className="comic roster-comic crisis-choose"
+      className={`comic roster-comic crisis-choose ${className}`.trim()}
+      style={style}
       closeClassName="roster-comic-close"
       label={title}
       onClose={onClose}

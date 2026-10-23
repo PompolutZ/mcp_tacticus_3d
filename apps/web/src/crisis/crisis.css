@@ -185,10 +185,50 @@
   overflow-y: auto;
 }
 
+/* The row: the chosen card of the first step (second step only), then the 2 choices */
+.crisis-choose-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
 .crisis-choose-cards {
   display: flex;
   justify-content: center;
   gap: var(--choose-gap);
+}
+
+/* Second step: the first chosen card, small (--chosen-scale of the card height), left of the choices and set
+   apart by a dashed line. The card height also leaves room for it (it is not part of the 2 card count). */
+.roster-comic.crisis-choose--chosen {
+  --chosen-scale: 0.6;
+  --chosen-gap: 40px;
+  --card-h: min(
+    clamp(200px, calc(100vh - 390px), 510px),
+    calc(
+      (100vw - 48px - 10px - 2 * var(--choose-pad) - var(--choose-gap) - var(--chosen-gap) - 3px) /
+        (2 * var(--card-ratio, 0.57) + var(--chosen-scale) * var(--chosen-ratio, 0.57))
+    )
+  );
+}
+
+.crisis-choose-chosen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 0 calc(var(--chosen-gap) / 2) 0 0;
+  padding-right: calc(var(--chosen-gap) / 2);
+  border-right: 3px dashed var(--paper);
+}
+
+.crisis-choose-chosen figcaption {
+  font: italic 700 18px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper);
+  text-align: center;
 }
 
 .crisis-choose-card {
@@ -258,6 +298,14 @@
 
   .crisis-choose .roster-comic-head {
     padding: 16px 14px 0;
+  }
+
+  .roster-comic.crisis-choose--chosen {
+    --chosen-gap: 10px;
+  }
+
+  .crisis-choose-chosen figcaption {
+    font-size: 12px;
   }
 
   .crisis-choose-card {
