@@ -35,11 +35,11 @@ export function deleteEntryData(piece, boardKey, mapId, placed, fall) {
 export const SAME_POSE_MOVE = 0.05
 export const SAME_POSE_TURN = 0.02
 
-export function samePlace(a, b) {
+function samePlace(a, b) {
   return Boolean(a && b) && Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) <= SAME_POSE_MOVE
 }
 
-export function samePose(a, b) {
+function samePose(a, b) {
   if (!samePlace(a, b)) return false
   const dot = a.qx * b.qx + a.qy * b.qy + a.qz * b.qz + a.qw * b.qw
   return 2 * Math.acos(Math.min(1, Math.abs(dot))) <= SAME_POSE_TURN

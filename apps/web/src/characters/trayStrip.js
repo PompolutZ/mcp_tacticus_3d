@@ -5,14 +5,14 @@ import { GRUNT_CARD_WIDTH } from './trays.js'
 // Local x is to the right, y is up on the card (toward the mat), the origin is the strip center. The
 // sizes follow the DOM controls (index.css, .tray-controls) at 40 CSS px per inch.
 
-export const COUNTER_W = 2.8
-export const COUNTER_H = 0.8
-export const CHIP_H = 0.34
+const COUNTER_W = 2.8
+const COUNTER_H = 0.8
+const CHIP_H = 0.34
 const GAP_X = 0.15
 const GAP_Y = 0.08
 
 // A chip is as wide as its text (9 CSS px font, about 0.125in a letter) and a padding
-export function chipWidth(text) {
+function chipWidth(text) {
   return Math.max(0.8, 0.4 + 0.125 * text.length)
 }
 

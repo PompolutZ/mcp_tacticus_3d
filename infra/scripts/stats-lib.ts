@@ -63,7 +63,7 @@ const COLUMNS: { header: string; key: string }[] = [
   ...EVENT_COLUMNS.map((c) => ({ header: c.header, key: keyOf(c) })),
 ]
 
-export function totals(rows: DayRow[]): DayRow {
+function totals(rows: DayRow[]): DayRow {
   const total: DayRow = { day: 'total', visitors: 0 }
   for (const { key } of COLUMNS.slice(1)) {
     total[key] = rows.reduce((n, r) => n + Number(r[key]), 0)

@@ -24,7 +24,7 @@ export async function createRoom({ mapId, maps, roster, table }) {
 
 // The top view copy of a room on the custom board as a WebP Blob, or null when there is none. Open like getRoom;
 // the token goes along when there is one.
-export async function getRoomImage(code) {
+export async function getServerRoomImage(code) {
   return getBlob(`${path(code)}/image`, 'image/webp')
 }
 

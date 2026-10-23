@@ -9,7 +9,7 @@ import { Color } from 'three'
 const OVERLAP_SHADE = 0xaa1111
 const SELECTED_SHADE = 0x9a6410
 // Unlit materials (MeshBasicMaterial) have no emissive: their color moves this far to the shade color.
-export const UNLIT_MIX = 0.5
+const UNLIT_MIX = 0.5
 
 // The shade color for an outline mode, or null for none. composer: the composer is on (outlines are drawn).
 // The mode already has the order overlap, then selected (outlineMode), so overlap wins over selected.

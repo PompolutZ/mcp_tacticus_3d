@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react'
 // above the table: at 90° it stands on its edge, FLIP_EDGE_GAP above the table. Both values were chosen by
 // look, not measured in TTS. See docs/features/team-tactic-cards.md, "Card on the table".
 export const FLIP_DURATION = 0.4
-export const FLIP_EDGE_GAP = 0.3
+const FLIP_EDGE_GAP = 0.3
 
 // The turn starts and ends slowly (smoothstep)
-export const ease = (t) => t * t * (3 - 2 * t)
+const ease = (t) => t * t * (3 - 2 * t)
 
 // The turn: { flipped, from, to, time }. An angle that is an even multiple of π is the first side up, an
 // odd multiple is the other side up. flipped: the side of the last flip. time: seconds since that flip,

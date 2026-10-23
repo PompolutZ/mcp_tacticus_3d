@@ -2,7 +2,7 @@
 // Streamer badge) and the 3D strip on the table (TrayStrip3D.jsx). Plain module, no React, so a test can
 // read it. See docs/features/character-trays.md, "Controls".
 
-export const REMOVE_TITLE =
+const REMOVE_TITLE =
   'Remove from the board: the model goes back on its card. Delete key over the card deletes the character.'
 
 // Remove is off while no model of the character is on the mat (onBoard false) and while a dropped token

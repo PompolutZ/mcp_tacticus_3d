@@ -1,6 +1,6 @@
 import { BoardCard } from './BoardCard.jsx'
 import { getRoomImage } from './roomImage.js'
-import { getRoomImage as getServerRoomImage } from './serverStore.js'
+import { getServerRoomImage } from './serverStore.js'
 import { useBoardImageUrl } from './useBoardImageUrl.js'
 
 // The card of a room on the custom board, for the lobby tile and the join page. board: { name, author, hasImage }

@@ -10,7 +10,7 @@ import { characterToken } from '../tokens/files.js'
 // The buttons that lie on the table: a board strip for each player (Power Phase in row 1) and one Cleanup Phase button.
 // See docs/features/table-tools.md. They lie flat just above the table (OnTable), 1 CSS px is 0.04".
 // The same image as the Power counter of a tray (TrayControls.jsx)
-export const POWER_ICON = assetUrl(characterToken('1-power'))
+const POWER_ICON = assetUrl(characterToken('1-power'))
 
 // Automatic Power Phase of `side`, in row 1 of its board strip (the place is in tabletools/layout.js,
 // docs/features/table-tools.md, "Automatic Power Phase button"). It gives Power to the characters of its own

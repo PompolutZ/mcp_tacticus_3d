@@ -15,7 +15,7 @@ import { withoutShades } from '../scene/shade.js'
 import { MAT_SIZE } from '../table.js'
 
 // The image is a square of this many pixels
-export const IMAGE_SIZE = 512
+const IMAGE_SIZE = 512
 const IMAGE_TYPE = 'image/webp'
 const IMAGE_QUALITY = 0.85
 // The camera sits this far above the mat. The far plane reaches below the table, so no piece is cut.
