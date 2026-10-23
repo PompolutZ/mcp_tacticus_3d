@@ -2,7 +2,7 @@ import { attachedCards } from '../rosters/cards.js'
 import { COUNTER_ICONS } from './trayIcons.js'
 import {
   BOTH_LABEL,
-  BOTH_TITLE,
+  bothTitle,
   applyBoth,
   applyCounter,
   bothDisabled,
@@ -88,15 +88,15 @@ export default function TrayControls({
             type="button"
             className="chip tray-controls-flip"
             aria-disabled={bothDisabled(character, stamina)}
-            title={BOTH_TITLE}
+            title={bothTitle(character, stamina)}
             onClick={(e) => {
               e.stopPropagation()
-              applyBoth(character, 1, { onDamage, onPower })
+              applyBoth(character, 1, stamina, { onDamage, onPower })
             }}
             onContextMenu={(e) => {
               e.preventDefault()
               e.stopPropagation()
-              applyBoth(character, -1, { onDamage, onPower })
+              applyBoth(character, -1, stamina, { onDamage, onPower })
             }}
           >
             {BOTH_LABEL}

@@ -123,7 +123,7 @@ Sketch, seen from the owner's seat:
 |                                   |
 +-----------------------------------+
 | Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |   controls strip, drawn in 3D
-| [Flip]  [+1 Dmg & Pow]  [Remove] |
+| [Flip]  [+1 Dmg & Pwr]  [Remove] |
 | Held: [Asset]                     |
 +-----------------------------------+
   (Act)(Dazed)(Root)(Shock)             Give sources on the table: drag a new
@@ -131,7 +131,7 @@ Sketch, seen from the owner's seat:
                                         (owner's side)
 ```
 
-The 3D strip and the tray popup (`TrayControls.jsx`) have a **+1 Dmg & Pow** chip between Flip and Remove (not on a grunt). A left click adds 1 Damage and 1 Power, a right click takes 1 of each. It calls the same Damage and Power actions as the counters (`applyBoth` in `trayControls.js`), so the limits, the stat log and the sync are the same. A counter at its limit stays and the other still changes; the chip is faded when both are at the limit. It has a text label, not icons, so it has the look of Flip and Remove.
+The 3D strip and the tray popup (`TrayControls.jsx`) have a **+1 Dmg & Pwr** chip between Flip and Remove (not on a grunt). A left click adds 1 Damage and 1 Power, a right click takes 1 of each. It calls the same Damage and Power actions as the counters (`applyBoth` in `trayControls.js`), so the limits, the stat log and the sync are the same. The chip is faded when either counter is at its limit (Damage at Stamina, or Power at its max); a left click then does nothing, so the two counters never get out of step, and its title says so. A right click still takes 1 of each (a counter at 0 stays, the other still drops). It has a text label, not icons, so it has the look of Flip and Remove.
 
 The strip of the 3D tray is drawn in the canvas, not as DOM: each part (a counter, a chip) is a flat plane with a canvas texture, so a model that stands on the tray card hides the part behind it (a DOM element always draws on top of the canvas, and drei's `occlude` cannot hide part of it). Clicks are R3F pointer events on those planes; only the nearest hit counts, so a hidden part takes no click, and a drag that moved is not a click. The cursor and a lighter look show the part under the pointer. A hover label gives the title of Remove (also its wait text) and the card name of a gem. A texture is redrawn only when its value or hover changes; Flip, Remove and gem chip textures are shared by all trays. The other player's tray looks and works the same. The popup and the Streamer badge stay DOM: there is no model to hide them.
 

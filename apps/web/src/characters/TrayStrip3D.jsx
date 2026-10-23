@@ -10,7 +10,7 @@ import {
   applyBoth,
   applyCounter,
   BOTH_LABEL,
-  BOTH_TITLE,
+  bothTitle,
   bothDisabled,
   counterStep,
   counterZone,
@@ -85,9 +85,9 @@ export default function TrayStrip3D({
           el={byId.both}
           text={BOTH_LABEL}
           disabled={bothDisabled(character, stamina)}
-          hint={BOTH_TITLE}
-          onClick={() => applyBoth(character, 1, handlers)}
-          onContext={() => applyBoth(character, -1, handlers)}
+          hint={bothTitle(character, stamina)}
+          onClick={() => applyBoth(character, 1, stamina, handlers)}
+          onContext={() => applyBoth(character, -1, stamina, handlers)}
         />
       )}
       <Chip3D
@@ -208,7 +208,8 @@ function useChipTexture(width, height, look) {
 }
 
 // A chip: Flip, Remove or a gem. hint: the text of a label above it while the pointer is over it (the
-// title of the DOM chip). disabled: faded, with the not-allowed cursor, and the click is up to onClick.
+// title of the DOM chip). disabled: faded, with the not-allowed cursor; the click and right click still reach
+// onClick and onContext, so the owner of the chip decides what a faded chip does.
 function Chip3D({ el, text, warn = false, disabled = false, hint = null, onClick, onContext }) {
   const [hover, setHover] = useState(false)
   useHoverCursor(hover, disabled ? 'not-allowed' : 'pointer')

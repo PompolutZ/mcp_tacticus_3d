@@ -74,21 +74,31 @@ test('Remove is off off the board and while a token waits, with the wait text as
   assert.equal(wait.title, 'Waiting for Nelly')
 })
 
-test('the Damage + Power button changes both counters, and is off only when both are at the limit', () => {
+test('the Damage + Power button changes both counters; +1 does nothing when either is at its limit, -1 still works', () => {
   const calls = []
   const on = {
     onDamage: (v) => calls.push(['damage', v]),
     onPower: (v) => calls.push(['power', v]),
   }
-  applyBoth({ damage: 3, power: 5 }, 1, on)
-  applyBoth({ damage: 3, power: 5 }, -1, on)
+  applyBoth({ damage: 3, power: 5 }, 1, 6, on)
+  applyBoth({ damage: 3, power: 5 }, -1, 6, on)
   assert.deepEqual(calls, [
     ['damage', 4],
     ['power', 6],
     ['damage', 2],
     ['power', 4],
   ])
+  calls.length = 0
+  applyBoth({ damage: 6, power: 5 }, 1, 6, on)
+  applyBoth({ damage: 3, power: 10 }, 1, 6, on)
+  assert.deepEqual(calls, [])
+  applyBoth({ damage: 6, power: 10 }, -1, 6, on)
+  assert.deepEqual(calls, [
+    ['damage', 5],
+    ['power', 9],
+  ])
   assert.equal(bothDisabled({ damage: 6, power: 10 }, 6), true)
-  assert.equal(bothDisabled({ damage: 6, power: 9 }, 6), false)
-  assert.equal(bothDisabled({ damage: 5, power: 10 }, 6), false)
+  assert.equal(bothDisabled({ damage: 6, power: 9 }, 6), true)
+  assert.equal(bothDisabled({ damage: 5, power: 10 }, 6), true)
+  assert.equal(bothDisabled({ damage: 5, power: 9 }, 6), false)
 })
