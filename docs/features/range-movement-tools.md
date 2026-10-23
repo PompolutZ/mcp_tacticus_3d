@@ -54,11 +54,17 @@ The tool stays snapped to the same model when you select another model. It also 
 
 ### Free
 
-The tool is free when it spawns while no model is selected and the pointer is not over a model. Turning a free tool around its center with Q / E keeps it free. A snapped tool stays snapped when it turns with Q / E (see "Input rules"). The TTS mod has a Snap / Unsnap button on the tool for this, and no key.
+The tool is free when it spawns while no model is selected and the pointer is not over a model. Turning a free tool around its center with Q / E keeps it free. A snapped tool stays snapped when it turns with Q / E (see "Input rules"). A snapped tool becomes free with the **Unsnap** button (below). The TTS mod has the same Snap / Unsnap button on the tool, and no key.
 
 Dragging a free tool moves it.
 
-A drag that starts on a button of the tool (Place, Throw / Push, Toward / Away, Bend) moves the tool the same as a drag of the half under it. A click on the button presses it. A drag does not press it. A disabled button does not start a drag.
+### Unsnap
+
+**Unsnap** is a button of a selected tool while it is snapped: the range tools (R1 to R5, R1 is the Range 2 tool) and the movement tools. Toward / Away and the LOS tool have none. A click makes the tool free, the same state as a tool that spawned with nothing selected. The tool stays where it is: it does not move or turn. Place, Place 1 and Throw / Push of the tool turn off, because their buttons exist only on a snapped tool. The reason: a snapped tool turns only around its base, so Unsnap lets a player move it freely again. A later drag snaps it by the rule of a free tool (above): it snaps at the release over a model, but not to the model the drag started on when the pointer never left it. So the tool does not snap again at once.
+
+The button is at the snapped end of the tool, the end that touches the base, and does not cover the buttons that are there: on a movement tool it is nearer the tip than Throw / Push, on R1 it is on the other half of the width than Place 1. On a range tool it is the only button at that end. The positions are in `tabletools/buttonLayout.js`. The state is stored and shared like any snap change (`peer-to-peer.md`, "Tools"). Place and Throw are local, as before.
+
+A drag that starts on a button of the tool (Place, Throw / Push, Unsnap, Toward / Away, Bend) moves the tool the same as a drag of the half under it. A click on the button presses it. A drag does not press it. A disabled button does not start a drag.
 
 **Q** and **E** act on the tool under the pointer, or the tool you drag, one turn step per press (15° by default, as in TTS; see Settings). Hold the key to keep going. Q turns counter-clockwise and E clockwise, seen from above. What a step does depends on the tool state: see "Input rules". A free tool turns around its center. The center of a movement tool is its hinge, and the tool keeps its bend. Q and E turn characters the same way.
 

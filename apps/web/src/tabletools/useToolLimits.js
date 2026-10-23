@@ -17,7 +17,7 @@ import {
 // Place, Place 1 and Throw of a tool: what they limit during a drag of a model (onPlaceLimit), and their
 // buttons' handlers (docs/features/range-movement-tools.md). Takes the state of the tool and gives the state
 // of the three modes: { placeSide, placeOne, throwLock, placing, lockOne, throwing, placeButtonSide,
-// lockMode, limiting, togglePlace, handlePlaceOne, handleThrow, handleAdvance }. Call it after the effects it must follow
+// lockMode, limiting, togglePlace, handlePlaceOne, handleThrow, handleAdvance, clearLimits }. Call it after the effects it must follow
 // (see Tool), the order of its effects is part of the behavior.
 export function useToolLimits({
   selected,
@@ -237,6 +237,13 @@ export function useToolLimits({
     setThrowLock({ side: snap.side, target: model })
   }
 
+  // Unsnap turns Place, Place 1 and Throw off
+  function clearLimits() {
+    setPlaceSide(null)
+    setPlaceOne(false)
+    setThrowLock(null)
+  }
+
   // Advance (docs/features/range-movement-tools.md, "Advance"): a right click on the far half moves the
   // snapped character to the far end, by a slide. Throw off: along the tool, bent as it is, no collision.
   // Throw on: along the Throw line, up to the stop point. No Advance for a token, a lifted character,
@@ -283,6 +290,7 @@ export function useToolLimits({
     handlePlaceOne,
     handleThrow,
     handleAdvance,
+    clearLimits,
   }
 }
 

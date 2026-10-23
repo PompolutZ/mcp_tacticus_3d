@@ -1,6 +1,7 @@
 import { UI_COLORS } from '../uiColors.js'
 import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
 import { FLAT_HTML_Y } from './useDragTool.js'
+import { PX_PER_INCH, PLACE_FILL } from './buttonLayout.js'
 
 const BUTTON_STYLE = {
   background: '#1a1a1a',
@@ -29,18 +30,13 @@ export function FlatHtml({ x = 0, z = 0, children }) {
   )
 }
 
-// drei's Html transform draws 1 CSS px as 1/40 world unit (see DiceKeys.jsx)
-const PX_PER_INCH = 40
-// Share of the tool width that Place covers
-const PLACE_FILL = 0.85
-
 // A pointer press on a button goes through onPointerDown (a click presses the button, a drag moves the tool),
 // so a native click runs the action only for the keyboard (detail 0).
 function clickByKey(e, onClick) {
   if (e.detail === 0) onClick?.(e)
 }
 
-// Place, Place 1, Place 2, Throw and Toward / Away.
+// Place, Place 1, Place 2, Throw, Unsnap and Toward / Away.
 // toolWidth: width of the tool in inches. The button is 1" long before the scale, so the scale is the
 // length in inches: 0.47" on a movement tool, 0.85" on a range tool.
 // on: the toggle state, or undefined for the one-shot Place 1 on the R1 tool

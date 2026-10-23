@@ -20,6 +20,7 @@ import { toolAction } from './toolInput.js'
 import { useRangeParts, useMovementParts, hullPoints } from './ToolParts.jsx'
 import { FlatHtml, ToolButton, BendButton } from './ToolButtons.jsx'
 import {
+import { PLACE_INSET, snapEndButtons } from './buttonLayout.js'
   SIDES,
   OTHER,
   STRAIGHT,
@@ -41,10 +42,6 @@ import {
 
 // A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
 const MAX_BEND = Math.PI / 2
-// Place sits this far in from the tip, and so does Throw at the other end. On a movement tool, these
-// buttons are turned across the tool, so along the tool they take only their height, about 0.27" for
-// Place and 0.4" for Throw.
-const PLACE_INSET = 0.75
 
 // target: the piece selected last, a model or a token, as { id, kind, getObject, getCenter, radius,
 // getBody? }, or null. The tool measures against it. By default it also snaps to it when it spawns
@@ -529,6 +526,7 @@ function Tool({
     selected,
     snap,
     turn,
+    clearLimits,
     setTurn,
     tip,
     halfWidth,
@@ -570,6 +568,13 @@ function Tool({
     e.stopPropagation()
     setBendOn((on) => !on)
   }
+  // Unsnap: the tool is free where it is, and Place, Place 1 and Throw turn off. Moves and turns nothing.
+  function handleUnsnap(e) {
+    e.stopPropagation()
+    clearLimits()
+    setSnap(null)
+  }
+
 
   // onPointerDown of a button: a drag from it moves the tool like a drag of the half on side (none: the middle),
   // a click runs action.
@@ -587,6 +592,19 @@ function Tool({
     <>
       {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
           and a sensor, so models pass under it. The footprint below is what measures. */}
+  // Local centers of the buttons at the snapped end (buttonLayout.js)
+  const ends =
+    snap && !angle
+      ? snapEndButtons({
+          tip,
+          halfWidth,
+          side: snap.side,
+          across: snap.across,
+          bendable,
+          rangeOne,
+        })
+      : null
+
       <RigidBody
         ref={rigidRef}
         type="kinematicPosition"
@@ -724,10 +742,7 @@ function Tool({
             character. Only while snapped, as in the TTS mod: without a snapped model, there is no
             corner to measure from. Disabled for a token: it has no body, so there is nothing to move. */}
         {selected && rangeOne && snap && (
-          <FlatHtml
-            x={snap.side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}
-            z={(-snap.across * halfWidth) / 2}
-          >
+          <FlatHtml x={ends.placeOne.x} z={ends.placeOne.z}>
             <ToolButton
               label="Place 1"
               toolWidth={halfWidth * 2}
@@ -747,6 +762,20 @@ function Tool({
       <ToolFootprint
         rigidRef={rigidRef}
         turn={turn}
+        {/* Unsnap, at the snapped end: the tool is free after it. On R1 beside Place 1, on a movement tool
+            beside Throw / Push. */}
+        {selected && ends && (
+          <FlatHtml x={ends.unsnap.x} z={ends.unsnap.z}>
+            <ToolButton
+              label="Unsnap"
+              toolWidth={halfWidth * 2}
+              along={rangeOne}
+              title="Unsnap: the tool stays where it is and moves freely. Place and Throw turn off."
+              onClick={handleUnsnap}
+              onPointerDown={grab(handleUnsnap, snap.side)}
+            />
+          </FlatHtml>
+        )}
         halfLength={tip}
         halfWidth={halfWidth}
         selected={selected}
