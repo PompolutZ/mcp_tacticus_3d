@@ -28,7 +28,8 @@ export const FLAT_HTML_Y = 0.25
 // plan's own kind (RulerTool: 'bend').
 // The returned onPointerDown has stepTurn(angle): during a turn drag it adds angle to the turn (extra), so
 // onTurn gets d + extra and the next pointer move goes on from there. It returns false when no turn drag is on.
-// onDragEnd: called once when a drag ends, also when onDragMove ends it.
+// onDragEnd(dropped): called once when a drag ends, also when onDragMove ends it. dropped: true for a release,
+// false for a cancel (Esc).
 export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, onDragEnd) {
   const { camera, gl, controls } = useThree()
   const { world } = useRapier()
@@ -117,12 +118,12 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
         return
     }
     const grab = { x: point.x, z: point.z }
-    function endDrag() {
+    function endDrag(dropped) {
       isDragging.current = false
       turning.current?.onPointer?.(null)
       turning.current = null
       if (liveBody(world, rigidRef.current)) rigidRef.current.setBodyType(restType.current, true)
-      onDragEnd?.()
+      onDragEnd?.(dropped)
     }
 
     const pressed = startPointerDrag(e, {
@@ -163,10 +164,10 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
         }
         return Boolean(onDragMove?.(raycaster.current))
       },
-      onEnd: endDrag,
+      onEnd: () => endDrag(true),
       // Esc: the tool stays where it is. A press that did not start has nothing to end.
       onCancel: () => {
-        if (isDragging.current) endDrag()
+        if (isDragging.current) endDrag(false)
       },
       onClick: () => onSelect?.(),
       // A DOM press: no default, so the browser does not select text or focus

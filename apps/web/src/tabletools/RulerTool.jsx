@@ -11,6 +11,7 @@ import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
 import { onRack } from './layout.js'
 import { CLICK_MOVE } from '../characters/trayControls.js'
 import { useDragTool } from './useDragTool.js'
+import { createReleaseSnap } from './releaseSnap.js'
 import { useToolLimits } from './useToolLimits.js'
 import { useToolStore } from './useToolStore.js'
 import { useFootprintGround } from './useFootprintGround.js'
@@ -19,8 +20,8 @@ import { aimTurn, aimDir, followPose } from './aimTurn.js'
 import { toolAction } from './toolInput.js'
 import { useRangeParts, useMovementParts, hullPoints } from './ToolParts.jsx'
 import { FlatHtml, ToolButton, BendButton } from './ToolButtons.jsx'
-import {
 import { PLACE_INSET, snapEndButtons } from './buttonLayout.js'
+import {
   SIDES,
   OTHER,
   STRAIGHT,
@@ -47,7 +48,7 @@ const MAX_BEND = Math.PI / 2
 // getBody? }, or null. The tool measures against it. By default it also snaps to it when it spawns
 // (spawnTarget in Tool). getBody is only there for a model (a character), with claim(): false when the other
 // player moves the model, so Throw does nothing to it. models: every character and token, in the same form,
-// for the pointer raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
+// for the pointer raycast and the snap. onSnap(model): the tool snapped to that model at the release of a drag.
 // onPlaceLimit(limit): called with { owns(model, p), clamp(p, model) } (model in the models form above) while Place, Place 1 or Throw is on,
 // and with null after. owns says if this tool limits the drag of that model to point p (table XZ). Place and
 // Place 1 lock the first model that touches the outline or comes within range 1, see docs/features/range-movement-tools.md.
@@ -183,9 +184,8 @@ function Tool({
     const target = stored && models.find((model) => sameModel(model, stored))
     return target ? { target, side: stored.side, across: stored.across } : null
   })
-  // Model under the pointer at the last move of a body drag, or null. undefined before the first move.
-  // The tool snaps when the pointer moves onto a model, not when the drag starts on one.
-  const overRef = useRef(undefined)
+  // Model under the pointer during a move drag. The tool snaps at the release, not during the drag (releaseSnap.js).
+  const overRef = useRef(null)
   // Model under the pointer while a drag turns the snapped tool around the base, else null. See RangeMark.
   const measuredRef = useRef(null)
   // The drag in progress: 'move', 'turn', 'bend' or null. See useDragTool.
@@ -200,16 +200,24 @@ function Tool({
     hoverHeight,
     (kind) => {
       // Only a free tool moves (see dragPlan)
-      if (kind === 'move') overRef.current = undefined
+      if (kind === 'move') overRef.current = createReleaseSnap()
       // Runs after the render, so the later function is set
       // eslint-disable-next-line react-hooks/immutability
       dragChange(kind)
     },
     onDragMove,
-    () => {
+    (dropped) => {
       const kind = dragKind.current
+      const snapModel = kind === 'move' && dropped ? overRef.current?.release() : null
+      overRef.current = null
       // eslint-disable-next-line react-hooks/immutability
       dragChange(null)
+      // Release over a model: snap to it (the tool is free and was moving)
+      // eslint-disable-next-line react-hooks/immutability
+      if (snapModel && snapTo(snapModel)) {
+        onSnap?.(snapModel)
+        return
+      }
       // Read on use: the closure is from the render of the press
       // eslint-disable-next-line react-hooks/immutability
       const giveBack = latest.current?.onReturn
@@ -417,14 +425,10 @@ function Tool({
     )
   }
 
-  // Body drag: when the pointer moves onto a model, snap to it and end the drag
+  // Move drag: the tool follows the pointer, also over models. Only note the model under it, for the release.
   function onDragMove(raycaster) {
-    const model = modelUnder(raycaster)
-    const entered = model && overRef.current !== undefined && model !== overRef.current
-    overRef.current = model
-    if (!entered || !snapTo(model)) return false
-    onSnap?.(model)
-    return true
+    overRef.current?.move(modelUnder(raycaster))
+    return false
   }
 
   // Move the tool without turning it, so that the end nearer to the model's base touches the base edge.
@@ -522,11 +526,11 @@ function Tool({
     handlePlaceOne,
     handleThrow,
     handleAdvance,
+    clearLimits,
   } = useToolLimits({
     selected,
     snap,
     turn,
-    clearLimits,
     setTurn,
     tip,
     halfWidth,
@@ -564,10 +568,6 @@ function Tool({
     setMode((m) => (m === 'away' ? 'toward' : 'away'))
   }
 
-  function toggleBend(e) {
-    e.stopPropagation()
-    setBendOn((on) => !on)
-  }
   // Unsnap: the tool is free where it is, and Place, Place 1 and Throw turn off. Moves and turns nothing.
   function handleUnsnap(e) {
     e.stopPropagation()
@@ -575,6 +575,10 @@ function Tool({
     setSnap(null)
   }
 
+  function toggleBend(e) {
+    e.stopPropagation()
+    setBendOn((on) => !on)
+  }
 
   // onPointerDown of a button: a drag from it moves the tool like a drag of the half on side (none: the middle),
   // a click runs action.
@@ -588,10 +592,6 @@ function Tool({
       )
   }
 
-  return (
-    <>
-      {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
-          and a sensor, so models pass under it. The footprint below is what measures. */}
   // Local centers of the buttons at the snapped end (buttonLayout.js)
   const ends =
     snap && !angle
@@ -605,6 +605,10 @@ function Tool({
         })
       : null
 
+  return (
+    <>
+      {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
+          and a sensor, so models pass under it. The footprint below is what measures. */}
       <RigidBody
         ref={rigidRef}
         type="kinematicPosition"
@@ -758,10 +762,6 @@ function Tool({
             />
           </FlatHtml>
         )}
-      </RigidBody>
-      <ToolFootprint
-        rigidRef={rigidRef}
-        turn={turn}
         {/* Unsnap, at the snapped end: the tool is free after it. On R1 beside Place 1, on a movement tool
             beside Throw / Push. */}
         {selected && ends && (
@@ -776,6 +776,10 @@ function Tool({
             />
           </FlatHtml>
         )}
+      </RigidBody>
+      <ToolFootprint
+        rigidRef={rigidRef}
+        turn={turn}
         halfLength={tip}
         halfWidth={halfWidth}
         selected={selected}
