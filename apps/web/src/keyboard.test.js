@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { keyAction } from './keyboard.js'
-import { effectiveBindings } from './input/bindings.js'
+import { keyAction, wheelState } from './keyboard.js'
+import { effectiveBindings, resolve } from './input/bindings.js'
 
 const field = { closest: (sel) => (sel.includes('input') ? {} : null) }
 const plain = { closest: () => null }
@@ -293,4 +293,19 @@ test("Build mode: Q / E and Delete are the builder's, only while it is on", () =
   // The other keys work as always
   assert.equal(act(key('KeyL', { code: 'KeyL' }), { building: true }).action, 'lock')
   assert.equal(act(key('KeyW', { code: 'KeyW' }), { building: true }).action, 'pan')
+})
+
+test('the wheel turns the piece during any drag (model, placed tool, token), else it zooms', () => {
+  const at = (code, s) =>
+    resolve({ code, shift: false, ctrl: false, alt: false, meta: false }, wheelState(s))
+  assert.equal(at('WheelUp', {}), 'zoomIn')
+  for (const s of [
+    { drag: true },
+    { modelDrag: true, drag: true },
+    { tokenDrag: {} },
+    { toolDrag: {} },
+  ]) {
+    assert.equal(at('WheelUp', s), 'rotateLeft')
+    assert.equal(at('WheelDown', s), 'rotateRight')
+  }
 })

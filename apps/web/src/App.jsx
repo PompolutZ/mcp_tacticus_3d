@@ -45,6 +45,7 @@ import { ThreatChoose } from './setup/ThreatChoose.jsx'
 import { useAutoOpen } from './setup/useAutoOpen.js'
 import { useTokenDrag } from './drag/useTokenDrag.js'
 import { cancelActiveDrag, isDragActive } from './drag/pointerDrag.js'
+import { wheelState } from './keyboard.js'
 import { characterOnBoard } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getCard } from './crisis/cards.js'
@@ -743,14 +744,18 @@ export default function App({
     openCard || openTrayId || openRoster || crisisShown || chooseShown || settingsOpen || setupOpen,
   )
   // The state for a mouse wheel step (WheelCamera.jsx): what keyAction reads, as the resolver needs it
-  const dragActive = () => !!(store.getState().tokenDrag || store.getState().toolDrag)
-  const wheelState = () => ({
-    popup: popupOpen,
-    dragging: dragActive(),
-    overDiceTray: !!hoveredNow().diceTray,
-    overPiece: !!hoveredNow().piece,
-    bindings,
-  })
+  const dragActive = () =>
+    isDragActive() || !!(store.getState().tokenDrag || store.getState().toolDrag)
+  const wheelNow = () =>
+    wheelState({
+      tokenDrag: store.getState().tokenDrag,
+      toolDrag: store.getState().toolDrag,
+      drag: isDragActive(),
+      popup: popupOpen,
+      diceTray: hoveredNow().diceTray,
+      overPiece: !!hoveredNow().piece,
+      bindings,
+    })
   // The wheel sizes the Alt peek card while it shows (WheelCamera.jsx, onPeekZoom). The ref holds the size
   // between renders, so quick wheel events add up. Returns false when no card shows.
   const peekSizeRef = useRef(settings.peek.size)
@@ -989,7 +994,7 @@ export default function App({
               <CameraHover />
               <WheelCamera
                 ref={wheelCameraRef}
-                wheelState={wheelState}
+                wheelState={wheelNow}
                 onPeekZoom={peekZoom}
                 trackpadSwipePans={settings.trackpadSwipePans}
                 onTurn={(dir) => sceneApi.current?.turnPiece(dir)}

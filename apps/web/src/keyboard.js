@@ -13,6 +13,19 @@ export function isEditing(target) {
   return Boolean(target.closest?.('input, textarea, select, [contenteditable]'))
 }
 
+// The state of a mouse wheel step for the resolver (WheelCamera.jsx), from the same state as keyAction.
+// During any pointer drag the wheel turns the piece: a model, a placed tool, a token or a tool from the
+// rack. Keys use a narrower `dragging` (token and rack tool drags block keys), so the wheel has its own.
+export function wheelState(s) {
+  return {
+    popup: !!s.popup,
+    dragging: !!(s.tokenDrag || s.toolDrag || s.drag),
+    overDiceTray: !!s.diceTray,
+    overPiece: !!s.overPiece,
+    bindings: s.bindings ?? defaultBindings(),
+  }
+}
+
 // What a key press does. e: the keydown event. s: the app state now, read at the key press:
 // { tokenDrag, toolDrag (a token or tool is dragged), modelDrag (a model is dragged), drag (any pointer drag is in progress: Esc cancels it), popup (a card, tray, roster or settings popup is open), rosterOpen, diceMenu,
 // libraryOpen, logOpen, diceTray (side of the own dice tray under the pointer, or null), overPiece,
